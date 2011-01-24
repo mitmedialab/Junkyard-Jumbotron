@@ -116,7 +116,10 @@ Image.getSampleImageFiles = function getSampleImageFiles(cb) {
 
 Image.makeIcon = function makeIcon(src, dst, width, height, cb) {
     gm(src).arg(null, ['-gravity', 'center'])
-	.resize(width, height + '^').crop(width, height, 0, 0)
+         // gm 1.3.5 doesn't support ^ postfix for resize
+	 //.resize(width, height + '^')
+         .resize(width, height)
+	 .crop(width, height, 0, 0)
 	.noProfile()
 	.write(dst, cb);
 };
@@ -148,11 +151,13 @@ module.exports = Image;
 gm.prototype.cmd = function(){
     var src = utils.escapeForShell(this.source);
     var dst = this.outname ? utils.escapeForShell(this.outname) : src;
-    return ["gm convert" ,
+    var fullCmd =  ["gm convert" ,
 	    this._in.join(" "),
             src,
             this._out.join(" "),
             dst].join(" ");
+    //console.log(fullCmd);
+    return fullCmd;
 };
 
 // gm identify ignores exif tags
