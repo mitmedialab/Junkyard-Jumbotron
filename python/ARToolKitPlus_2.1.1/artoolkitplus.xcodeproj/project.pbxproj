@@ -1,0 +1,63 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 42;
+	objects = {
+
+/* Begin PBXGroup section */
+		0E71022E8970293824BA089C = {
+			isa = PBXGroup;
+			children = (
+			);
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXProject section */
+		83F5E4B52EF1918F746DF6D4 /* Project object */ = {
+			isa = PBXProject;
+			buildConfigurationList = 30E61B081CF688BCA30A6135 /* Build configuration list for PBXProject "artoolkitplus" */;
+			compatibilityVersion = "Xcode 2.4";
+			hasScannedForEncodings = 0;
+			mainGroup = 0E71022E8970293824BA089C;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+			);
+		};
+/* End PBXProject section */
+
+/* Begin XCBuildConfiguration section */
+		B2A2D94BC0E5A82DA3503E81 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COPY_PHASE_STRIP = NO;
+			};
+			name = Debug;
+		};
+		C6EE5F4E4F422FDDBF285003 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COPY_PHASE_STRIP = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		30E61B081CF688BCA30A6135 /* Build configuration list for PBXProject "artoolkitplus" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				B2A2D94BC0E5A82DA3503E81 /* Debug */,
+				C6EE5F4E4F422FDDBF285003 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 83F5E4B52EF1918F746DF6D4 /* Project object */;
+}

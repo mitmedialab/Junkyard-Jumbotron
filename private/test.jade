@@ -1,0 +1,71 @@
+div
+  p Create
+  form#jjCreateForm(action="create", method="POST")
+
+    label(for="jjCreateName") Jumbotron:
+    input#jjCreateName(name="name", type="text")
+
+    label(for="jjCreatePassword") Password:
+    input#jjCreatePassword(name="password", type="password")
+
+    label(for="jjCreateEmail") Email (optional):
+    input#jjCreateEmail(name="email", type="email")
+
+    input#jjCreateSubmit(name="submit", type="submit", value="Create")
+
+div
+  p Control
+  form#jjControlForm(action="control", method="POST")
+
+    label(for="jjControlName") Jumbotron:
+    input#jjControlName(name="name", type="text")
+
+    label(for="jjControlPassword") Password:
+    input#jjControlPassword(name="password", type="password")
+
+    input#jjControlSubmit(name="submit", type="submit", value="Control")
+
+div
+  p Calibrate
+  form#jjCalibrateForm(action="calibrate", enctype="multipart/form-data", method="POST")
+
+    label(for="jjCalibrateFile") File:
+    input#jjCalibrateFile(name="file", type="file")
+
+    input#jjCalibrateSubmit(name="submit", type="submit", value="Calibrate")
+
+div
+  p Recalibrate
+  form#jjRecalibrateForm(action="recalibrate", method="POST")
+
+    input#jjRecalibrateSubmit(name="submit", type="submit", value="Recalibrate")
+
+div
+  p Upload
+  form#jjUploadForm(action="upload", enctype="multipart/form-data", method="POST")
+
+    label(for="jjUploadFile") File:
+    input#jjUploadFile(name="file", type="file")
+
+    input#jjUploadSubmit(name="submit", type="submit", value="Upload")
+
+div
+  p Fit
+  form#jjFitForm(action="fit", method="POST")
+
+    input#jjFitMaximize(name="fitMode", type="submit", value="maximize")
+    input#jjFitMinimize(name="fitMode", type="submit", value="minimize")
+    input#jjFitStretch(name="fitMode", type="submit", value="stretch")
+
+div
+  p Slideshow
+  form#jjSlideshowForm(action="slideshow", method="POST")
+
+    input#jjSlideshowInterval(name="interval", type="text", value="1", size="4")
+    input#jjSlideshowPlay(name="control", type="submit", value="play")
+    input#jjSlideshowStop(name="control", type="submit", value="stop")
+    input#jjSlideshowNext(name="control", type="submit", value="next")
+    input#jjSlideshowPrev(name="control", type="submit", value="prev")
+    input#jjSlideshowFirst(name="control", type="submit", value="first")
+    input#jjSlideshowLast(name="control", type="submit", value="last")
+

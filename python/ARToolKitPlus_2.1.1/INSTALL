@@ -1,0 +1,30 @@
+Install instructions for Linux:
+===============================
+
+Remarks:
+--------
+
+The make environment for Linux is based on Qt's qmake system.
+Please install qmake before compiling ARToolKitPlus!
+
+Compile Steps:
+--------------
+
+- Modify build/linux/options.pro to your needs
+- Set ARTKP environment variable to source tree
+
+  for bash: export ARTKP='<path_to_artoolkitplus_source_tree>'
+  for tcsh: setenv ARTKP '<path_to_artoolkitplus_source_tree>'
+
+- Start compilation with
+
+  make
+
+- You should end up with
+
+  ./lib ... ARToolKitPlus shared libraries
+  ./bin ... 
+	    simple   ... Sample program
+	    idpatgen ... For generating ID markers
+
+- For executing, do not forget to update your LD_LIBRARY_PATH

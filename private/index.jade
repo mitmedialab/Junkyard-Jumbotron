@@ -1,0 +1,121 @@
+!!!
+html(lang="en")
+  head
+    title Junkyard Jumbotron
+    link(rel="stylesheet", href="jquery.mobile-1.0a2.css", type="text/css")
+    link(rel="stylesheet", href="jjcontroller.css", type="text/css")
+
+    //- Use local jquery and jquery mobile so they work in phonegap apps
+    script(type="text/javascript", src="phonegap.js")
+    script(type="text/javascript", src="jquery-1.4.4.min.js")
+    script(type="text/javascript", src="jquery.cookie.js")
+    script(type="text/javascript", src="jquery.form.js")
+    script(type="text/javascript", src="jjclient.js")
+    script(type="text/javascript", src="jjcontroller.js")
+    script(type="text/javascript", src="jquery.mobile-1.0a2.min.js")
+    script(type="text/javascript", src="socket.io/socket.io.js")
+
+  body
+
+    //- Create
+    div(data-role="page", id="jjCreate")
+
+      div(data-role="header", data-position="fixed", data-nobackbtn="true")
+        h1.jjTitle Junkyard Jumbotron
+        div(data-role="navbar")
+          ul
+            li
+              a.jjNavCreate.ui-btn-active(href="#") 1. Create
+            li
+              a.jjNavCalibrate(href="#") 2. Calibrate
+            li
+              a.jjNavControl(href="#") 3. Control
+
+      div(data-role="content")
+        div
+          p
+            span.jjStepNumber 1
+            span What's the name of your jumbotron?
+          form#jjCreateForm(action="create", method="POST")
+            input#jjCreateName(name="name", type="text")
+            inputjjCreateSubmit(name="create", type="submit", value="Create") Next
+
+
+    //- Calibrate
+    div(data-role="page", id="jjCalibrate")
+
+      div(data-role="header", data-position="fixed", data-nobackbtn="true")
+        h1.jjTitle Junkyard Jumbotron
+        div(data-role="navbar")
+          ul
+            li
+              a.jjNavCreate(href="#") 1. Create
+            li
+              a.jjNavCalibrate.ui-btn-active(href="#") 2. Calibrate
+            li
+              a.jjNavControl(href="#") 3. Control
+
+      div(data-role="content")
+
+        div
+          p
+            span.jjStepNumber 2
+            span Open
+            span.jjDisplayUrl jj.brownbag.me/none
+            span on each of the devices.
+          p Take a calibration picture and upload it below or email it to
+            span.jjEmailUrl none@jj.brownbag.me
+
+          form#jjCalibrateForm(action="calibrate", enctype="multipart/form-data", method="POST")
+            input#jjCalibrateFile(name="file", type="file")
+            input#jjCalibrateSubmit(name="calibrate", type="submit", value="Next")
+
+    //- Control
+    div(data-role="page", id="jjControl")
+
+      div(data-role="header", data-position="fixed", data-nobackbtn="true")
+        h1.jjTitle Junkyard Jumbotron
+        div(data-role="navbar")
+          ul
+            li
+              a.jjNavCreate(href="#") 1. Create
+            li
+              a.jjNavCalibrate(href="#") 2. Calibrate
+            li
+              a.jjNavControl.ui-btn-active(href="#") 3. Control
+
+      div(data-role="content")
+
+        div
+          p
+            span.jjStepNumber 3
+            span Upload pictures below or email them to 
+            span.jjEmailUrl none@jj.brownbag.me
+
+          form#jjUploadForm(action="upload", enctype="multipart/form-data", method="POST")
+            input#jjUploadFile(name="file", type="file")
+            input#jjUploadSubmit(name="upload", type="submit", value="Upload")
+
+          div#jjControls(data-role="fieldcontain")
+            //- Slideshow
+            div#jjSlideshowButtons(data-role="controlgroup", data-type="horizontal")
+              a#jjSlideshowFirst(data-role="button", href="#") 
+              a#jjSlideshowPrev(data-role="button", href="#")  
+              a#jjSlideshowPlay(data-role="button", href="#")  
+              a#jjSlideshowStop(data-role="button", href="#")  
+              a#jjSlideshowNext(data-role="button", href="#")  
+              a#jjSlideshowLast(data-role="button", href="#")  
+              input#jjSlideshowInterval(name="interval", type="hidden", value="5")
+            //- Fit
+            div#jjFitButtons(data-role="controlgroup", data-type="horizontal")  
+              a#jjFitMaximize(data-role="button", href="#") Max
+              a#jjFitMinimize(data-role="button", href="#") Min
+              a#jjFitStretch(data-role="button", href="#") Stretch
+            //- Delete
+            div#jjDeleteButtons(data-role="controlgroup", data-type="horizontal")  
+              a#jjDeleteOne(data-role="button", href="#") Delete
+              a#jjDeleteAll(data-role="button", href="#") Delete All
+            //- Debug
+            div#jjShowButtons(data-role="controlgroup", data-type="horizontal")  
+              a#jjShowIdOn(data-role="button", href="#") Ids On
+              a#jjShowIdOff(data-role="button", href="#") Ids Off

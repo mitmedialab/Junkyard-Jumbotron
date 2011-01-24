@@ -1,0 +1,23 @@
+
+install node.js:
+> download and unpack node-v0.3.3.tar.gz
+> ./configure
+> make
+> make install
+
+install npm:
+> curl http://npmjs.org/install.sh | sh
+
+npm install express		# mini framework
+npm install socket.io		# async io
+npm install formidable		# decode multipart form data
+npm install underscore		# utilities
+npm install underscore.string	# utilities
+npm install chaos		# disk store
+npm install jade		# templates
+npm install gm			# graphics magick
+npm install node-dev		#
+
+install gm:
+> follow instructions at http://www.graphicsmagick.org/
+	

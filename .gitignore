@@ -1,0 +1,15 @@
+### Things that GIT should ignore
+
+# OS-X cruft
+.DS_Store?
+Icon?
+
+# Emacs backups
+*~
+\#*\#
+
+# Compiled Python
+*.pyc
+
+# My own
+NOTES.txt

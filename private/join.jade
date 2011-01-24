@@ -1,0 +1,21 @@
+!!!
+html(lang="en")
+  head
+    title Junkyard Jumbotron
+    link(rel="stylesheet", href="jquery.mobile-1.0a2.css", type="text/css")
+    link(rel="stylesheet", href="jjcontroller.css", type="text/css")
+    script(type="text/javascript", src="jquery-1.4.4.js")
+    script(type="text/javascript", src="jquery.mobile-1.0a2.js")
+
+  body
+
+    div(data-role="page", data-theme="e", id="jjJoin")
+      div(data-role="header", data-position="inline", data-nobackbtn="true")
+        h1 Join
+
+      div(data-role="content")
+        p.error #{err}
+
+        form#jjJoinForm(action="join", method="POST")
+          label(for="jjJoinName") Try again:
+          input#jjJoinName(name="name", type="text", value="")

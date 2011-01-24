@@ -1,0 +1,11 @@
+body {
+    background: #000000;
+    margin: 0px;
+}
+#finalcrop {
+    overflow: hidden;
+}
+#crop {
+    -webkit-transform-origin: 0% 0%;
+    -moz-transform-origin: 0% 0%;
+}

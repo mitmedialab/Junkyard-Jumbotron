@@ -1,0 +1,36 @@
+// ======================================================================
+// Queue object
+
+// From creationix (https://github.com/creationix)
+
+// If a large number of writes gets queued up, the shift call normally
+// eats all the CPU.  This implementes a faster queue.
+function Queue() {
+    this.tail = [];
+    this.head = Array.prototype.slice.call(arguments);
+    this.offset = 0;
+}
+
+Queue.prototype = {
+    shift: function shift() {
+	if (this.offset === this.head.length) {
+	    var tmp = this.head;
+	    tmp.length = 0;
+	    this.head = this.tail;
+	    this.tail = tmp;
+	    this.offset = 0;
+	    if (this.head.length === 0) return;
+	}
+	return this.head[this.offset++];
+    },
+
+    push: function push(item) {
+	return this.tail.push(item);
+    },
+
+    get length() {
+	return this.head.length - this.offset + this.tail.length;
+    }
+};
+
+module.exports = Queue;

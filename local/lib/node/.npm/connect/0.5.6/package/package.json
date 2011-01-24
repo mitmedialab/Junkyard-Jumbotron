@@ -1,0 +1,10 @@
+{   "name": "connect"
+  , "description": "High performance middleware framework"
+  , "version": "0.5.6"
+  , "contributors": [ 
+      { "name": "TJ Holowaychuk", "email": "tj@vision-media.ca" }
+    , { "name": "Tim Caswell", "email": "tim@sencha.com" }
+  ]
+  , "directories": { "lib": "./lib/connect" }
+  , "engines": { "node": ">= 0.2.2" }
+}

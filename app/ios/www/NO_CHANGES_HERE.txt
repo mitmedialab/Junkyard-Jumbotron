@@ -1,0 +1,1 @@
+A build script copies and generates these files from ../public and ../private.

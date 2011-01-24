@@ -1,0 +1,42 @@
+{
+  "name": "chaos",
+  "description": "chaos is a node.js database",
+  "version": "0.1.6-pre",
+  "main": "chaos",
+  "homepage": "http://github.com/stagas/chaos",
+  "author": {
+    "name": "George Stagakis",
+    "email": "gstagas@gmail.com",
+    "url": "http://stagas.com/"
+  },
+  "repository": {
+    "type": "git",
+    "url": "http://github.com/stagas/chaos.git"
+  },
+  "bugs": {
+    "url": "http://github.com/stagas/chaos/issues"
+  },
+  "engines": {
+    "node": ">=0.2.4"
+  },
+  "licenses": [
+    {
+      "type": "MIT",
+      "url": "http://github.com/stagas/chaos/raw/master/LICENSE"
+    }
+  ],
+  "_id": "chaos@0.1.6-pre",
+  "_nodeSupported": true,
+  "_npmVersion": "0.2.15",
+  "_nodeVersion": "v0.3.7-pre",
+  "dist": {
+    "shasum": "5839ddde61a295628c561c5aca2e7a2cf7a28446",
+    "tarball": "http://registry.npmjs.org/chaos/-/chaos-0.1.6-pre.tgz"
+  },
+  "directories": {},
+  "_engineSupported": true,
+  "files": [
+    ""
+  ],
+  "_defaultsLoaded": true
+}
