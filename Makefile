@@ -17,3 +17,9 @@ phonegap-www:
 node:
 	cd dep/node; ./configure --prefix ../../local
 	make -C dep/node install
+
+python:
+	make -C python all
+
+.PHONY: node python
+all: node python

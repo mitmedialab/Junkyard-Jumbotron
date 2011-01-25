@@ -1,9 +1,0 @@
-version=0.3.2
-prefix=/Users/BK30/Documents/Work/BrownBag/jumbotron-0.2/dep
-libdir=${prefix}/lib
-includedir=${prefix}/include/node
-
-Name: nodejs
-Description: Evented I/O for V8 JavaScript.
-Version: ${version}
-Cflags: -I${includedir}

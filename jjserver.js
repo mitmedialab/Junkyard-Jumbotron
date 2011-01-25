@@ -70,7 +70,7 @@ Server.prototype = {
     init: function init() {
 	this.initServer();
 	this.initSocket();
-	this.initMail();
+	//this.initMail();
 
 	// Listen for Jumbotron changes
 	Jumbotron.listener = this.handleImageChange.bind(this);
@@ -236,7 +236,7 @@ Server.prototype = {
 	// Seems like only lower-case cookies work, hence no jjID or jjId
 	var jjid = req.cookies.jjid;
 	if (! jjid) {
-	    jjid = req.cookies.jjid = utils.uid();
+	    jjid = req.cookies.jjid = utils.uid(24);
 	    res.cookie('jjid', jjid);
 	}
 	return jjid;
@@ -366,7 +366,7 @@ Server.prototype = {
 	    this.parseUpload(req, res, jumbotron, '_calibrate_',
 				 function(err, filename) {
 		if (err)
-		    res.sendStatus(err);
+		    return res.sendStatus(err);
 		this.calibrateJumbotron(jumbotron, filename, function(err) {
 		    res.sendStatus(err);
 		});
@@ -404,7 +404,7 @@ Server.prototype = {
 
 	    this.parseUpload(req, res, jumbotron, '', function(err, filename) {
 		if (err)
-		    res.sendStatus(err);
+		    return res.sendStatus(err);
 		this.uploadToJumbotron(jumbotron, filename, function(err) {
 		    res.sendStatus(err);
 		});
