@@ -47,6 +47,7 @@ http.ServerResponse.prototype.sendStatus = function(status, args) {
 	if (! err.stack || err.stack.indexOf("\n") == -1)
 	    Error.captureStackTrace(err,
 				    http.ServerResponse.prototype.sendStatus);
+	error('#>', err.message);
 	error('#>', err.stack);
 	status = err.message;
     }
@@ -789,7 +790,6 @@ Server.prototype = {
 		return cb && cb(err);
 	    jumbotron.addImage(image);
 	    this.fitJumbotronViewport(jumbotron, "maximize");
-	    this.commitJumbotron(jumbotron);
 	    jumbotron.setCurrentImage(image);
 	    cb && cb(null);
 	}.bind(this));

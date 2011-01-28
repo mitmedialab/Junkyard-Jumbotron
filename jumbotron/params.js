@@ -46,7 +46,8 @@ module.exports = {
     logFile: join('private', 'logs', 'output.log'),
 
     // Python scripts
-    python: '/usr/bin/python',
+    pythonPath: '/usr/local/bin:/usr/bin',
+    python: 'python',
     calibrateScript: join('python', 'calibrate.py'),
     mailScript: join('python', 'mail.py'),
 

@@ -457,10 +457,11 @@ $.extend(Display.prototype, {
 	vp: function vp(args) {
 	    // Ignore changes while interacting or loading an image
 	    if (! this.viewport.equals(args) &&
-		this.mode == 'idle' && 
+		(this.mode == 'idle' || this.mode == 'loading') && 
 		! this.viewportMsgScheduled) {
 		this.viewport = new Viewport(args);
-		this.transformImg();
+		if (this.mode == 'idle')
+		    this.transformImg();
 	    }
 	},
 

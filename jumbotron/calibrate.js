@@ -32,7 +32,7 @@ module.exports = {
 	jData = "'" + JSON.stringify(jData) + "'";
 
 	var cmd = [params.python, params.calibrateScript, source, jData].join(" ");
-	cp.exec(cmd, function(err, stdout, stderr) {
+	cp.exec(cmd, {env: {PATH: params.pythonPath}}, function(err, stdout, stderr) {
 	    if (err)
 		return cb && cb(err);
 	    var res = JSON.parse(stdout);

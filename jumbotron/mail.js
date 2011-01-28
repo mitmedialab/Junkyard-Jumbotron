@@ -30,7 +30,8 @@ Mail.prototype = {
 	    // Start new mail checker
 	    utils.log('Starting mail checker');
 	    var process = this.process =
-		cp.spawn(params.python, [params.mailScript]);
+		cp.spawn(params.python, [params.mailScript],
+			 {env: {PATH: params.pythonPath}});
 	    process.stderr.on('data', this._handleStderr.bind(this));
 	    process.stdout.on('data', this._handleStdout.bind(this));
 	    process.stdin.write(JSON.stringify(params.email));
