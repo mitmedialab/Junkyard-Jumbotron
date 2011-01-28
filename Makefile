@@ -2,7 +2,7 @@ CP = cp
 MV = mv
 ECHO = echo
 NODE = local/bin/node
-WWW_DIR = app/iphone/www
+WWW_DIR = app/ios/www
 
 # Convert jade templates html and copy needed files to phonegap
 phonegap-www:

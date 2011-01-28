@@ -5,17 +5,6 @@ function bind(instance, method) {
     return function() { return method.apply(instance, arguments); };
 }
 
-// Return string version of an object
-function stringify(obj) {
-    if (obj === null)
-	return "null";
-    if (obj === void 0)
-	return "undefined";
-    if (obj && obj.charCodeAt && obj.substr)
-	return obj;  // string
-    return JSON.stringify(obj);
-}
-
 function isFunction(obj) {
     return !! (obj && obj.constructor && obj.call && obj.apply);
 }
@@ -24,7 +13,18 @@ function isUndefined(obj) {
     return obj === void 0;
 }
 
-if (console === void 0) {
+// Return string version of an object
+function stringify(obj) {
+    if (obj === null)
+	return "null";
+    if (isUndefined(obj))
+	return "undefined";
+    if (obj && obj.charCodeAt && obj.substr)
+	return obj;  // string
+    return JSON.stringify(obj);
+}
+
+if (isUndefined(console)) {
     var console = { debug: function() {},
 		    log: function() {} };
 }
@@ -39,7 +39,7 @@ function Client() {
 Client.prototype = {
 
     initSocket: function initSocket() {
-	var socket = this.socket = new io.Socket();
+	var socket = this.socket = new io.Socket(null, { port: 81 });
 
 	// socket.90 v0.6.8: timeout doesn't work very well
 	socket.on('connect', bind(this, function() {
@@ -66,7 +66,7 @@ Client.prototype = {
     },
 
     scheduleConnect: function scheduleConnect() {
-	this.connectTimeout = setTimeout(bind(this, this.connectSocket), 5000);
+	this.connectTimeout = setTimeout(bind(this, this.connectSocket), 10000);
     },
 
     unscheduleConnect: function unscheduleConnect() {
@@ -80,6 +80,8 @@ Client.prototype = {
     // Communication 
 
     sendMsg: function sendMsg(cmd, args) {
+	if (this.debug)
+	    console.log(">", cmd, args);
 	this.socket.send(JSON.stringify({cmd: cmd, args: args}));
     },
 
@@ -114,7 +116,7 @@ Client.prototype = {
 
 	try {
 	    if (this.debug)
-		console.log("Server Cmd", data.cmd, data.args);
+		console.log("<", data.cmd, data.args);
 	    var handler = this.msgHandlers[data.cmd];
 	    if (! handler)
 		return this.sendErrorMsg("Unknown command: " + data.cmd);

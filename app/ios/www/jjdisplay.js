@@ -51,13 +51,13 @@ Viewport.prototype = {
 // Display class
 
 function Display() {
-    Client(this);
+    Client.call(this);
 
     // Cache for speed
     this.imgElem = $('#img');
     this.cropElem = $('#crop');
 
-    this.mode = "idle";	// idle|dragging|scaling|loading
+    this.mode = 'idle';	// idle|dragging|scaling|loading
 
     this.image = new Image();
     this.image.onload  = bind(this, this.onImageLoad);
@@ -84,7 +84,8 @@ $.extend(Display.prototype, {
 
     initDom: function initDom() {
 	$(window)
-	    .resize   (bind(this, this.handleResize))
+	    .resize   (bind(this, this.handleResize));
+	$(document)
 	    .keyup    (bind(this, this.handleKeyup))
 	    .mousedown(bind(this, this.handleMousedown))
 	    .mousemove(bind(this, this.handleMousemove))
@@ -127,8 +128,8 @@ $.extend(Display.prototype, {
 
 	// Final image size
 	if (! this.image.width) {
-	    this.imgElem.removeAttr("width"); 
-	    this.imgElem.removeAttr("height");
+	    this.imgElem.removeAttr('width'); 
+	    this.imgElem.removeAttr('height');
 	    this.image.width  = this.imgElem.width();
 	    this.image.height = this.imgElem.height(); 
 	}
@@ -140,22 +141,43 @@ $.extend(Display.prototype, {
 	var marginY = round(-vp.y * scaleY);
 
 	// Handle crop and rotation (on the 'crop' div)
+	// TODO/SPEED? do this only if rotation has changed.
 	var transformStr = ['rotate(0deg) translate(0%, 0%)',
 			    'rotate(90deg) translate(0%, -100%)',
 			    'rotate(180deg) translate(-100%, -100%)',
 			    'rotate(270deg) translate(-100%, 0%)'][vp.rotation];
-	this.cropElem.css({'width'  : docWidth,
-			   'height' : docHeight,
+	this.cropElem.css({width : docWidth + 'px',
+			   height: docHeight + 'px',
 			   '-webkit-transform': transformStr,
 			   '-moz-transform'   : transformStr
 			  });
 
-	// Handle translation and scaling (on the 'img' div)
-	this.imgElem.css({'margin-top'	: marginY + 'px',
-			  'margin-left'	: marginX + 'px',
-			  'width'	: imgWidth + 'px',
-			  'height'	: imgHeight + 'px'
+	// Set size and position. Using a css 'background' rather than
+	// an <img> element guarantees the xform and image change
+	// happen simultaneously. Otherwise when a new image arrives
+	// it occasionally is displayed with the old xform. Another
+	// solution might be to create an entirely new <img> element
+	// when a new image arrives and swap it in for the old one.
+	this.imgElem.css({ width : docWidth + 'px',
+			   height : docHeight + 'px',
+			   'background-image'   : 'url(' + this.image.src + ')',
+			   'background-position': marginX + 'px ' + marginY + 'px',
+			   'background-size'    : imgWidth + 'px ' + imgHeight + 'px'
 			 });
+
+	/*
+	console.log({ docWidth : docWidth + 'px',
+		      docHeight : docHeight + 'px',
+		      imgWidth : this.image.width,
+		      imgHeight : this.image.height,
+		      scaleX: scaleX,
+		      scaleY: scaleY,
+		      vp: vp,
+		      'background-image'   : 'url(' + this.image.src + ')',
+		      'background-position': marginX + 'px ' + marginY + 'px',
+		      'background-size'    : imgWidth + 'px ' + imgHeight + 'px'
+		    });
+        */
     },
     
     translateViewport: function translateViewport(x, y) {
@@ -222,12 +244,28 @@ $.extend(Display.prototype, {
     },
 
     // ----------------------------------------------------------------------
+    // Misc DOM manipulations
+
+    setLabel: function setLabel(options) {
+	$('#id'  ).text(isUndefined(options.id  ) ? '?' : options.id );
+	$('#name').text(isUndefined(options.name) ? '?' : options.name);
+    },
+
+    showLabel: function showLabel(onOrOff) {
+	$('#label').css({ display: (onOrOff ? 'block' : 'none') });
+    },
+
+    isShowingLabel: function isShowingLabel() {
+	return $('#label').css('display') != 'none';
+    },
+
+    // ----------------------------------------------------------------------
     // Window events
 
     handleResize: function handleResize() {
 	// Update css, update image transform, and notify the server
-	$('#finalcrop').css({width : $(window).width(),
-			     height: $(window).height()}); 
+	$('#finalcrop').css({width : $(window).width() + 'px',
+			     height: $(window).height() + 'px'}); 
 	this.transformImg();
 	this.sendSizeMsg();
     },
@@ -237,10 +275,13 @@ $.extend(Display.prototype, {
 
     handleKeyup: function handleKeyup(event) {
 	switch (event.which) {
-	case 86: // 'v'
-	    alert(this.viewport.string());
+	  case 68: // d(ebug)
+	    this.debug = ! this.debug;
 	    break;
-	default:
+	  case 73: // i(nfo))
+	    this.showLabel(! this.isShowingLabel());
+	    break;
+	  default:
 	    break;
 	}
     },
@@ -255,14 +296,14 @@ $.extend(Display.prototype, {
 
 	this.firstMouseX = event.pageX;
 	this.firstMouseY = event.pageY;
-	this.mode = event.shiftKey ? "scaling" : "dragging";
+	this.mode = event.shiftKey ? 'scaling' : 'dragging';
 	if (event.shiftKey) {
-	    this.mode = "scaling";
+	    this.mode = 'scaling';
 	    this.lastScaleX = 1;
 	    this.lastScaleY = 1;
 	}
 	else {
-	    this.mode = "dragging";
+	    this.mode = 'dragging';
 	    this.lastTranslateX = 0;
 	    this.lastTranslateY = 0;
 	}
@@ -271,22 +312,22 @@ $.extend(Display.prototype, {
     handleMousemove: function handleMousemove(event) {
 	var deltaX = event.pageX - this.firstMouseX;
 	var deltaY = event.pageY - this.firstMouseY;
-	if (this.mode == "scaling") {
+	if (this.mode == 'scaling') {
 	    // Normalize mouse movements so they're in the range (-1,1)
 	    // and allow only uniform scales.
 	    var wsize = Math.max($(window).width(), $(window).height());
 	    var scale = 1.0 + (deltaY - deltaX) / wsize;
 	    this.scaleViewport(scale, scale, this.firstMouseX, this.firstMouseY);
 	}
-	else if (this.mode == "dragging") {
+	else if (this.mode == 'dragging') {
 	    this.translateViewport(-deltaX, -deltaY);
 	}
     },
 
     handleMouseup: function handleMouseup(event) {
 	event.preventDefault();
-	if (this.mode == "scaling" || this.mode == "dragging")
-	    this.mode = "idle";
+	if (this.mode == 'scaling' || this.mode == 'dragging')
+	    this.mode = 'idle';
     },
 
     // ----------------------------------------------------------------------
@@ -303,14 +344,14 @@ $.extend(Display.prototype, {
 
 	// Only deal with one finger
 	if (event.changedTouches.length == 1) {
-	    this.mode = "dragging";
+	    this.mode = 'dragging';
 	    this.lastTranslateX = 0;
 	    this.lastTranslateY = 0;
 	}
     },
 
     handleTouchmove: function handleTouchmove(event) {
-	if (this.mode == "dragging") {
+	if (this.mode == 'dragging') {
 	    event.preventDefault();
 	    var touch = event.changedTouches[0];
 	    var deltaX = touch.pageX - this.firstMouseX;
@@ -321,8 +362,8 @@ $.extend(Display.prototype, {
 
     handleTouchend: function handleTouchend(event) {
 	event.preventDefault();
-	if (this.mode == "scaling" || this.mode == "dragging")
-	    this.mode = "idle";
+	if (this.mode == 'scaling' || this.mode == 'dragging')
+	    this.mode = 'idle';
     },
 
     // ----------------------------------------------------------------------
@@ -333,7 +374,7 @@ $.extend(Display.prototype, {
 	if (this.frozen)
 	    return;
 
-	this.mode = "scaling";
+	this.mode = 'scaling';
 	this.lastScaleX = 1;
 	this.lastScaleY = 1;
     },
@@ -348,19 +389,19 @@ $.extend(Display.prototype, {
 	event.preventDefault();
 	this.scaleViewport(1.0 / event.scale, 1.0 / event.scale,
 			    this.firstMouseX, this.firstMouseY);
-	if (this.mode == "scaling" || this.mode == "dragging")
-	    this.mode = "idle";
+	if (this.mode == 'scaling' || this.mode == 'dragging')
+	    this.mode = 'idle';
     },
 
     // ----------------------------------------------------------------------
     // Communication 
 
     sendInitMsg: function sendInitMsg() {
-	var id = $.cookie("jjid");
+	var id = $.cookie('jjid');
 	var name = this.getJumbotronName();
 	var docWidth  = $(window).width();
 	var docHeight = $(window).height();
-	this.sendMsg("connect", {jjid: id, jjname: name,
+	this.sendMsg('connect', {jjid: id, jjname: name,
 				 width: docWidth, height: docHeight});
 	this.sendSizeMsg();
     },
@@ -368,7 +409,7 @@ $.extend(Display.prototype, {
     sendViewportMsg: function sendViewportMsg() {
 	this.viewportMsgScheduled = null;
 	var vp = this.viewport;
-	this.sendMsg('viewport', {
+	this.sendMsg('vp', {
 	    x: vp.x, y: vp.y, width: vp.width, height: vp.height });
     },
 
@@ -382,18 +423,17 @@ $.extend(Display.prototype, {
     sendSizeMsg: function sendSizeMsg() {
 	var docWidth  = $(window).width();
 	var docHeight = $(window).height();
-	this.sendMsg("size", {width: docWidth, height: docHeight});
+	this.sendMsg('size', {width: docWidth, height: docHeight});
     },
 
     onImageLoad: function onImageLoad() {
-	this.mode = "idle";
-	this.imgElem.attr('src', this.image.src);
 	this.transformImg();
+	this.mode = 'idle';
     },
 
     onImageError: function onImageError() {
-	this.mode = "idle";
 	this.sendErrorMsg("Can't load image", this.image.src);
+	this.mode = 'idle';
     },
 
     msgHandlers : {
@@ -401,11 +441,11 @@ $.extend(Display.prototype, {
 	load: function load(args) {
 	    var image = this.image;
 	    if (this.image.src != args.src) {
-		this.mode = "loading";
+		this.mode = 'loading';
 		this.frozen = args.frozen;
-		this.viewport = new Viewport(args.viewport);
+		this.viewport = new Viewport(args.vp);
 		this.image.src = args.src;
-		if (this.image.complete)
+		if (this.image.complete || this.image.readyState === 4)
 		    this.onImageLoad();
 	    }
 	    else {
@@ -414,19 +454,29 @@ $.extend(Display.prototype, {
 	    }
 	},
 
-	viewport: function viewport(args) {
-	    if (! this.viewport.equals(args)) {
+	vp: function vp(args) {
+	    // Ignore changes while interacting or loading an image
+	    if (! this.viewport.equals(args) &&
+		this.mode == 'idle' && 
+		! this.viewportMsgScheduled) {
 		this.viewport = new Viewport(args);
-		// Ignore changes while interacting or loading an image
-		if (this.mode == "idle" && ! this.viewportMsgScheduled)
-		    this.transformImg();
+		this.transformImg();
 	    }
 	},
 
+	id: function id(args) {
+	    this.setLabel(args);
+	},
+
+	show: function show(args) {
+	    if (! isUndefined(args.id))
+		this.showLabel(args.id);
+	},
+
 	errorMsg: function error(args) {
-	    console.log("ERROR from server:", args);
+	    console.log('ERROR from server:', args);
 	}
-    },
+    }
 });
 
 // ----------------------------------------------------------------------

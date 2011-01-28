@@ -4,7 +4,7 @@
     border-style: solid;
     border-width: 3px;
     margin: 5px;
-    padding: 5px;
+    padding: 0px 5px;
 }
 
 .jjDisplayUrl, .jjEmailUrl {
@@ -24,21 +24,20 @@
     padding: 6px;
 }
  
-#jjSlideshowPlay  { background-position:    6px 6px; }
-#jjSlideshowStop  { background-position:  -66px 6px; }
-#jjSlideshowPrev  { background-position: -138px 6px; }
-#jjSlideshowNext  { background-position: -210px 6px; }
-#jjSlideshowFirst { background-position: -282px 6px; }
-#jjSlideshowLast  { background-position: -354px 6px; }
+#jjSlideshowPlay  { background-position:    6px 4px; }
+#jjSlideshowStop  { background-position:  -66px 4px; }
+#jjSlideshowPrev  { background-position: -138px 4px; }
+#jjSlideshowNext  { background-position: -210px 4px; }
+#jjSlideshowFirst { background-position: -282px 4px; }
+#jjSlideshowLast  { background-position: -354px 4px; }
 
-.ui-mobile-viewport {
-    max-width: 600px;
-    min-height:100%;
-    margin:0 auto;
-    position:relative;
+#jjControls {
+    text-align: center;
 }
+
 .ui-page {
     max-width: 600px;
     min-height: 100%;
     margin: 0 auto;
+    position:relative;
 }

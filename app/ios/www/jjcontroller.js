@@ -2,7 +2,7 @@
 // Controller class
 
 function Controller() {
-    Client(this);
+    Client.call(this);
     //this.initSocket();
     this.initControls();
     this.jumbotron = null;
@@ -16,18 +16,18 @@ $.extend(Controller.prototype, {
     // Utilites
 
     isValidJumbotronName: function isValidJumbotronName(name) {
-	var regExp = /^[a-zA-Z0-9_-]+$/;
+	var regExp = /^[a-zA-Z0-9][a-zA-Z0-9_-]*$/;
 	return regExp.test(name);
     },
 
-    checkStatus: function checkStatus(data) {
-	if (data.status != 'ok')
-	    alert('Unknown error ' + data.status);
+    checkStatus: function checkStatus(response) {
+	if (response.status != 'ok')
+	    alert('Unknown error ' + response.status);
     },
 
     convertFormData: function convertFormData(data) {
 	var obj = {};
-	for (var d in data) 
+	for (var d = data.length; --d >= 0; )
 	    obj[data[d].name] = data[d].value;
 	return obj;
     },
@@ -54,28 +54,24 @@ $.extend(Controller.prototype, {
     },
 
     postMsg: function postMsg(cmd, args, success, dataType) {
-	if (isFunction(args)) {
-	    args = args();
-	    if (isUndefined(args))
-		return;
-	}
 	$.post(cmd, args, success || this.checkStatus, dataType || 'json');
     },
 
     setMode: function setMode(mode) {
-	if (! this.jumbotron)
-	    return;
-
 	switch(mode) {
 	  case 'create':
 	    $.mobile.changePage("#jjCreate");
 	    break;
 	  case 'calibrate':
+	    if (! this.jumbotron)
+		return setMode('create');
 	    this.postMsg('recalibrate');
 	    $.mobile.changePage("#jjCalibrate");
 	    break;
 	  case 'control':
-	    this.postMsg('endcalibrate');
+	    if (! this.jumbotron)
+		return setMode('create');
+	    this.postMsg('endCalibrate');
 	    $.mobile.changePage("#jjControl");
 	    break;
 	}
@@ -95,7 +91,8 @@ $.extend(Controller.prototype, {
 		if (! name)
 		    alert('Please enter a name for the Jumotron');
 		else if (! this.isValidJumbotronName(name))
-		    alert('Jumbotron names may contain only numbers, letters, dashes, and underscores')
+		    alert('Jumbotron names must begin with a letter or number'
+			  + ' and may only contain letters, numbers, dashes, and underscores');
 		else
 		    ok = true;
 		return ok;
@@ -123,15 +120,14 @@ $.extend(Controller.prototype, {
 
 	jjCalibrateForm: {
 	    beforeSubmit: function validate(data, form, options) { 
-		var ok = false;
+		var ok = true;
 		data = this.convertFormData(data);
 		var file = data.file;
 		if (! file) {
 		    // TODO: check if jumbotron has been calibrated yet
 		    this.setMode('control');
+		    ok = false;
 		}
-		else
-		    ok = true;
 		return ok;
 	    },
 	    success: function success(response) {
@@ -149,21 +145,14 @@ $.extend(Controller.prototype, {
 
 	jjUploadForm: {
 	    beforeSubmit: function validate(data, form, options) { 
-		var ok = false;
+		var ok = true;
 		data = this.convertFormData(data);
 		var file = data.file;
 		if (! file) {
-		    // TODO: check if jumbotron has been uploadd yet
-		    this.setMode('control');
+		    alert("Please browse for a file");
+		    ok = false;
 		}
-		else
-		    ok = true;
 		return ok;
-	    },
-	    success: function success(response) {
-		if (response.status != "ok") {
-		    alert(response.status);
-		}
 	    }
 	},
 
@@ -190,8 +179,23 @@ $.extend(Controller.prototype, {
 
 	jjFitMaximize: { action: 'fit', args: { mode: 'maximize' } },
 	jjFitMinimize: { action: 'fit', args: { mode: 'minimize' } },
-	jjFitStretch : { action: 'fit', args: { mode: 'stretch'  } }
+	jjFitStretch : { action: 'fit', args: { mode: 'stretch'  } },
 
+	jjShowIdOn : { action: 'identify', args: { on: true  } },
+	jjShowIdOff: { action: 'identify', args: { on: false } },
+
+	jjDeleteOne: {
+	    action: 'remove',
+	    beforeSubmit: function() {
+		return confirm("Delete the current image?");
+	    }
+	},
+	jjDeleteAll: {
+	    action: 'removeAll',
+	    beforeSubmit: function() {
+		return confirm("Delete ALL images?");
+	    }
+	}
     },
 
     controlJumbotron: function controlJumbotron(jumbotron) {
@@ -200,23 +204,33 @@ $.extend(Controller.prototype, {
 	    this.setMode('calibrate');
 	else
 	    this.setMode('control');
-	$('.jjTitle').text(jumbotron.name);
-	$('.jjDisplayUrl').text('jj.brownbag.me/' + jumbotron.name);
-	$('.jjEmailUrl').text(jumbotron.name + '@jj.brownbag.me');
+
+	var root = window.location.host;
+	var name = jumbotron.name;
+	$('.jjTitle').text(name);
+	$('.jjDisplayUrl').text(root + '/' + name);
+	$('.jjEmailUrl').text(name + '@jj.brownbag.me');
     },
 
     initButton: function initButton(button, options) {
 	button.click(bind(this, function() {
-	    this.postMsg(options.action, options.args,
-			 options.success, options.dataType);
+	    var args = isFunction(options.args)
+		? options.args() : options.args;
+	    if (! options.beforeSubmit || options.beforeSubmit(args))
+		this.postMsg(options.action, args,
+			     options.success, options.dataType);
 	}));
     },
 
     initText: function initText(text, options) {
 	text.keyup(bind(this, function(event) {
-	    if(event.keyCode == 13)
-		this.postMsg(options.action, options.args,
-			     options.success, options.dataType);
+	    if(event.keyCode == 13) { // "return" key
+		var args = isFunction(options.args)
+		    ? options.args() : options.args;
+		if (options.beforeSubmit && options.beforeSubmit(args))
+		    this.postMsg(options.action, args,
+				 options.success, options.dataType);
+	    }
 	}));
     },
 
@@ -242,7 +256,9 @@ $.extend(Controller.prototype, {
 		options.args = bind(this, options.args);
 	    if (isFunction(options.beforeSubmit))
 		options.beforeSubmit = bind(this, options.beforeSubmit);
-	    if (isFunction(options.success))
+	    if (! options.success)
+		options.success = bind(this, this.checkStatus);
+	    else if (isFunction(options.success))
 		options.success = bind(this, options.success);
 	    options.dataType = options.dataType || 'json';
 

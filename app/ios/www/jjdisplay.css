@@ -1,6 +1,7 @@
 body {
     background: #000000;
     margin: 0px;
+    font-size: 100%;
 }
 #finalcrop {
     overflow: hidden;
@@ -8,4 +9,26 @@ body {
 #crop {
     -webkit-transform-origin: 0% 0%;
     -moz-transform-origin: 0% 0%;
+}
+#img {
+    background-repeat: no-repeat;
+}
+
+#label {
+    display: none;
+    color: red;
+    font-family: sans-serif;
+    position: absolute;
+    bottom: 0px;
+    right: 0px;
+    z-index: 1;
+    padding: 0px;
+    margin: 0px;
+}
+#id {
+    font-size: 6em;
+    margin: 0px 10px;
+}
+#name {
+    font-size: 2em;
 }
