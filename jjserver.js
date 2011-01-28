@@ -493,8 +493,8 @@ Server.prototype = {
 	// will stay around forever.
 	if (oldImage &&
 	    oldImage != jumbotron.getCurrentImage() &&
-	    oldImage.source != params.calibratedImageFile) {
-	    express.staticProvider.clearCache(oldImage.source);
+	    oldImage.source != params.calibratedImageOptions.source) {
+	    staticProvider.clearCache(oldImage.source);
 	}
 	this.sendJumbotronLoad(jumbotron);
     },

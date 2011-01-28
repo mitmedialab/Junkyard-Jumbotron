@@ -21,3 +21,6 @@ npm install node-dev		#
 install gm:
 > follow instructions at http://www.graphicsmagick.org/
 	
+TODO: Change apache config from mode_rewrite to proxy
+see: blog.depold.com/post/2073407414/deploying-a-node-js-web-application-with-express-and
+and: www.scribd.com/doc/4310225/When-Not-to-Use-modrewrite
