@@ -1,0 +1,73 @@
+From bleppie@gmail.com  Mon Jan 17 19:22:30 2011
+Return-Path: <bleppie@gmail.com>
+X-Original-To: natian@jj.brownbag.me
+Delivered-To: jj@localhost
+Received: from mail-qy0-f181.google.com (mail-qy0-f181.google.com [209.85.216.181])
+	by brownbag.me (Postfix) with ESMTPS id 2D7A136004
+	for <natian@jj.brownbag.me>; Mon, 17 Jan 2011 19:22:30 +0000 (UTC)
+Received: by qyk12 with SMTP id 12so6050803qyk.5
+        for <natian@jj.brownbag.me>; Mon, 17 Jan 2011 11:22:29 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=gamma;
+        h=domainkey-signature:mime-version:sender:from:date
+         :x-google-sender-auth:message-id:subject:to:content-type;
+        bh=8xJySdHo0XZsuROhtCS3bXc7Wl6oqlgTQ1FcrDP8wk0=;
+        b=JBS1OTL9GL8jMQq+q+nA56D21ji8EE/rk5yt4RplszLR5BJtNcWFl3J/L5r98RffzA
+         P61/sRTXPR9T3q7nsxg+vQSxViTw/Qh/3ov+yh5sT8tGwlBE+0j5pF00iyBbSdAZvGQW
+         jPbLVkXXVL4Ad2NBEUU2XZE5+pSpAOePGmucI=
+DomainKey-Signature: a=rsa-sha1; c=nofws;
+        d=gmail.com; s=gamma;
+        h=mime-version:sender:from:date:x-google-sender-auth:message-id
+         :subject:to:content-type;
+        b=h4qKkv6dnIvspZzrcBC01auX+ee0AB2Dc9Sy9a8UCPbRa8uSq+WI+PQep0ST96LbO5
+         tChVuevh4r7W9+mzlYM9+p+xW2D+JkmAYcG+YCDSAjaBeYgLRkU+Hwd1afqNB0GUTq4D
+         ZLuxDdfzEcPk925uWpWViEfAUrIgBE8/Dngz0=
+Received: by 10.224.6.144 with SMTP id 16mr4195213qaz.159.1295292148924; Mon,
+ 17 Jan 2011 11:22:28 -0800 (PST)
+MIME-Version: 1.0
+Sender: bleppie@gmail.com
+Received: by 10.220.11.16 with HTTP; Mon, 17 Jan 2011 11:21:58 -0800 (PST)
+From: Brian Knep <brian@blep.com>
+Date: Mon, 17 Jan 2011 14:21:58 -0500
+X-Google-Sender-Auth: 0RJKiNuJMeV8JPkHsMn9VXnlGkU
+Message-ID: <AANLkTikpHQ0r6tK30We=ZPvUjj+4koG6bWpGiM0rvaa=@mail.gmail.com>
+Subject: 
+To: natian@jj.brownbag.me
+Content-Type: multipart/mixed; boundary=0015175cb05e6ac48f049a0fb484
+
+--0015175cb05e6ac48f049a0fb484
+Content-Type: multipart/alternative; boundary=0015175cb05e6ac46d049a0fb482
+
+--0015175cb05e6ac46d049a0fb482
+Content-Type: text/plain; charset=ISO-8859-1
+
+
+
+--0015175cb05e6ac46d049a0fb482
+Content-Type: text/html; charset=ISO-8859-1
+
+<br>
+
+--0015175cb05e6ac46d049a0fb482--
+--0015175cb05e6ac48f049a0fb484
+Content-Type: image/x-icon; name="mondrian.ico"
+Content-Disposition: attachment; filename="mondrian.ico"
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_gj1rhaqc0
+
+AAABAAEAICAQAAAAAADoAgAAFgAAACgAAAAgAAAAQAAAAAEABAAAAAAAAAIAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAC/AAC/AAAAv78AvwAAAL8AvwC/vwAAwMDAAICAgAAAAP8AAP8AAAD//wD/AAAA
+/wD/AP//AAD///8AAAAAAAAAAAAAAAAAAAAAAA////C7u7u7u7sCIiIP//AP///wu7u7u7u7AiIi
+D//wD///8Lu7u7u7uwIiIg//8A////C7u7u7u7sCIiIP//AP///wu7u7u7u7AiIiD//wD///8Lu7
+u7u7uwIiIg//8A////AAAAAAAAAAAAAP//AP///w////////////D//wD///8P///////////w//
+8A////D///////////8P//AP///w////////////D//wD///8P///////////w//8A////D/////
+//////8P//AP///w////////////D//wD///8P///////////w//8A////D///////////8P//AP
+///w////////////AAAAD///8P///////////wzMwA////D///////////8MzMAP///w////////
+////DMzAD///8P///////////wzMwA////D///////////8MzMAAAAAAAAAAAAAAAAAAAAAACZmZ
+kP//////////////8AmZmZD///////////////AJmZmQ///////////////wCZmZkP//////////
+////8AmZmZD///////////////AJmZmQ///////////////wCZmZkP//////////////8AAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==
+--0015175cb05e6ac48f049a0fb484--
+
