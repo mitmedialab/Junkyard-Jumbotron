@@ -1,11 +1,4 @@
 // ======================================================================
-// Utilities
-
-function bind(instance, method) {
-    return function() { method.apply(instance, arguments); };
-}
-
-// ======================================================================
 // Viewport class
 
 function Viewport(options) {
@@ -55,15 +48,16 @@ Viewport.prototype = {
 };
 
 // ======================================================================
-// Main class
+// Display class
 
 function Display() {
+    Client.call(this);
+
     // Cache for speed
     this.imgElem = $('#img');
     this.cropElem = $('#crop');
 
-    this.mode = "idle";	// idle|dragging|scaling|loading
-    this.debug = true;
+    this.mode = 'idle';	// idle|dragging|scaling|loading
 
     this.image = new Image();
     this.image.onload  = bind(this, this.onImageLoad);
@@ -80,58 +74,28 @@ function Display() {
 
     this.viewportMsgScheduled = null;
 
+    this.initDom();
+    this.initSocket();
 }
 
-Display.prototype = {
+Display.prototype = new Client();
 
-    init: function init() {
-	this.initDom();
-	this.initSocket();
-    },
+$.extend(Display.prototype, {
 
     initDom: function initDom() {
 	$(window)
-	    .resize   (bind(this, this.handleResize))
+	    .resize   (bind(this, this.handleResize));
+	$(document)
 	    .keyup    (bind(this, this.handleKeyup))
 	    .mousedown(bind(this, this.handleMousedown))
 	    .mousemove(bind(this, this.handleMousemove))
 	    .mouseup  (bind(this, this.handleMouseup));
-	/*
-	$('body')
-	    .bind("touchstart"   , bind(this, this.handleTouchstart))
-	    .bind("touchmove"	 , bind(this, this.handleTouchmove))
-	    .bind("touchend"	 , bind(this, this.handleTouchend))
-	    .bind("gesturestart" , bind(this, this.handleGesturestart))
-	    .bind("gesturechange", bind(this, this.handleGesturechange))
-	    .bind("gestureend"	 , bind(this, this.handleGestureend));
-        */
 	document.ontouchstart	= bind(this, this.handleTouchstart);
 	document.ontouchmove	= bind(this, this.handleTouchmove);
 	document.ontouchend	= bind(this, this.handleTouchend);
 	document.ongesturestart = bind(this, this.handleGesturestart);
 	document.ongesturechange= bind(this, this.handleGesturechange);
 	document.ongestureend	= bind(this, this.handleGestureend);
-    },
-
-    initSocket: function initSocket() {
-	var socket = this.socket = new io.Socket("localhost", {port:80});
-
-	socket.on('connect', bind(this, function() {
-	    console.log('Connected');
-	    this.sendInitMsg();
-	}));
-	socket.on('message', bind(this, this.handleMsg));
-	socket.on('disconnect', bind(this, function(data) {
-	    // Pause and reconnect on disconnect
-	    console.log("Disconnected");
-	    setTimeout(bind(this, this.connectSocket), 1000);
-	}));
-	this.connectSocket();
-    },
-
-    connectSocket: function connectSocket() {
-	console.log('Connecting...');
-	this.socket.connect();
     },
 
     getJumbotronName: function getJumbotronName() {
@@ -143,6 +107,10 @@ Display.prototype = {
     // Transforms
 
     transformImg: function transformImg() {
+	var img = this.image;
+	if (! img.src || ! img.width || ! img.height)
+	    return;
+
 	// Cache for speed
 	var round = Math.round;
 	var vp = this.viewport;
@@ -163,36 +131,51 @@ Display.prototype = {
 	var scaleY = docHeight / vp.height;
 
 	// Final image size
-	if (! this.image.width) {
-	    this.imgElem.removeAttr("width"); 
-	    this.imgElem.removeAttr("height");
-	    this.image.width  = this.imgElem.width();
-	    this.image.height = this.imgElem.height(); 
-	}
-	var imgWidth  = round(this.image.width  * scaleX);
-	var imgHeight = round(this.image.height * scaleY);
+	var imgWidth  = round(img.width  * scaleX);
+	var imgHeight = round(img.height * scaleY);
 
 	// Margins to push the image into place
 	var marginX = round(-vp.x * scaleX);
 	var marginY = round(-vp.y * scaleY);
 
 	// Handle crop and rotation (on the 'crop' div)
+	// TODO/SPEED? do this only if rotation has changed.
 	var transformStr = ['rotate(0deg) translate(0%, 0%)',
 			    'rotate(90deg) translate(0%, -100%)',
 			    'rotate(180deg) translate(-100%, -100%)',
 			    'rotate(270deg) translate(-100%, 0%)'][vp.rotation];
-	this.cropElem.css({'width'  : docWidth,
-			   'height' : docHeight,
+	this.cropElem.css({width : docWidth + 'px',
+			   height: docHeight + 'px',
 			   '-webkit-transform': transformStr,
 			   '-moz-transform'   : transformStr
 			  });
 
-	// Handle translation and scaling (on the 'img' div)
-	this.imgElem.css({'margin-top'	: marginY + 'px',
-			  'margin-left'	: marginX + 'px',
-			  'width'	: imgWidth + 'px',
-			  'height'	: imgHeight + 'px'
+	// Set size and position. Using a css 'background' rather than
+	// an <img> element guarantees the xform and image change
+	// happen simultaneously. Otherwise when a new image arrives
+	// it occasionally is displayed with the old xform. Another
+	// solution might be to create an entirely new <img> element
+	// when a new image arrives and swap it in for the old one.
+	this.imgElem.css({ width : docWidth + 'px',
+			   height : docHeight + 'px',
+			   'background-image'   : 'url(' + img.src + ')',
+			   'background-position': marginX + 'px ' + marginY + 'px',
+			   'background-size'    : imgWidth + 'px ' + imgHeight + 'px'
 			 });
+
+	/*
+	console.log({ docWidth : docWidth + 'px',
+		      docHeight : docHeight + 'px',
+		      imgWidth : img.width,
+		      imgHeight : img.height,
+		      scaleX: scaleX,
+		      scaleY: scaleY,
+		      vp: vp,
+		      'background-image'   : 'url(' + img.src + ')',
+		      'background-position': marginX + 'px ' + marginY + 'px',
+		      'background-size'    : imgWidth + 'px ' + imgHeight + 'px'
+		    });
+	*/
     },
     
     translateViewport: function translateViewport(x, y) {
@@ -259,12 +242,28 @@ Display.prototype = {
     },
 
     // ----------------------------------------------------------------------
+    // Misc DOM manipulations
+
+    setLabel: function setLabel(options) {
+	$('#id'  ).text(isUndefined(options.id  ) ? '?' : options.id );
+	$('#name').text(isUndefined(options.name) ? '?' : options.name);
+    },
+
+    showLabel: function showLabel(onOrOff) {
+	$('#label').css({ display: (onOrOff ? 'block' : 'none') });
+    },
+
+    isShowingLabel: function isShowingLabel() {
+	return $('#label').css('display') != 'none';
+    },
+
+    // ----------------------------------------------------------------------
     // Window events
 
     handleResize: function handleResize() {
 	// Update css, update image transform, and notify the server
-	$('#finalcrop').css({width : $(window).width(),
-			     height: $(window).height()}); 
+	$('#finalcrop').css({width : $(window).width() + 'px',
+			     height: $(window).height() + 'px'}); 
 	this.transformImg();
 	this.sendSizeMsg();
     },
@@ -274,10 +273,13 @@ Display.prototype = {
 
     handleKeyup: function handleKeyup(event) {
 	switch (event.which) {
-	case 86: // 'v'
-	    alert(this.viewport.string());
+	  case 68: // d(ebug)
+	    this.debug = ! this.debug;
 	    break;
-	default:
+	  case 73: // i(nfo))
+	    this.showLabel(! this.isShowingLabel());
+	    break;
+	  default:
 	    break;
 	}
     },
@@ -292,14 +294,14 @@ Display.prototype = {
 
 	this.firstMouseX = event.pageX;
 	this.firstMouseY = event.pageY;
-	this.mode = event.shiftKey ? "scaling" : "dragging";
+	this.mode = event.shiftKey ? 'scaling' : 'dragging';
 	if (event.shiftKey) {
-	    this.mode = "scaling";
+	    this.mode = 'scaling';
 	    this.lastScaleX = 1;
 	    this.lastScaleY = 1;
 	}
 	else {
-	    this.mode = "dragging";
+	    this.mode = 'dragging';
 	    this.lastTranslateX = 0;
 	    this.lastTranslateY = 0;
 	}
@@ -308,22 +310,22 @@ Display.prototype = {
     handleMousemove: function handleMousemove(event) {
 	var deltaX = event.pageX - this.firstMouseX;
 	var deltaY = event.pageY - this.firstMouseY;
-	if (this.mode == "scaling") {
+	if (this.mode == 'scaling') {
 	    // Normalize mouse movements so they're in the range (-1,1)
 	    // and allow only uniform scales.
 	    var wsize = Math.max($(window).width(), $(window).height());
 	    var scale = 1.0 + (deltaY - deltaX) / wsize;
 	    this.scaleViewport(scale, scale, this.firstMouseX, this.firstMouseY);
 	}
-	else if (this.mode == "dragging") {
+	else if (this.mode == 'dragging') {
 	    this.translateViewport(-deltaX, -deltaY);
 	}
     },
 
     handleMouseup: function handleMouseup(event) {
 	event.preventDefault();
-	if (this.mode == "scaling" || this.mode == "dragging")
-	    this.mode = "idle";
+	if (this.mode == 'scaling' || this.mode == 'dragging')
+	    this.mode = 'idle';
     },
 
     // ----------------------------------------------------------------------
@@ -340,14 +342,14 @@ Display.prototype = {
 
 	// Only deal with one finger
 	if (event.changedTouches.length == 1) {
-	    this.mode = "dragging";
+	    this.mode = 'dragging';
 	    this.lastTranslateX = 0;
 	    this.lastTranslateY = 0;
 	}
     },
 
     handleTouchmove: function handleTouchmove(event) {
-	if (this.mode == "dragging") {
+	if (this.mode == 'dragging') {
 	    event.preventDefault();
 	    var touch = event.changedTouches[0];
 	    var deltaX = touch.pageX - this.firstMouseX;
@@ -358,8 +360,8 @@ Display.prototype = {
 
     handleTouchend: function handleTouchend(event) {
 	event.preventDefault();
-	if (this.mode == "scaling" || this.mode == "dragging")
-	    this.mode = "idle";
+	if (this.mode == 'scaling' || this.mode == 'dragging')
+	    this.mode = 'idle';
     },
 
     // ----------------------------------------------------------------------
@@ -370,7 +372,7 @@ Display.prototype = {
 	if (this.frozen)
 	    return;
 
-	this.mode = "scaling";
+	this.mode = 'scaling';
 	this.lastScaleX = 1;
 	this.lastScaleY = 1;
     },
@@ -385,23 +387,19 @@ Display.prototype = {
 	event.preventDefault();
 	this.scaleViewport(1.0 / event.scale, 1.0 / event.scale,
 			    this.firstMouseX, this.firstMouseY);
-	if (this.mode == "scaling" || this.mode == "dragging")
-	    this.mode = "idle";
+	if (this.mode == 'scaling' || this.mode == 'dragging')
+	    this.mode = 'idle';
     },
 
     // ----------------------------------------------------------------------
     // Communication 
 
-    sendMsg: function sendMsg(cmd, args) {
-	this.socket.send(JSON.stringify({cmd: cmd, args: args}));
-    },
-
     sendInitMsg: function sendInitMsg() {
-	var id = $.cookie("jjid");
+	var id = $.cookie('jjid');
 	var name = this.getJumbotronName();
 	var docWidth  = $(window).width();
 	var docHeight = $(window).height();
-	this.sendMsg("connect", {jjid: id, jjname: name,
+	this.sendMsg('connect', {jjid: id, jjname: name,
 				 width: docWidth, height: docHeight});
 	this.sendSizeMsg();
     },
@@ -409,7 +407,7 @@ Display.prototype = {
     sendViewportMsg: function sendViewportMsg() {
 	this.viewportMsgScheduled = null;
 	var vp = this.viewport;
-	this.sendMsg('viewport', {
+	this.sendMsg('vp', {
 	    x: vp.x, y: vp.y, width: vp.width, height: vp.height });
     },
 
@@ -417,24 +415,23 @@ Display.prototype = {
 	// Avoid overloading the server by restricting msgs/sec
 	if (! this.viewportMsgScheduled)
 	    this.viewportMsgScheduled = setTimeout(
-		bind(this, this.sendViewportMsg), 200);
+		bind(this, this.sendViewportMsg), 100);
     },
     
     sendSizeMsg: function sendSizeMsg() {
 	var docWidth  = $(window).width();
 	var docHeight = $(window).height();
-	this.sendMsg("size", {width: docWidth, height: docHeight});
+	this.sendMsg('size', {width: docWidth, height: docHeight});
     },
 
     onImageLoad: function onImageLoad() {
-	this.mode = "idle";
-	this.imgElem.attr('src', this.image.src);
 	this.transformImg();
+	this.mode = 'idle';
     },
 
     onImageError: function onImageError() {
-	this.mode = "idle";
-	this.error("Can't load image", this.image.src);
+	this.sendErrorMsg("Can't load image", this.image.src);
+	this.mode = 'idle';
     },
 
     msgHandlers : {
@@ -442,11 +439,11 @@ Display.prototype = {
 	load: function load(args) {
 	    var image = this.image;
 	    if (this.image.src != args.src) {
-		this.mode = "loading";
+		this.mode = 'loading';
 		this.frozen = args.frozen;
-		this.viewport = new Viewport(args.viewport);
+		this.viewport = new Viewport(args.vp);
 		this.image.src = args.src;
-		if (this.image.complete)
+		if (this.image.complete || this.image.readyState === 4)
 		    this.onImageLoad();
 	    }
 	    else {
@@ -455,65 +452,34 @@ Display.prototype = {
 	    }
 	},
 
-	viewport: function viewport(args) {
-	    if (! this.viewport.equals(args)) {
+	vp: function vp(args) {
+	    // Ignore changes while interacting or loading an image
+	    if (! this.viewport.equals(args) &&
+		(this.mode == 'idle' || this.mode == 'loading') && 
+		! this.viewportMsgScheduled) {
 		this.viewport = new Viewport(args);
-		// Ignore changes while interacting or loading an image
-		if (this.mode == "idle" && ! this.viewportMsgScheduled)
+		if (this.mode == 'idle')
 		    this.transformImg();
 	    }
 	},
 
+	id: function id(args) {
+	    this.setLabel(args);
+	},
+
+	show: function show(args) {
+	    if (! isUndefined(args.id))
+		this.showLabel(args.id);
+	},
+
 	errorMsg: function error(args) {
-	    console.log("ERROR from server:", args);
-	}
-    },
-
-    handleMsg: function handleMsg(msg) {
-	try {
-	    var data = JSON.parse(msg);
-	}
-	catch (SyntaxError) {
-	    this.error('Invalid JSON: ' + msg);
-	    return;
-	}
-
-	try {
-	    if (this.debug)
-		console.log("Server Cmd", data.cmd, data.args);
-	    var handler = this.msgHandlers[data.cmd];
-	    if (! handler)
-		return this.error("Unknown command: " + data.cmd);
-	    handler.call(this, data.args);
-	}
-	catch (exception) {
-	    this.error(exception.message);
-	    console.log("ERROR:", exception.stack);
-	}
-    },
-
-    error: function error(msg) {
-	console.log("ERROR:", msg);
-	this.sendMsg('errorMsg', {msg: msg});
-    },
-
-    info: function info(msg) {
-	console.log(msg);
-	this.sendMsg('infoMsg', {msg: msg});
-    },
-
-    debug: function debug(msg) {
-	if (this.debug) {
-	    console.log(msg);
-	    this.sendMsg('debugMsg', {msg: msg});
+	    console.log('ERROR from server:', args);
 	}
     }
-
-};
+});
 
 // ----------------------------------------------------------------------
 
 $(function() {
     var display = new Display();
-    display.init();
 });

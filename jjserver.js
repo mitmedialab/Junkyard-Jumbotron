@@ -71,13 +71,13 @@ Server.prototype = {
     init: function init() {
 	this.initServer();
 	this.initSocket();
-	//this.initMail();
+	this.initMail();
 
 	// Listen for Jumbotron changes
 	Jumbotron.listener = this.handleImageChange.bind(this);
 
 	log('Starting server --------------------------------------------------');
-	this._server.listen(81);
+	this._server.listen(params.port);
     },
 
     // ----------------------------------------------------------------------
@@ -117,7 +117,7 @@ Server.prototype = {
 	}
 
 	// Template options
-	server.set('views', 'private');
+	server.set('views', params.viewsDir);
 	server.set('view engine', 'jade');
 	server.set('view options', { layout: null } );
 
@@ -142,6 +142,9 @@ Server.prototype = {
 	error:       ("Can't upload file to '{0}'\n" +
 		      "{1}"),
 
+	noAttachments: ("No attachments\n" +
+			"Whoops, your message has no attachments."),
+
 	noJumbotron: ("No jumbotron called '{0}'\n" +
 		      "Whoops, there is no jumbotron named '{0}'"),
 	
@@ -164,13 +167,20 @@ Server.prototype = {
     },
 
     handleMail: function handleMail(msg) {
+	var error = msg.error;
 	var jName = msg.jumbotron;
 	var filename = msg.filename;
 	var feedback = this.feedbackMsgs;
 
+	if (error) {
+	    if (error == "no attachments")
+		return msg.reply(feedback.noAttachments);
+	    return msg.reply(feedback.error.format(jName, error));
+	}
+
 	this._store.getJumbotron(jName, function(err, jumbotron) {
 	    if (err)
-		return msg.reply(feedback.error.format(jName));
+		return msg.reply(feedback.error.format(jName, err));
 
 	    if (! jumbotron)
 		return msg.reply(feedback.noJumbotron.format(jName));

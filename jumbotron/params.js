@@ -5,6 +5,10 @@ var join = require('path').join;
 
 module.exports = {
 
+    // Server listens on this port. NOTE: If you change this, also
+    // change it in the apache configs and in jjclient.js.
+    port: 8077,
+
     // Regexp for allowable jumbotron names
     jumbotronRegExp:  /^[a-zA-Z0-9][a-zA-Z0-9_-]*$/,
 
@@ -41,6 +45,9 @@ module.exports = {
  
     // Database directory
     databaseDir: join('private', 'database'),
+
+    // Directory with jumbotron directories (with images and icons)
+    viewsDir: join('private', 'views'),
 
     // File for log, warning, and error messages
     logFile: join('private', 'logs', 'output.log'),

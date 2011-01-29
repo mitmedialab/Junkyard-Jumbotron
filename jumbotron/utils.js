@@ -33,8 +33,6 @@ module.exports = {
 
     error: function error() {
 	var msg = "ERROR: " + stringify(arguments);
-	if (console)
-	    console.log(msg);
 	nutils.error(msg);
 
 	for (var a in arguments) {
@@ -84,10 +82,19 @@ _.extend(module.exports, _);
 // String.prototype.format
 Object.defineProperty(String.prototype, 'format', {
     value: function format() {
-	var formatted = "";
-	for (var a in arguments)
-            formatted = this.replace('{' + a + '}', arguments[a]);
+	/*
+	var formatted = this;
+	for (var a in arguments) {
+	    var regexp = new RegExp('\\{' + a + '\\}', 'g')
+            formatted = formatted.replace(regexp, arguments[a]);
+	}
 	return formatted;
+        */
+	
+	var parts = this.split(/\{([0-9]+)\}/);
+	for (var p = 1; p < parts.length; p += 2)
+	    parts[p] = arguments[parseInt(parts[p])];
+	return parts.join('');
     }
 });
 

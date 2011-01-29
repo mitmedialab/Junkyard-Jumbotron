@@ -4,6 +4,8 @@ Download email attachments
 
 import sys
 import os
+import errno
+import time
 import signal
 import threading
 import tempfile
@@ -17,20 +19,6 @@ from email.mime.text import MIMEText
 class Mail(object):
     """Mail checker"""
 
-    # Constants
-
-    RETRY_DELAY = 10 # Sleep this much between connection attempts (in seconds)
-
-    # Feedback messages. First line is the subject line of the mail msg.
-
-    _no_attachments_msg = """No attachments
-Whoops, your message has no attachments."""
-    _instructions_msg = """To upload an image, use the name of your \
-Junkyard Jumbotron as the Subject of the email message, and add the \
-image as an attachment.
-
-To recalibrate, bring up the markers by clicking the 'Recalibrate' \
-button on the control page, take another picture and reupload it."""
 
     # Methods
 
@@ -38,10 +26,8 @@ button on the control page, take another picture and reupload it."""
 
         self.thread = threading.Thread(target=self._idle, name="Mail-Checker")
         self.thread.daemon = True
-        self.event = threading.Event()
         self._need_stop = False
 
-        self._mbox = None
         self._email_path = params['mboxPath']
         self._email_smtp_server = params['smtpServer']
         self._email_user = params['smtpUser']
@@ -51,24 +37,24 @@ button on the control page, take another picture and reupload it."""
     def __del__(self):
         if self.thread.is_alive():
             self.stop() 
-        #self._close()
  
     def start(self): 
         """Start the idler thread."""
         logging.info("Starting mail checker")
         self._need_stop = False
-        self.event.clear()
         self.thread.start()
  
     def stop(self):
         """Stop the idler thread."""
         logging.info("Stopping mail checker")
         self._need_stop = True
-        self.event.set() # Wake the thread
  
-    def join(self):
+    def join(self, timeout=0):
         """Wait for thread to stop"""
-        self.thread.join()
+        self.thread.join(timeout)
+
+    def is_alive(self):
+        return self.thread.is_alive()
 
     def _idle(self):
         """Loop until a stop request, waiting for mailbox changes and
@@ -76,122 +62,138 @@ button on the control page, take another picture and reupload it."""
 
         # Loop until stop is called
         while not self._need_stop:
-            need_restart = False
             try:
-                # Open if not already open
-                self._open()
+                line = sys.stdin.readline()
+                if line:
+                    self._handle_cmd(json.loads(line))
+                else:
+                    # Got EOF, stop everything
+                    self._need_stop = True
 
-                # Check mail
-                if not self._need_stop:
-                    self._check_mail()
+            except KeyboardInterrupt:
+                # User initiated break (ctrl-C at console)
+                self._need_stop = true
 
-                # Wait an interval and try again.
-                self.event.wait(timeout=self._poll_interval)
-                self.event.clear()
+            except ValueError as ve: 
+                # Bad formatted JSON
+                logging.error("%s: %s", str(ve), line)
 
-            except Exception as exc: 
-                # Should probably look for specific events, but can't
-                # risk the mail-checker stopping
-                logging.exception("%s", str(exc))
-                need_restart = True
+            except AttributeError as ae: 
+                # Unknown data or command
+                logging.error("%s: %s", str(ae), line)
 
-            if not self._need_stop and need_restart:
-                # If something goes wrong, wait a bit and try again
-                logging.info("Retrying mail watcher in %d secs",
-                    self.RETRY_DELAY)
-                self._close()
-                # Use wait rather than time.sleep in case we are
-                # asked to stop while waiting (see self.stop)
-                self.event.wait(timeout=self.RETRY_DELAY)
-                self.event.clear()
+            except Exception as e:
+                # IOError or other. Log and keep going.
+                logging.error(str(e))
 
-        self._close()
- 
+    def _handle_cmd(self, data):
+        cmd = data['cmd']
+        if cmd == "check":
+            self._check_mail()
+        elif cmd == "send":
+            args = data['args']
+            self._send_mail(args['receiver'], args['subject'], args['body'])
+        else:
+            raise AttributeError("Unknown command: " + cmd)
+
     def _open(self):
-        """Connect to mail server"""
-        if self._mbox == None:
-            logging.info("Watching mail file %s", self._email_path)
-            self._mbox = mailbox.mbox(self._email_path)
+        path = self._email_path
+        mbox = mailbox.mbox(path)
+        for i in range(10):
+            try:
+                mbox.lock()
+                return mbox
+            except IOError as ioe:
+                # mbox will open the mailbox read-only if we don't
+                # have write access, but fcntl will then raise EBADF.
+                if ioe.errno == errno.EBADF:
+                    ioe = IOError(errno.EACCES,
+                                  "Don't have permission to access " + path)
+                raise ioe
+            except mailbox.ExternalClashError:
+                # Try again unless we need to stop
+                if (self._need_stop):
+                    mbox.close()
+                    return None
+                time.sleep(1)
+        mbox.close()
+        raise IOError("Can't lock mbox after 10 tries (check " + path + ".lock)")
 
-    def _close(self):
-        """Close mailbox and connection"""
-        if self._mbox != None:
-            if logging: # Might be called from __del__
-                logging.info("Stopping to watch mail")
-            self._mbox = None
+    def _close(self, mbox):
+        if mbox != None:
+            mbox.unlock()
 
     def _check_mail(self):
         """Check mail"""
         #logging.debug('Checking mail')
+        mbox = None
 
         try :
-            # Lock
-            self._mbox.lock()
+            # Open and lock
+            mbox = self._open()
+            if not mbox:
+                return
 
             # Process each message in the mailbox
-            for email_msg in self._mbox:
-                try:
-                    self._handle_msg(email_msg)
-                except IOError as ioe:
-                    feedback = str(ioe)
-                    subject, feedback = feedback.split('\n')
-                    logging.info("User error: %s: %s", subject, feedback)
-                    receiver = email_msg['Reply-To'] or email_msg["From"]
-                    self.send_feedback(receiver, subject, feedback)
-
-                email_msg.set_flags('RD') # TODO/necessary?
+            for email_msg in mbox:
+                self._handle_msg(email_msg)
 
             # Delete everything
-            self._mbox.clear()
-            self._mbox.flush()
+            if len(mbox):
+                mbox.clear()
+                mbox.flush()
 
         finally:
-            # Unlock
-            self._mbox.unlock()
+            # Close and unlock
+            self._close(mbox)
 
     def _handle_msg(self, msg):
         """Handle an individual mail message, look for an attachment
         and calibrate jumbotron if appropriate."""
 
-        # Find jumbotron name
-        msg_to = msg["To"]
-        jumbotron_name = msg_to[:msg_to.index('@')]
+        # Parse message details
+        receiver = msg['To']
+        sender = msg['Reply-To'] if 'Reply-To' in msg else msg["From"]
+        jumbotron = receiver[:receiver.index('@')]
+        synopsis = dict(error="no attachments",
+                        sender=sender,
+                        jumbotron=jumbotron)
 
-        # Check for attachments
-        if msg.get_content_maintype() != 'multipart':
-            raise IOError(self._no_attachments_msg)
+        try:
+            # Check for attachments
+            if msg.get_content_maintype() == 'multipart':
 
-        # Use walk so we can iterate on the parts
-        for part in msg.walk():
-            # Skip multiparts, they are just containers
-            if part.get_content_maintype() == 'multipart':
-                continue
+                # Use walk so we can iterate on the parts
+                for part in msg.walk():
+                    # Skip multiparts, they are just containers
+                    if part.get_content_maintype() == 'multipart':
+                        continue
 
-            # Skip parts without attachments
-            if part.get('Content-Disposition') is None:
-                continue
+                    # Skip parts without attachments
+                    if part.get('Content-Disposition') is None:
+                        continue
 
-            # Write the file
-            file_name = part.get_filename()
-            file_base, file_ext = os.path.splitext(file_name)
-            tmp_fd, tmp_file_name = tempfile.mkstemp(suffix=file_ext, prefix="jj")
-            with os.fdopen(tmp_fd, 'w') as fp:
-                data = part.get_payload(decode=True)
-                fp.write(data)
+                    # Write the file
+                    file_name = part.get_filename()
+                    file_base, file_ext = os.path.splitext(file_name)
+                    tmp_fd, tmp_file_name = tempfile.mkstemp(suffix=file_ext,
+                                                             prefix="jj")
+                    with os.fdopen(tmp_fd, 'w') as fp:
+                        data = part.get_payload(decode=True)
+                        fp.write(data)
 
-            # Send to stdout
-            sender=msg["From"]
-            logging.debug("< %s: %s: %s", sender, jumbotron_name, tmp_file_name)
-            packet = json.dumps(dict(jumbotron=jumbotron_name,
-                                     filename=tmp_file_name,
-                                     sender=sender))
-            print(packet)
-            sys.stdout.flush()
-            return
+                    # Setup synopsis
+                    del synopsis['error']
+                    synopsis['filename'] = tmp_file_name
 
-        raise IOError(self._no_attachments_msg)
+        except IOError as ioe:
+            synopsis['error'] = str(ioe)
 
-    def send_feedback(self, receiver, subject, feedback):
+        print(json.dumps(synopsis))
+        logging.debug(synopsis)
+        sys.stdout.flush()
+
+    def _send_mail(self, receiver, subject, feedback):
         """Send feedback to the user"""
 
         # Stop if no reply is wanted. This is for users who want to
@@ -199,8 +201,6 @@ button on the control page, take another picture and reupload it."""
         if not receiver or receiver.lower().startswith("noreply"):
             return
 
-        # Build the feedback string
-        feedback = "\n\n".join((feedback, self._instructions_msg))
 
         # Build the MIME Object
         msg = MIMEText(feedback)
@@ -237,12 +237,12 @@ def main():
         global mail
         if mail:
             mail.stop()
-            mail.join()
+            mail.join(2)
         exit(1)
     signal.signal(signal.SIGTERM, signal_handler)
 
     # Get parameters from stdin. Don't pass as arguments otherwise
-    # everyone can see the email password in the process listing.
+    # everyone can see the password in the process listing.
     params = json.loads(sys.stdin.readline())
 
     # Set up logging
@@ -252,43 +252,28 @@ def main():
     handler.setFormatter(logging.Formatter(fmt))
     logging.getLogger().addHandler(handler)
     logging.getLogger().setLevel(logging.DEBUG if params['debug'] else logging.INFO)
-
     logging.info("-------------------------------------------------------")
 
-    try:
-        # Start mail checker
+    # Start mail checker
+    try :
         global mail
         mail = Mail(params)
         mail.start()
-
-        # Process feedback from stdin (why doesn't 'for line in sys.stdin' work)
-
-        while True:
-            line = sys.stdin.readline()
-            try:
-                data = json.loads(line)
-                mail.send_feedback(data['receiver'],
-                                   data['subject'],
-                                   data['body'])
-            except ValueError as ve: 
-                logging.error(str(ve))
-            except AttributeError as ae: 
-                logging.error(str(ae))
-
-    except KeyboardInterrupt:
-        # User initiated break
-        return 0
+        while (mail.is_alive()) :
+            time.sleep(60)
+            # TODO: check to make sure the other side is still alive
+            # TODO: wait on an event rather than sleep
 
     except Exception as e:
         # Unknown exception
         logging.exception(str(e))
-        return 1
+        raise
         
     finally:
         # Cleanup mail checker
         if mail:
             mail.stop()
-            mail.join()
+            mail.join(2)
 
     return 0
 

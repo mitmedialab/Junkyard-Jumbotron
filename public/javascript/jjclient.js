@@ -30,7 +30,7 @@ if (isUndefined(console)) {
 }
 
 // ======================================================================
-// Main class
+// Base class for Display and Controller.
 
 function Client() {
     this.debug = true;
@@ -39,7 +39,7 @@ function Client() {
 Client.prototype = {
 
     initSocket: function initSocket() {
-	var socket = this.socket = new io.Socket(null, { port: 81 });
+	var socket = this.socket = new io.Socket(null, { port: 8077 });
 
 	// socket.90 v0.6.8: timeout doesn't work very well
 	socket.on('connect', bind(this, function() {

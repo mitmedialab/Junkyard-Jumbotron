@@ -3,18 +3,12 @@ var fs = require('fs');
 var path = require('path');
 var querystring = require('querystring');
 var cp = require('child_process');
+
+var utils =  require('./jumbotron/utils');
 var params = require('./jumbotron/params');
+var Mail = require('./jumbotron/mail');
 
-//var params = require('./jumbotron/params');
-//var utils = require('./jumbotron/utils');
-
-console.log(process.env.PATH);
-cp.exec(params.python, {env: {PATH: params.pythonPath}},
-	function(err, stdout, stderr) {
-	    if (err)
-		console.log("ERROR:", err);
-	    if (stdout)
-		console.log(">", stdout);
-	    if (stderr)
-		console.log("err>", stderr);
-	});
+var mail = new Mail(function(msg) {
+    console.log(msg);
+});
+mail.start();
