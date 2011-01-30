@@ -192,8 +192,12 @@ Jumbotron.prototype = utils.inherits(Base, {
 	    image.jumbotron = null;
 
 	    // If this was the current image, use the next
-	    if (this.curImage == image)
-		this.setFrame(idx + 1);
+	    if (this.curImage == image) {
+		if (this.numFrames() > 0)
+		    this.setFrame(idx + 1);
+		else
+		    this.setCurrentImage(Image.getCalibratedImage());
+	    }
 
 	    this._deleteImage(image);
 	}
@@ -202,7 +206,7 @@ Jumbotron.prototype = utils.inherits(Base, {
     removeImages: function removeImages() {
 	var images = this.images;
 	this.images = [];
-	this.setFrame(0);
+	this.setCurrentImage(Image.getCalibratedImage());
 
 	for (var i in images) {
 	    var image = images[i];
@@ -252,11 +256,11 @@ Jumbotron.prototype = utils.inherits(Base, {
     setFrame: function setFrame(which) {
 	var image = null;
 	var numFrames = this.numFrames();
-	if (numFrames)
+	if (numFrames) {
 	    image = this.images[Math.mod(which, numFrames)];
-	else
-	    image = Image.getCalibratedImage();
-	this.setCurrentImage(image);
+	    this.setCurrentImage(image);
+	}
+	// Otherwise stick with what we have (Image.getCalibratedImage)
     },
 
     // ----------------------------------------------------------------------
