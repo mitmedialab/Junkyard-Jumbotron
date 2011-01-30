@@ -181,7 +181,7 @@ Jumbotron.prototype = utils.inherits(Base, {
 
     _deleteImage: function _deleteImage(image) {
 	// Delete path
-	if (utils.startsWith(image.source, this.getDirectory()))
+	if (utils.isStartsWith(image.source, this.getDirectory()))
 	    fs.unlink(image.source);
     },
 

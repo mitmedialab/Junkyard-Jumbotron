@@ -225,13 +225,15 @@ gm.prototype.identify = function(callback){
 		    }
 		    else if (val) {
 			data[key] = val;
+			cur = null;
 		    }
 		    else {
 			cur = data[key] = {};
 		    }
 		}
 		else if (2 == indent) {
-		    cur[key] = val;
+		    if (cur)
+			cur[key] = val;
 		}
 	    }
 	}

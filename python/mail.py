@@ -4,6 +4,7 @@ Download email attachments
 
 import sys
 import os
+import pwd
 import errno
 import time
 import signal
@@ -32,7 +33,14 @@ class Mail(object):
         self._email_smtp_server = params['smtpServer']
         self._email_user = params['smtpUser']
         self._email_pwd = params['smtpPwd']
-        self._poll_interval = params['pollInterval']
+
+        # Find uid of the mailbox owner
+        uname = params['mboxUser']
+        try:
+            self._email_uid = pwd.getpwnam(uname).pw_uid
+        except KeyError:
+            logging.warning("Couldn't find user %s", uname)
+            self._email_uid = None
 
     def __del__(self):
         if self.thread.is_alive():
@@ -121,6 +129,9 @@ class Mail(object):
 
     def _close(self, mbox):
         if mbox != None:
+            # Retain mailbox owner
+            os.chown(self._email_path, self._email_uid, -1)
+            # Unlock mailbox
             mbox.unlock()
 
     def _check_mail(self):

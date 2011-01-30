@@ -54,17 +54,18 @@ module.exports = {
 
     // Python scripts
     pythonPath: '/usr/local/bin:/usr/bin',
-    python: 'python',
+    python: 'python', // unix specific
     calibrateScript: join('python', 'calibrate.py'),
     mailScript: join('python', 'mail.py'),
 
     // Email server info
     email: {
-	mboxPath: join('python', 'test.mbox'),
+	//	mboxPath: join('python', 'test.mbox'),
+	mboxUser: 'jj',
+	mboxPath: '/var/mail/jj', // unix specific
 	smtpServer: 'smtp.gmail.com',
 	smtpUser: 'jj.brownbag@gmail.com',
 	smtpPwd:  'Br0wnB@g',
-	pollInterval: 1,
 	logFile: join('private', 'logs', 'mail.log'),
 	debug: true
     },

@@ -172,6 +172,8 @@ Server.prototype = {
 	var filename = msg.filename;
 	var feedback = this.feedbackMsgs;
 
+	// TODO: Remove file on error
+
 	if (error) {
 	    if (error == "no attachments")
 		return msg.reply(feedback.noAttachments);
@@ -214,7 +216,7 @@ Server.prototype = {
 			if (err)
 			    reply = feedback.error.format(jName, err.toString());
 			else
-			    reply = feedback.calibrated.format(jName);
+			    reply = feedback.uploaded.format(jName);
 			msg.reply(reply);
 		    });
 		}
@@ -615,11 +617,12 @@ Server.prototype = {
 	this.sendSocketMsg(display.socket, 'show', options);
     },
 
-    sendJumbotronMsg: function sendJumbotronMsg(jumbotron, msgFn, arg) {
+    sendJumbotronMsg: function sendJumbotronMsg(jumbotron, msgFn, arg, ignoredDisplay) {
 	var displays = jumbotron.displays;
 	for (var d in displays) {
-	    if (displays[d].isActive())
-		msgFn.apply(this, [displays[d], arg]);
+	    var display = displays[d];
+	    if (display != ignoredDisplay && display.isActive())
+		msgFn.apply(this, [display, arg]);
 	}
     },
 
@@ -627,8 +630,9 @@ Server.prototype = {
 	this.sendJumbotronMsg(jumbotron, this.sendDisplayLoad);
     },
 
-    sendJumbotronViewport: function sendJumbotronViewport(jumbotron) {
-	this.sendJumbotronMsg(jumbotron, this.sendDisplayViewport);
+    sendJumbotronViewport: function sendJumbotronViewport(jumbotron, ignoredDisplay) {
+	this.sendJumbotronMsg(jumbotron, this.sendDisplayViewport,
+			      null, ignoredDisplay);
     },
 
     sendJumbotronShow: function sendJumbotronShow(jumbotron, options) {
@@ -740,7 +744,7 @@ Server.prototype = {
 
 	    var vp = new Viewport(args);
 	    vp = vp.uncropped(display.viewport);
-	    this.setJumbotronViewport(display.jumbotron, vp);
+	    this.setJumbotronViewport(display.jumbotron, vp, display);
 	},
 
 	// Log an error message from the display
@@ -805,9 +809,10 @@ Server.prototype = {
 	}.bind(this));
     },
 
-    setJumbotronViewport: function setJumbotronViewport(jumbotron, vp) {
+    setJumbotronViewport: function setJumbotronViewport(jumbotron, vp,
+							originatingDisplay) {
 	jumbotron.getCurrentImage().viewport = vp;
-	this.sendJumbotronViewport(jumbotron);
+	this.sendJumbotronViewport(jumbotron, originatingDisplay);
 	this.commitJumbotron(jumbotron);
     },
 
