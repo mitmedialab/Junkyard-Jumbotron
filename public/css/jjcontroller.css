@@ -17,7 +17,7 @@
 
 #jjSlideshowPlay, #jjSlideshowStop, #jjSlideshowPrev,
 #jjSlideshowNext, #jjSlideshowFirst, #jjSlideshowLast {
-    background-image: url(images/jj-play-icons-36-black.png);
+    background-image: url(../images/jj-play-icons-36-black.png);
     background-repeat:no-repeat;
     width: 36px;
     height:36px;
