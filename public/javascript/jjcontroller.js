@@ -1,4 +1,41 @@
 // ======================================================================
+// Utilities
+
+function getValue(field) {
+    return $('#' + field).val();
+};
+
+// ======================================================================
+// Localization
+// TODO: optionally include each language
+
+localizeTable = {
+    'need name'	: "Please enter a name for the Jumbotron",
+    'bad name'	: "Jumbotron names must begin with a letter or number"
+	+ " and may only contain letters, numbers, dashes, and underscores",
+    'duplicate'	: "A Jumbotron named {0} already exists, would you like to control it?",
+
+    'need file' : "Please browse for an image file", 
+    'calibrated': "Jumbotron calibrated!",
+    'bad image'	: "Can't understand that image, please try another",
+
+    'delete'	: "Delete the current image?",
+    'delete all': "Delete ALL images?",
+
+    'unknown error'	: "Can't {0}\n({1})",
+    'localize error'	: "Can't localize {0}"
+};
+
+function l(status) {
+    var msg = this.localizeTable[status];
+    if (! msg)
+	msg = this.localizeTable['localize error'];
+
+    arguments[0] = msg;
+    return format.apply(null, arguments);
+};
+
+// ======================================================================
 // Controller class
 
 function Controller() {
@@ -22,7 +59,7 @@ $.extend(Controller.prototype, {
 
     checkStatus: function checkStatus(response) {
 	if (response.status != 'ok')
-	    alert('Unknown error ' + response.status);
+	    alert(l('unknown error', 'complete', response.status));
     },
 
     convertFormData: function convertFormData(data) {
@@ -30,10 +67,6 @@ $.extend(Controller.prototype, {
 	for (var d = data.length; --d >= 0; )
 	    obj[data[d].name] = data[d].value;
 	return obj;
-    },
-
-    getValue: function getValue(field) {
-	return $('#' + field).val();
     },
 
     getPicture: function getPicture(src, success) {
@@ -86,33 +119,32 @@ $.extend(Controller.prototype, {
 
 	    beforeSubmit: function validate(data, form, options) { 
 		var ok = false;
-		data = this.convertFormData(data);
-		var name = data.name;
+		var name = getValue("jjCreateName");
 		if (! name)
-		    alert('Please enter a name for the Jumotron');
+		    alert(l('need name'));
 		else if (! this.isValidJumbotronName(name))
-		    alert('Jumbotron names must begin with a letter or number'
-			  + ' and may only contain letters, numbers, dashes, and underscores');
+		    alert(l('bad name'));
 		else
 		    ok = true;
 		return ok;
 	    },
 
 	    success: function(response) {
-		switch (response.status) {
+		var status = response.status;
+		switch (status) {
 		  case 'ok':
 		    this.controlJumbotron(response.args);
 		    break;
 		  case 'duplicate':
-		    if (confirm('A Jumbotron with that name already exists, would you like to control it?')) {
-			name = this.getValue("jjCreateName");
+		    name = getValue("jjCreateName");
+		    if (confirm(l('duplicate', name))) {
 			this.postMsg('control', { name: name  }, bind(this, function(response) {
 			    this.controlJumbotron(response.args);
 			}));
 		    }
 		    break;
 		  default:
-		    alert('Unknown error: ' + response.status);
+		    alert(l('unknown error', 'create', status));
 		    break;
 		}
 	    }
@@ -131,13 +163,15 @@ $.extend(Controller.prototype, {
 		return ok;
 	    },
 	    success: function success(response) {
-		var status;
-		if (response.status == "ok") {
-		    status = 'Jumbotron calibrated!';
+		var status = response.status;
+		switch (status) {
+		  case 'ok':
+		    status = l('calibrated');
 		    this.setMode('control');
-		}
-		else {
-		    status = 'Unknown error: ' + response.status;
+		    break;
+		  default:
+		    status = l('unknown error', 'calibrate', status);
+		    break;
 		}
 		alert(status);
 	    }
@@ -149,10 +183,20 @@ $.extend(Controller.prototype, {
 		data = this.convertFormData(data);
 		var file = data.file;
 		if (! file) {
-		    alert("Please browse for a file");
+		    alert(l('need file'));
 		    ok = false;
 		}
 		return ok;
+	    },
+	    success: function success(response) {
+		var status = response.status;
+		switch (status) {
+		  case 'ok':
+		    break;
+		  default:
+		    alert(l('unknown error', 'calibrate', status));
+		    break;
+		}
 	    }
 	},
 
@@ -166,14 +210,14 @@ $.extend(Controller.prototype, {
 	    action: 'slideshow',
 	    args: function() {
 		return { control: 'play',
-			 interval: this.getValue('getSlideshowInterval') };
+			 interval: getValue('getSlideshowInterval') };
 	    }
 	},
 	jjSlideshowInterval: {
 	    action: 'slideshow',
 	    args: function() {
 		return { control: 'interval',
-			 interval: this.getValue('getSlideshowInterval') };
+			 interval: getValue('getSlideshowInterval') };
 	    }
 	},
 
@@ -187,13 +231,13 @@ $.extend(Controller.prototype, {
 	jjDeleteOne: {
 	    action: 'remove',
 	    beforeSubmit: function() {
-		return confirm("Delete the current image?");
+		return confirm(l('delete'));
 	    }
 	},
 	jjDeleteAll: {
 	    action: 'removeAll',
 	    beforeSubmit: function() {
-		return confirm("Delete ALL images?");
+		return confirm(l('delete all'));
 	    }
 	}
     },
@@ -202,8 +246,10 @@ $.extend(Controller.prototype, {
 	this.jumbotron = jumbotron;
 	if (jumbotron.mode == 'calibrating')
 	    this.setMode('calibrate');
-	else
+	else {
+	    console.log(jumbotron);
 	    this.setMode('control');
+	}
 
 	var root = window.location.host;
 	var name = jumbotron.name;
