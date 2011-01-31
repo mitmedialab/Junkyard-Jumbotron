@@ -194,7 +194,7 @@ $.extend(Controller.prototype, {
 		  case 'ok':
 		    break;
 		  default:
-		    alert(l('unknown error', 'calibrate', status));
+		    alert(l('unknown error', 'upload', status));
 		    break;
 		}
 	    }
