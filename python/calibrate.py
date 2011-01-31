@@ -8,10 +8,8 @@ import math
 import operator 
 import Image
 import ImageDraw
+from PIL.ExifTags import TAGS
 import artoolkit 
-import params
-import core
-from dbtypes import JumbotronMode, Rect
 from vectypes import Mat4, Vec3
 
 # ----------------------------------------------------------------------
@@ -160,10 +158,33 @@ def _debug_image(draw, coords, xform, plane_xform, cam_xform):
     vertices1 = (cam_xform.transform(vertex) for vertex in vertices)
     _draw_vertices(draw, vertices1, (0, 0, 255, 200), width=3)
 
+def _reorient_image(image):
+    """Reorient the image based on exif tags in the jpg file"""
+    try:
+        exif = image._getexif()
+        if exif:
+            for tag, value in exif.items():
+                decoded = TAGS.get(tag, tag)
+                if decoded == 'Orientation':
+                    if   value == 3:
+                        image = image.rotate(180)
+                    elif value == 6:
+                        image = image.rotate(270)
+                    elif value == 8:
+                        image = image.rotate(90)
+                    break
+    except KeyError as ke:
+        logging.error("KeyError in reorient_image: " + str(ke))
+        # The version of PIL on the server is OLD and throws key
+        # errors if the exif isn't found
+        pass
+    except AttributeError:
+        # No exif tags
+        pass
+    return image
+
 def _calibrate(jumbotron, displays, image, debug=False, debug_image=False):
     """Calibrate a jumbotron with a calibration images."""
-    logging.info("Calibrating %s", jumbotron.name)
-
     if debug_image:
         draw = ImageDraw.Draw(image, "RGBA")
 
@@ -174,10 +195,11 @@ def _calibrate(jumbotron, displays, image, debug=False, debug_image=False):
     # Throw out unknown markers
     markers = [marker for marker in found_markers if marker.id in displays]
     if not markers:
-        logging.warn("No markers found in jumbotron %s", jumbotron.name)
         return 0
     if len(markers) < len(found_markers):
-        logging.warn("Found unknown markers in jumbotron %s", jumbotron.name)
+        # TODO: get this info to node.js
+        #logging.warn("Found unknown markers in jumbotron %s", jumbotron.name)
+        pass
 
     # The method used here has problems when combining very small
     # displays with very large displays. The small displays will seem
@@ -232,7 +254,7 @@ def _calibrate(jumbotron, displays, image, debug=False, debug_image=False):
     jumbotron.aspectRatio = allsize.x / allsize.y
 
     # Initialize display viewports
-    print(displays, file=sys.stderr)
+    #print(displays, file=sys.stderr)
     for display in displays.values():
         display.viewport = dict(x=0, y=0, width=0, height=0, rotation=0)
 
@@ -255,35 +277,6 @@ def _calibrate(jumbotron, displays, image, debug=False, debug_image=False):
             logging.debug("display {0} {1}".format(marker.id, coord))
 
     return len(markers)
-
-def calibrate(db, jumbotron, displays, image_file,
-              debug=False, debug_image=False):
-    """Calibrate the jumbotron and update the displays in the database."""
-
-    # Open image and rotate if necessary, based on exif tags
-    image = Image.open(image_file)
-
-    # Calibrate
-    num_found = _calibrate(jumbotron, displays, image,
-                           debug=debug, debug_image=debug_image)
-    if not num_found:
-        return 0
-
-    # Set to calibration pattern unless an image has already been uploaded
-    image_file = jumbotron.image if jumbotron.image else params.calibration_file
-
-    # Recalculate viewport and update jumbotron
-    image = Image.open(image_file)
-    jumbotron.viewport = core.get_jumbotron_viewport(jumbotron, image)
-    jumbotron.mode = JumbotronMode.IMAGE
-    jumbotron.image = image_file
-    db.commit_jumbotron(jumbotron)
-    
-    # Update database (jumbotron)
-    for display in displays:
-        db.commit_display(display)
-
-    return num_found
 
 # ----------------------------------------------------------------------
 
@@ -309,25 +302,24 @@ def main(argv):
         displays[display['idx']] = attrdict(display)
     jumbotron.displays = displays
 
-    # Open image and rotate if necessary, based on exif tags
+    # Open image, rotate and convert if necessary, based on exif tags and mode
     try:
         image = Image.open(image_name)
     except IOError as ioe:
         print(str(ioe), file=sys.stderr)
         return -1
-        
-    image = core.reorient_image(image)
+    image = _reorient_image(image)
     if image.mode != 'RGB' or image.mode != 'RGBA':
         image = image.convert('RGB')
 
     # Calibrate
-    _calibrate(jumbotron, jumbotron.displays, image, debug=True, debug_image=True)
+    _calibrate(jumbotron, jumbotron.displays, image, debug=False, debug_image=False)
 
+    # Send to stdout (to node.js)
     print(json.dumps(jumbotron), file=sys.stdout)
 
     # Save
-    image.save("calibrate_out.jpg")
-
+    #image.save("calibrate_out.jpg")
     return 0
 
 if __name__ == "__main__":

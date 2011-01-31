@@ -9,7 +9,6 @@ from ctypes import c_void_p, c_char_p, c_bool, c_int, c_float
 import copy
 import logging
 import math
-import params
 import Image
 import ImageOps
 import ImageDraw
@@ -95,26 +94,6 @@ _get_marker_transform.argtypes = (c_void_p, ARMarkerInfo_p,
                                   ctypes.POINTER(c_float))
 
 # ----------------------------------------------------------------------
-
-def get_marker_image(idx):
-    """Return the artoolkit glyph corresponding to the given index."""
-    marker_name = params.marker_file_format.format(idx + 1)
-    marker_file = os.path.join(params.marker_dir, marker_name)
-
-    # Add border and resize here to prevent browser smoothing when resizing.
-    # CSS styles can prevent smoothing on some browsers, but not all browsers.
-    # See https://developer.mozilla.org/en/CSS/image-rendering.p
-    if not os.path.exists(marker_file):
-        source_file = os.path.join(params.marker_source_dir, marker_name)
-        source = Image.open(source_file)
-        # Convert from pallette mode, else expand doesn't work correctly
-        marker = source.convert('L')
-        marker = ImageOps.expand(marker, border=1, fill=255)
-        size = marker.size[0] * 100, marker.size[1] * 100
-        marker = marker.resize(size, Image.NEAREST)
-        marker.save(marker_file)
-
-    return marker_file
 
 def detect(image, confidence_threshold=0.5, debug=False, debug_image=False):
     """Find marker glyphs in the image. 
