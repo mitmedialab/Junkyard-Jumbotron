@@ -1,22 +1,35 @@
 // ----------------------------------------------------------------------
 // Utilities, some mirrored from node.js, connect, underscore, and string
 
-//var nutils = require('util');
-var nutils = require('sys');
+var nutils = require('util');
 var cutils = require('connect/utils');
 var _  = require('underscore');
 _.mixin(require('underscore.string'));
 
 // Return string version of an object
 function stringify(obj) {
-    if (obj === null)		return "null";
-    if (_.isUndefined(obj))	return "undefined";
     if (_.isFunction(obj))	return "[Function]";
     if (_.isString(obj))	return obj;
     if (obj.message)		return obj.message; // For Exceptions
     if (_.isArguments(obj))
 	return _.toArray(obj).map(stringify).join(": ");
-    return nutils.inspect(obj, false, 0).replace(/\n/g, "");
+    return nutils.inspect(obj, false, 0, false).replace(/\n|( ) */g, '$1');
+}
+
+function pad(n) {
+  return n < 10 ? '0' + n.toString(10) : n.toString(10);
+}
+
+var months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep',
+              'Oct', 'Nov', 'Dec'];
+
+// Feb 26 16:19:34
+function timestamp() {
+  var d = new Date();
+  var time = [pad(d.getHours()),
+              pad(d.getMinutes()),
+              pad(d.getSeconds())].join(':');
+    return [d.getDate(), months[d.getMonth()], time].join(' ');
 }
 
 module.exports = {
@@ -25,16 +38,15 @@ module.exports = {
     inspect: nutils.inspect,
     uid: cutils.uid,
 
-    printStack: function printStack() {
+    stack: function stack() {
 	var err = {};
 	Error.captureStackTrace(err, this.printStack);
-	this.error(err.stack);
+	return err.stack;
     },
 
     error: function error() {
-	var msg = "ERROR: " + stringify(arguments);
+	var msg = [timestamp(), "ERROR", stringify(arguments)].join(': ');
 	nutils.error(msg);
-
 	for (var a in arguments) {
 	    if (arguments[a].stack)
 		nutils.error(arguments[a].stack);
@@ -42,13 +54,13 @@ module.exports = {
     },
 
     log: function log() {
-	var msg = stringify(arguments);
-	nutils.log(msg);
+	var msg = [timestamp(), stringify(arguments)].join(': ');
+	nutils.puts(msg);	// asynchronous
     },
 
     debug: function debug() {
-	var msg = stringify(arguments);
-	nutils.debug(msg);
+	var msg = [timestamp(), stringify(arguments)].join(': ');
+	nutils.error(msg);	// synchronous
     },
 
     inherits: function inherits(superCtor, props) { 
@@ -82,15 +94,6 @@ _.extend(module.exports, _);
 // String.prototype.format
 Object.defineProperty(String.prototype, 'format', {
     value: function format() {
-	/*
-	var formatted = this;
-	for (var a in arguments) {
-	    var regexp = new RegExp('\\{' + a + '\\}', 'g')
-            formatted = formatted.replace(regexp, arguments[a]);
-	}
-	return formatted;
-        */
-	
 	var parts = this.split(/\{([0-9]+)\}/);
 	for (var p = 1; p < parts.length; p += 2)
 	    parts[p] = arguments[parseInt(parts[p])];
