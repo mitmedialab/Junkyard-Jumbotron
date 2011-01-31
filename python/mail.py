@@ -1,7 +1,6 @@
 """
 Download email attachments
 """
-
 import sys
 import os
 import pwd
@@ -12,14 +11,12 @@ import threading
 import tempfile
 import json
 import logging
-from logging.handlers import TimedRotatingFileHandler
 import smtplib
 import mailbox
 from email.mime.text import MIMEText
 
 class Mail(object):
     """Mail checker"""
-
 
     # Methods
 
@@ -48,13 +45,13 @@ class Mail(object):
  
     def start(self): 
         """Start the idler thread."""
-        logging.info("Starting mail checker")
+        logging.info("Starting")
         self._need_stop = False
         self.thread.start()
  
     def stop(self):
         """Stop the idler thread."""
-        logging.info("Stopping mail checker")
+        logging.info("Stopping")
         self._need_stop = True
  
     def join(self, timeout=0):
@@ -201,7 +198,7 @@ class Mail(object):
             synopsis['error'] = str(ioe)
 
         print(json.dumps(synopsis))
-        logging.debug(synopsis)
+        #logging.debug(synopsis)
         sys.stdout.flush()
 
     def _send_mail(self, receiver, subject, feedback):
@@ -222,7 +219,7 @@ class Mail(object):
         sender = "Junkyard Jumbotron <" + self._email_user + ">"
 
         # Establish an SMTP object, connect, login, and send mail
-        logging.debug("> %s: %s", receiver, subject)
+        logging.debug(">: %s: %s", receiver, subject)
         smtp = smtplib.SMTP_SSL()
         try :
             smtp.connect(self._email_smtp_server)
@@ -252,18 +249,21 @@ def main():
         exit(1)
     signal.signal(signal.SIGTERM, signal_handler)
 
+    # Set up logging. Format messages with json and pump to stdout.
+    # Node.js will interpret and log them.
+    def fmt(record):
+        return json.dumps(dict(level=record.levelname, log=record.getMessage()));
+    formatter = logging.Formatter()
+    formatter.format = fmt
+    handler = logging.StreamHandler(sys.stdout)
+    handler.setFormatter(formatter)
+    logging.getLogger().addHandler(handler)
+    logging.info("-------------------------------------------------------")
+
     # Get parameters from stdin. Don't pass as arguments otherwise
     # everyone can see the password in the process listing.
     params = json.loads(sys.stdin.readline())
-
-    # Set up logging
-    fmt = "%(asctime)s %(levelname)s: %(message)s"
-    handler = TimedRotatingFileHandler(params['logFile'], when='midnight',
-                                       interval=1, backupCount=7)
-    handler.setFormatter(logging.Formatter(fmt))
-    logging.getLogger().addHandler(handler)
     logging.getLogger().setLevel(logging.DEBUG if params['debug'] else logging.INFO)
-    logging.info("-------------------------------------------------------")
 
     # Start mail checker
     try :
