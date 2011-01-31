@@ -87,15 +87,21 @@ Mail.prototype = {
     },
 
     _handleStdout: function _handleStdout(data) {
-	try {
-	    var msg = JSON.parse(data.toString());
+	data = data.toString().split('\n');
+	for (var d in data) {
+	    var line = data[d];
+	    if (! line)
+		continue;
+	    try {
+		var msg = JSON.parse(line);
+	    }
+	    catch (exception) {
+		utils.error("Bad JSON from Mail Checker", line);
+		continue;
+	    }
+	    msg.reply = this.sendMail.bind(this, msg.sender);
+	    this.cb(msg);
 	}
-	catch (exception) {
-	    utils.error("Bad JSON from Mail Checker", data);
-	    return;
-	}
-	msg.reply = this.sendMail.bind(this, msg.sender);
-	this.cb(msg);
     }
 };
 
