@@ -24,6 +24,14 @@ function stringify(obj) {
     return JSON.stringify(obj);
 }
 
+// Format {0} and {1}
+function format(str) {
+    var parts = str.split(/\{([0-9]+)\}/);
+    for (var p = 1; p < parts.length; p += 2)
+	parts[p] = arguments[parseInt(parts[p]) + 1];
+    return parts.join('');
+}
+
 if (isUndefined(console)) {
     var console = { debug: function() {},
 		    log: function() {} };
