@@ -37,8 +37,7 @@ module.exports = {
 
     // Marker images
     markerImageOptions: {
-	sourceFormat: join('public', 'markers',
-			   'bch_large', 'BchThin_%04d.png'),
+	sourceFormat: join('public', 'markers', 'bch_large', 'BchThin_%04d.png'),
 	width: 1000,
 	height: 1000
     },
@@ -54,26 +53,33 @@ module.exports = {
 
     // Python scripts
     pythonPath: '/usr/local/bin:/usr/bin',
-    python: 'python', // unix specific
+    python: 'python',
     calibrateScript: join('python', 'calibrate.py'),
     mailScript: join('python', 'mail.py'),
 
     // Email server info
     email: {
-	//	mboxPath: join('python', 'test.mbox'),
 	mboxUser: 'jj',
 	mboxPath: '/var/mail/jj', // unix specific
 	smtpServer: 'smtp.gmail.com',
 	smtpUser: 'jj.brownbag@gmail.com',
 	smtpPwd:  'Br0wnB@g',
-	logFile: join('private', 'logs', 'mail.log'),
 	debug: true
     },
 
     // Debug flags
-    debugMail: true,
-    debugJumbotron: true,
-    debugServer: true,
-    verboseServer: true
+    // TODO: better logging controls (see python's logging package)
+    debug: true,
 };
 
+// Merge in local changes, if any
+var utils = require('./utils');
+try {
+    var local = require('./paramsLocal');
+    utils.extend(module.exports, local);
+    utils.log("WARNING: Using local parameters (paramsLocal.js)");
+}
+catch (exception) {
+    if (! utils.isStartsWith(exception.message, 'Cannot find module'))
+	throw exception;
+}
