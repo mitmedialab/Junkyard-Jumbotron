@@ -59,11 +59,13 @@ http.ServerResponse.prototype.sendStatus = function(status, args) {
 // ======================================================================
 // Server
 
-function Server(debug) {
+function Server() {
     this._socketMap = []; // maps sockets to displays
 
     this._store = new Store();
-    this.debug = debug;
+
+    if (! params.debug)
+	debug = utils.debug = function() {}
 }
 
 Server.prototype = {
@@ -167,25 +169,44 @@ Server.prototype = {
     },
 
     handleMail: function handleMail(msg) {
-	var error = msg.error;
-	var jName = msg.jumbotron;
-	var filename = msg.filename;
 	var feedback = this.feedbackMsgs;
+	var jName = msg.jumbotron;
 
-	// TODO: Remove file on error
-
+	// Handle error messages that should be sent to user
+	var error = msg.error;
 	if (error) {
 	    if (error == "no attachments")
 		return msg.reply(feedback.noAttachments);
 	    return msg.reply(feedback.error.format(jName, error));
 	}
 
-	this._store.getJumbotron(jName, function(err, jumbotron) {
-	    if (err)
-		return msg.reply(feedback.error.format(jName, err));
+	// Handle logging
+	var log = msg.log;
+	if (log) {
+	    switch (msg.level) {
+	      case 'ERROR': utils.error("MAIL", log); break;
+	      case 'INFO' : utils.log  ("MAIL", log); break;
+	      case 'DEBUG': utils.debug("MAIL", log); break;
+	      default     : utils.log  (msg.level, "MAIL", log); break;
+	    }
+	    return;
+	}
 
-	    if (! jumbotron)
+	// Handle mailed images
+	utils.debug('MAIL', '<', msg.sender, msg.jumbotron);
+	var filename = msg.filename;
+	this._store.getJumbotron(jName, function(err, jumbotron) {
+	    if (err) {
+		// Remove file and send feedback
+		fs.unlink(filename)
+		return msg.reply(feedback.error.format(jName, err));
+	    }
+
+	    if (! jumbotron) {
+		// Remove file and send feedback
+		fs.unlink(filename)
 		return msg.reply(feedback.noJumbotron.format(jName));
+	    }
 
 	    var name = jumbotron.mode == "calibrating" ? "_calibrate" : null;
 	    jumbotron.uploadImageFile(filename, name, function(err, filename) {
@@ -585,7 +606,7 @@ Server.prototype = {
     },
 
     sendSocketError: function sendSocketError(socket, err) {
-	error(socket.sessionId, err);
+	error('>', socket.sessionId, err);
 	this.sendSocketMsg(socket, 'errorMsg', err);
     },
 
@@ -759,8 +780,7 @@ Server.prototype = {
 
 	// Log a debugging message from the display
 	debugMsg: function debugMsg(socket, display, args) {
-	    if (this.debug)
-		debug('Client', socket.sessionId, args.msg);
+	    debug('Client', socket.sessionId, args.msg);
 	}
     },
 

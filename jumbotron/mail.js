@@ -28,7 +28,7 @@ Mail.prototype = {
 	cp.exec(killCmd, function(err, stdout, stderr) {
 
 	    // Start new mail checker
-	    utils.log('Starting mail checker', params.email.mboxPath);
+	    utils.log('Starting mail-checker', params.email.mboxPath);
 	    var process = this.process =
 		cp.spawn(params.python, [params.mailScript],
 			 {env: {PATH: params.pythonPath}});
@@ -45,7 +45,7 @@ Mail.prototype = {
 
     stop: function stop() {
 	if (this.process) {
-	    utils.log('Stopping mail checker');
+	    utils.log('Stopping mail-checker');
 	    this.process.kill();
 	    fs.unwatchFile(params.email.mboxPath);
 	}
@@ -59,7 +59,7 @@ Mail.prototype = {
     },
 
     checkMail: function checkMail() {
-	utils.log("Checking mail");
+	//utils.debug("Checking mail");
 	this._sendCmd("check");
     },
 
