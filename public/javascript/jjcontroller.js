@@ -115,6 +115,22 @@ $.extend(Controller.prototype, {
 
     controlOptions: {
 
+	jjJoinForm: {
+
+	    beforeSubmit: function validate(data, form, options) { 
+		var ok = false;
+		var name = getValue("jjJoinName");
+		if (! name)
+		    alert(l('need name'));
+		else if (! this.isValidJumbotronName(name))
+		    alert(l('bad name'));
+		else
+		    window.location = name;
+		return false;
+	    }
+
+	},
+
 	jjCreateForm: {
 
 	    beforeSubmit: function validate(data, form, options) { 
@@ -240,6 +256,7 @@ $.extend(Controller.prototype, {
 		return confirm(l('delete all'));
 	    }
 	}
+
     },
 
     controlJumbotron: function controlJumbotron(jumbotron) {
@@ -310,7 +327,8 @@ $.extend(Controller.prototype, {
 
 	    // Get and bind control
 	    var control = $('#' + controlId);
-	    this.initControl(control, options);
+	    if (control)
+		this.initControl(control, options);
 	}
 
 	var name = $.cookie('jjname');

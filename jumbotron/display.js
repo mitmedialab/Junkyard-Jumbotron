@@ -40,6 +40,7 @@ Display.prototype = utils.inherits(Base, {
     isActive: function isActive() {
 	return !! this.socket;
     }
+
 });
 
 // Export

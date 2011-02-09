@@ -12,7 +12,7 @@ function stringify(obj) {
     if (_.isString(obj))	return obj;
     if (obj.message)		return obj.message; // For Exceptions
     if (_.isArguments(obj))
-	return _.toArray(obj).map(stringify).join(": ");
+	return _.toArray(obj).map(stringify).join(" ");
     return nutils.inspect(obj, false, 0, false).replace(/\n|( ) */g, '$1');
 }
 
@@ -25,11 +25,12 @@ var months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep',
 
 // Feb 26 16:19:34
 function timestamp() {
-  var d = new Date();
-  var time = [pad(d.getHours()),
-              pad(d.getMinutes()),
-              pad(d.getSeconds())].join(':');
-    return [d.getDate(), months[d.getMonth()], time].join(' ');
+    var d = new Date();
+    //return d.toUTCString().substring(5,25)
+    var time = [pad(d.getHours()),
+		pad(d.getMinutes()),
+		pad(d.getSeconds())].join(':');
+    return [pad(d.getDate()), months[d.getMonth()], time].join(' ');
 }
 
 module.exports = {
@@ -38,7 +39,7 @@ module.exports = {
     inspect: nutils.inspect,
     uid: cutils.uid,
 
-    stack: function stack() {
+    stackTrace: function stackTrace() {
 	var err = {};
 	Error.captureStackTrace(err, this.printStack);
 	return err.stack;

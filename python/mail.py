@@ -161,13 +161,10 @@ class Mail(object):
 
         # Parse message details
         receiver = msg['To']
-        sender = msg['Reply-To'] if 'Reply-To' in msg else msg["From"]
-        jumbotron = receiver[:receiver.index('@')]
-        if jumbotron[0] == "\"": # sometimes receiver is enclosed in quotes
-            jumbotron = jumbotron[1:] #TODO: also look for "Yoyo Ma <yoyoma@hotmail.com>" etc
+        sender = msg['Reply-To'] if 'Reply-To' in msg else msg['From']
         synopsis = dict(error="no attachments",
                         sender=sender,
-                        jumbotron=jumbotron)
+                        receiver=receiver)
 
         try:
             # Check for attachments

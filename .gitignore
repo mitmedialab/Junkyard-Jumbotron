@@ -16,3 +16,5 @@ NOTES.txt
 jjtest.js
 *_out.jpg
 
+/local/lib/node/.npm/.cache/.cache.json
+/TODO.txt

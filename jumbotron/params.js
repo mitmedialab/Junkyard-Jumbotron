@@ -77,7 +77,7 @@ var utils = require('./utils');
 try {
     var local = require('./paramsLocal');
     utils.extend(module.exports, local);
-    utils.log("WARNING: Using local parameters (paramsLocal.js)");
+    utils.log("WARNING: Using local parameters from 'paramsLocal.js'");
 }
 catch (exception) {
     if (! utils.isStartsWith(exception.message, 'Cannot find module'))

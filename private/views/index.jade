@@ -119,3 +119,16 @@ html(lang="en")
             div#jjShowButtons(data-role="controlgroup", data-type="horizontal")  
               a#jjShowIdOn(data-role="button", href="#") Ids On
               a#jjShowIdOff(data-role="button", href="#") Ids Off
+
+    //- Join
+    div(data-role="page", id="jjJoin")
+
+      div(data-role="header", data-position="fixed", data-nobackbtn="true")
+        h1.jjTitle Junkyard Jumbotron
+
+      div(data-role="content")
+        div
+          p There's no jumbotron with that name, please try again.
+          form#jjJoinForm(action="join", method="POST")
+            input#jjJoinName(name="name", type="text")
+            inputjjJoinSubmit(name="join", type="submit", value="Join") Next

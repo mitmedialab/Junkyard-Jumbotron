@@ -55,7 +55,7 @@ Viewport.prototype = {
 	this.height *= y;
     },
 
-    toString: function string() {
+    toString: function toString() {
 	return (this.x + ',' + this.y
 		+ ' ' + this.width + 'x' + this.height
 		+ ' (' + this.rotation + ')');

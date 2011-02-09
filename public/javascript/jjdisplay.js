@@ -146,9 +146,12 @@ $.extend(Display.prototype, {
 			    'rotate(270deg) translate(-100%, 0%)'][vp.rotation];
 	this.cropElem.css({width : docWidth + 'px',
 			   height: docHeight + 'px',
-			   '-webkit-transform': transformStr,
-			   '-moz-transform'   : transformStr
+			   '-webkit-transform'	: transformStr,
+			   '-moz-transform'	: transformStr,
+			   '-o-transform'	: transformStr
 			  });
+	// IE: filter: "progid:DXImageTransform.Microsoft.Matrix
+	//	(M11=1, M12=-1, M21=1, M22=1, DX=?, DY=?)"
 
 	// Set size and position. Using a css 'background' rather than
 	// an <img> element guarantees the xform and image change
@@ -156,11 +159,17 @@ $.extend(Display.prototype, {
 	// it occasionally is displayed with the old xform. Another
 	// solution might be to create an entirely new <img> element
 	// when a new image arrives and swap it in for the old one.
-	this.imgElem.css({ width : docWidth + 'px',
+
+	var bgPosStr  = marginX  + 'px ' + marginY   + 'px';
+	var bgSizeStr = imgWidth + 'px ' + imgHeight + 'px';
+	this.imgElem.css({ width  : docWidth  + 'px',
 			   height : docHeight + 'px',
-			   'background-image'   : 'url(' + img.src + ')',
-			   'background-position': marginX + 'px ' + marginY + 'px',
-			   'background-size'    : imgWidth + 'px ' + imgHeight + 'px'
+			   'background-image'		: 'url(' + img.src + ')',
+			   'background-position'	: bgPosStr,
+			   'background-size'		: bgSizeStr,
+			   '-webkit-background-size'	: bgSizeStr,
+			   '-moz-background-size'	: bgSizeStr,
+			   '-o-background-size'		: bgSizeStr,
 			 });
 
 	/*

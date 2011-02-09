@@ -41,15 +41,21 @@ var error = utils.error;
 http.ServerResponse.prototype.sendStatus = function(status, args) {
     status = status || 'ok';
     if (status != 'ok') {
-	// Change status to exception format if necessary
-	var err = status.message ? status : { message: status };
-	// Build stack or rebuild for useless one-line stacks
-	if (! err.stack || err.stack.indexOf("\n") == -1)
-	    Error.captureStackTrace(err,
-				    http.ServerResponse.prototype.sendStatus);
-	error('#>', err.message);
-	error('#>', err.stack);
-	status = err.message;
+	// If 'status' is an exception, print the stack trace
+	if (status.stack) {
+	    error('#>', status.message);
+	    error('#>', status.stack);
+	    status = status.message;
+	}
+	// If 'status' looks like an exception, print a stack trace 
+	else if (status.split(/\s+/).length > 3) {
+	    error('#>', status);
+	    error('#>', utils.stackTrace());
+	}
+	// Otherwise just print it
+	else {
+	    error('#>', status);
+	}
     }
     else if (args)
 	debug('#>', status, args);
@@ -170,7 +176,13 @@ Server.prototype = {
 
     handleMail: function handleMail(msg) {
 	var feedback = this.feedbackMsgs;
-	var jName = msg.jumbotron;
+
+	// Extract jumbotron name from email address "Foo Bar <jumbotron@jj.brownbag.me>"
+	var jName = new RegExp('([^<"]+)@').exec(msg.receiver);
+	if (! jName)
+	    return msg.reply(feedback.error.format(msg.receiver,
+			     'Badly formatted mail message'));
+	jName = jName[1];
 
 	// Handle error messages that should be sent to user
 	var error = msg.error;
@@ -283,8 +295,10 @@ Server.prototype = {
 	this._store.getJumbotron(name, function(err, jumbotron) {
 	    if (! err && ! jumbotron)
 		err = "no jumbotron";
-	    if (err)
-		return res.redirect('/?err='+err+'#jjJoin');
+	    if (err) {
+		error(err, name);
+		return res.redirect('/#jjJoin');
+	    }
 	    res.render('display');
 	}.bind(this));
     },
@@ -302,7 +316,7 @@ Server.prototype = {
 	    debug('#<', cmd);
 	var handler = this.commandHandlers[cmd];
 	if (! handler)
-	    return res.sendStatus('unknown command', cmd);
+	    return res.sendStatus('bad command', cmd);
 
 	// Get connected jumbotron, if any, and call handler
 	this.getConnectedController(req, res, function(err, controller) {
@@ -578,17 +592,23 @@ Server.prototype = {
 
 	    // Get handler
 	    var cmd = data.cmd;
-	    debug('<', socket.sessionId, data.cmd, data.args);
 	    var handler = this.socketMsgHandlers[cmd];
-	    if (! handler)
-		return error('Unknown socket command', cmd);
+	    if (! handler) {
+		debug('<', socket.sessionId, data.cmd, data.args);
+		return error('bad command', cmd);
+	    }
 
 	    // Get connected display, if any, and call handler
 	    this.getConnectedDisplay(socket, function(err, display) {
+		if (display)
+		    debug('<', display.jumbotron.name, display.idx, data.cmd, data.args);
+		else
+		    debug('<', socket.sessionId, data.cmd, data.args);
+
 		// Ignore errors and missing display
 		var status = handler.call(this, socket, display, data.args);
 		if (! utils.isUndefined(status))
-		    this.sendSocketError(socket, status);
+		    this.sendDisplayError(display, status);
 	    }.bind(this));
 	}
 	catch (exception) {
@@ -601,13 +621,18 @@ Server.prototype = {
     },
     
     sendSocketMsg: function sendSocketMsg(socket, cmd, args) {
-	debug('>', cmd, args);
 	socket.send(JSON.stringify({ cmd: cmd, args: args }));
     },
 
     sendSocketError: function sendSocketError(socket, err) {
 	error('>', socket.sessionId, err);
 	this.sendSocketMsg(socket, 'errorMsg', err);
+    },
+
+    sendDisplayMsg: function sendDisplayMsg(display, cmd, args) {
+	var jName = display.jumbotron ? display.jumbotron.name : "UNATTACHED";
+	debug('>', jName, display.idx, cmd, args);
+	this.sendSocketMsg(display.socket, cmd, args);
     },
 
     sendDisplayLoad: function sendDisplayLoad(display) {
@@ -617,25 +642,25 @@ Server.prototype = {
 	var frozen    = jumbotron.getDisplayFrozen(display);
 	if (utils.isStartsWith(src, params.resourceDir))
 	    src = src.substring(params.resourceDir.length + 1); // +1 for '/'
-	this.sendSocketMsg(display.socket, 'load', { src: src,
-						     vp: viewport,
- 						     frozen: frozen });
+	this.sendDisplayMsg(display, 'load', { src: src,
+					       vp: viewport,
+ 					       frozen: frozen });
     },
 
     sendDisplayViewport: function sendDisplayViewport(display) {
 	var jumbotron = display.jumbotron;
 	var viewport = jumbotron.getDisplayViewport(display);
-	this.sendSocketMsg(display.socket, 'vp', viewport);
+	this.sendDisplayMsg(display, 'vp', viewport);
     },
 
     sendDisplayId: function sendDisplayViewport(display) {
 	var jumbotron = display.jumbotron;
-	this.sendSocketMsg(display.socket, 'id', { id: display.idx,
-						   name: jumbotron.name });
+	this.sendDisplayMsg(display, 'id', { id: display.idx,
+					     name: jumbotron.name });
     },
 
     sendDisplayShow: function sendDisplayShow(display, options) {
-	this.sendSocketMsg(display.socket, 'show', options);
+	this.sendDisplayMsg(display, 'show', options);
     },
 
     sendJumbotronMsg: function sendJumbotronMsg(jumbotron, msgFn, arg, ignoredDisplay) {
@@ -684,7 +709,8 @@ Server.prototype = {
 	}
 
 	// Connect client with display
-	debug("Connecting display");
+	debug("Connecting", socket.sessionId, "to display",
+	      jumbotron.name, display.idx);
 	this.connectDisplay(socket, display);
 
 	// Send id and load image onto display
