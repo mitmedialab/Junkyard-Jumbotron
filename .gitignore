@@ -12,9 +12,10 @@ Icon?
 *.pyc
 
 # My own
+TODO.txt
 NOTES.txt
 jjtest.js
 *_out.jpg
 
-/local/lib/node/.npm/.cache/.cache.json
-/TODO.txt
+# Misc
+.cache.json
