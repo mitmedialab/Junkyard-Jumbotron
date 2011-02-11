@@ -8,6 +8,8 @@ _.mixin(require('underscore.string'));
 
 // Return string version of an object
 function stringify(obj) {
+    if (obj === null)           return "null";	
+    if (_.isUndefined(obj))     return "undefined";
     if (_.isFunction(obj))	return "[Function]";
     if (_.isString(obj))	return obj;
     if (obj.message)		return obj.message; // For Exceptions

@@ -107,7 +107,7 @@ Server.prototype = {
 
 	// Add middleware for dev mode
 	server.configure('development', function() {
-	    //server.use(express.logger());
+	    server.use(express.logger());
 	    server.use(express.errorHandler({ dumpExceptions: true,
 					      showStack: true }));
 	});
@@ -177,6 +177,19 @@ Server.prototype = {
     handleMail: function handleMail(msg) {
 	var feedback = this.feedbackMsgs;
 
+	//	debug(msg);
+	// Handle logging
+	var log = msg.log;
+	if (log) {
+	    switch (msg.level) {
+	      case 'ERROR': utils.error("MAIL", log); break;
+	      case 'INFO' : utils.log  ("MAIL", log); break;
+	      case 'DEBUG': utils.debug("MAIL", log); break;
+	      default     : utils.log  (msg.level, "MAIL", log); break;
+	    }
+	    return;
+	}
+
 	// Extract jumbotron name from email address "Foo Bar <jumbotron@jj.brownbag.me>"
 	var jName = new RegExp('([^<"]+)@').exec(msg.receiver);
 	if (! jName)
@@ -192,20 +205,8 @@ Server.prototype = {
 	    return msg.reply(feedback.error.format(jName, error));
 	}
 
-	// Handle logging
-	var log = msg.log;
-	if (log) {
-	    switch (msg.level) {
-	      case 'ERROR': utils.error("MAIL", log); break;
-	      case 'INFO' : utils.log  ("MAIL", log); break;
-	      case 'DEBUG': utils.debug("MAIL", log); break;
-	      default     : utils.log  (msg.level, "MAIL", log); break;
-	    }
-	    return;
-	}
-
 	// Handle mailed images
-	utils.debug('MAIL', '<', msg.sender, msg.jumbotron);
+	utils.debug('MAIL', '<', msg.sender, jName);
 	var filename = msg.filename;
 	this._store.getJumbotron(jName, function(err, jumbotron) {
 	    if (err) {
