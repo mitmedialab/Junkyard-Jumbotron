@@ -11,7 +11,7 @@
 
 var fs = require('fs'),
     Path = require('path'),
-    utils = require('connect/utils'),
+    utils = require('connect').utils,
     Buffer = require('buffer').Buffer,
     parseUrl = require('url').parse,
     queryString = require('querystring');

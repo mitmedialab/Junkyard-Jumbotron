@@ -202,7 +202,6 @@ def str_markers(markers):
 def main(argv):
     """Perform detection from the command line.
     Usage: python artoolkit.py <image_name>"""
-    import core
 
     logging.basicConfig(level=logging.DEBUG, format="%(message)s")
 
@@ -214,7 +213,7 @@ def main(argv):
         return 0
 
     image = Image.open(argv[1])
-    image = core.reorient_image(image);
+    #image = core.reorient_image(image);
     if image.mode != 'RGB' or image.mode != 'RGBA':
         image = image.convert('RGB')
 

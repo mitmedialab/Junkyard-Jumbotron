@@ -107,7 +107,7 @@ Server.prototype = {
 
 	// Add middleware for dev mode
 	server.configure('development', function() {
-	    server.use(express.logger());
+	    //server.use(express.logger());
 	    server.use(express.errorHandler({ dumpExceptions: true,
 					      showStack: true }));
 	});

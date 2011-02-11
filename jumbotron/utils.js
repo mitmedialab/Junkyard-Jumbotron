@@ -2,7 +2,6 @@
 // Utilities, some mirrored from node.js, connect, underscore, and string
 
 var nutils = require('util');
-var cutils = require('connect/utils');
 var _  = require('underscore');
 _.mixin(require('underscore.string'));
 
@@ -39,12 +38,20 @@ module.exports = {
 
     stringify: stringify,
     inspect: nutils.inspect,
-    uid: cutils.uid,
 
     stackTrace: function stackTrace() {
 	var err = {};
 	Error.captureStackTrace(err, this.printStack);
 	return err.stack;
+    },
+
+    uid: function uid(len) {
+	var chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
+	var charlen = chars.length;
+	var buf = [];
+	for (var i = 0; i < len; ++i)
+	    buf.push(chars[Math.floor(Math.random() * charlen)]);
+	return buf.join('');
     },
 
     error: function error() {
