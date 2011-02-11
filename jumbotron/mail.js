@@ -63,7 +63,8 @@ Mail.prototype = {
 	this._sendCmd("check");
     },
 
-    sendMail: function send(receiver, subject, body) {
+    sendMail: function sendMail(receiver, subject, body) {
+	utils.debug('MAIL', '>', receiver, subject, body);
 	// If no body, split subject at first newline
 	if (! body) {
 	    var idx = subject.indexOf('\n');

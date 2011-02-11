@@ -482,7 +482,7 @@ $.extend(Display.prototype, {
 	},
 
 	errorMsg: function error(args) {
-	    console.log('ERROR from server:', args);
+	    log('ERROR from server:', args);
 	}
     }
 });
