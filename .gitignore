@@ -14,6 +14,7 @@ Icon?
 # My own
 NOTES.txt
 jjtest.js
+jjbug.js
 *_out.jpg
 
 /local/lib/node/.npm/.cache/.cache.json
