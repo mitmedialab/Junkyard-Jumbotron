@@ -13,8 +13,8 @@ LFLAGS        =
 
 UNAME := $(shell uname)
 ifeq ($(UNAME), Darwin)
-	CFLAGS   := -arch i386 -msse3 $(CFLAGS)
-	CXXFLAGS := -arch i386 -msse3 $(CXXFLAGS)
+	CFLAGS   := -msse3 $(CFLAGS)
+	CXXFLAGS := -msse3 $(CXXFLAGS)
 	LFLAGS  := -bundle -undefined dynamic_lookup $(LFLAGS)
 else # Linux
 	CFLAGS   := -fPIC  $(CFLAGS)
