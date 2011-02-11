@@ -1,0 +1,11 @@
+.lock-wscript
+build/
+*/build/
+./build
+.svn/
+.hg/
+.git/
+CVS/
+*~
+*.bak
+.DS_Store

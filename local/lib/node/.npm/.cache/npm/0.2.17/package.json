@@ -1,0 +1,239 @@
+{
+  "name": "npm",
+  "description": "A package manager for node",
+  "keywords": [
+    "package manager",
+    "modules",
+    "install",
+    "package.json"
+  ],
+  "version": "0.2.17",
+  "homepage": "http://npmjs.org/",
+  "author": {
+    "name": "Isaac Z. Schlueter",
+    "email": "i@izs.me",
+    "url": "http://blog.izs.me"
+  },
+  "contributors": [
+    {
+      "name": "Steve Steiner",
+      "email": "ssteinerX@gmail.com",
+      "url": "http://websaucesoftware.com/blog/"
+    },
+    {
+      "name": "Mikeal Rogers",
+      "email": "mikeal.rogers@gmail.com",
+      "url": "http://www.mikealrogers.com/"
+    },
+    {
+      "name": "Aaron Blohowiak",
+      "email": "aaron.blohowiak@gmail.com",
+      "url": "http://aaronblohowiak.com/"
+    },
+    {
+      "name": "Martyn Smith",
+      "email": "martyn@dollyfish.net.nz",
+      "url": "http://dollyfish.net.nz/"
+    },
+    {
+      "name": "Mathias Pettersson",
+      "email": "mape@mape.me",
+      "url": "http://mape.me/"
+    },
+    {
+      "name": "Brian Hammond",
+      "email": "brian@fictorial.com",
+      "url": "http://fictorial.com/"
+    },
+    {
+      "name": "Charlie Robbins",
+      "email": "charlie.robbins@gmail.com",
+      "url": "http://www.charlierobbins.com/"
+    },
+    {
+      "name": "Francisco Treacy",
+      "email": "francisco.treacy@gmail.com",
+      "url": "http://franciscotreacy.com/"
+    },
+    {
+      "name": "Cliffano Subagio",
+      "email": "cliffano@gmail.com",
+      "url": "http://blog.cliffano.com/"
+    },
+    {
+      "name": "Christian Eager",
+      "email": "christian.eager@nokia.com",
+      "url": "http://perpenduum.com"
+    },
+    {
+      "name": "Dav Glass",
+      "email": "davglass@gmail.com",
+      "url": "http://blog.davglass.com"
+    },
+    {
+      "name": "Alex K. Wolfe",
+      "email": "alexkwolfe@gmail.com"
+    },
+    {
+      "name": "James Sanders",
+      "email": "jimmyjazz14@gmail.com",
+      "url": "http://james-sanders.com/"
+    },
+    {
+      "name": "Reid Burke",
+      "email": "me@reidburke.com",
+      "url": "http://reidburke.com/"
+    },
+    {
+      "name": "Arlo Breault",
+      "email": "arlolra@gmail.com",
+      "url": "http://thoughtherder.com/"
+    },
+    {
+      "name": "Timo Derstappen",
+      "email": "teemow@gmail.com",
+      "url": "http://teemow.com"
+    },
+    {
+      "name": "Bradley Meck",
+      "email": "bradley.meck@gmail.com"
+    },
+    {
+      "name": "Bart Teeuwisse",
+      "email": "bart.teeuwisse@thecodemill.biz",
+      "url": "http://thecodemill.biz/"
+    },
+    {
+      "name": "Ben Noordhuis",
+      "email": "info@bnoordhuis.nl",
+      "url": "http://bnoordhuis.nl/"
+    },
+    {
+      "name": "Tor Valamo",
+      "email": "tor.valamo@gmail.com",
+      "url": "http://www.magnimedia.no/"
+    },
+    {
+      "name": "Whyme.Lyu",
+      "email": "5longluna@gmail.com",
+      "url": "http://whyme.kuantu.com/"
+    },
+    {
+      "name": "Olivier Melcher",
+      "email": "olivier.melcher@gmail.com"
+    },
+    {
+      "name": "Tomaž Muraus",
+      "email": "kami@k5-storitve.net",
+      "url": "http://www.tomaz-muraus.info"
+    },
+    {
+      "name": "Evan Meagher",
+      "email": "evan.meagher@gmail.com",
+      "url": "http://evanmeagher.net/"
+    },
+    {
+      "name": "Orlando Vazquez",
+      "email": "ovazquez@gmail.com",
+      "url": "http://2wycked.net/"
+    }
+  ],
+  "repository": {
+    "type": "git",
+    "url": "http://github.com/isaacs/npm.git"
+  },
+  "bugs": {
+    "email": "npm-@googlegroups.com",
+    "url": "http://github.com/isaacs/npm/issues"
+  },
+  "directories": {
+    "doc": "./doc",
+    "man": "./man1",
+    "lib": "./lib",
+    "bin": "./bin"
+  },
+  "main": "npm",
+  "engines": {
+    "node": ">=0.2.3"
+  },
+  "scripts": {
+    "test": "make test",
+    "postinstall": "./scripts/install-message.sh"
+  },
+  "licenses": [
+    {
+      "type": "MIT",
+      "url": "http://github.com/isaacs/npm/raw/master/LICENSE"
+    }
+  ],
+  "_id": "npm@0.2.17",
+  "_engineSupported": true,
+  "_npmVersion": "0.2.15",
+  "_nodeVersion": "v0.3.7-pre",
+  "bin": {
+    "npm": "bin/npm.js",
+    "read-package-json": "bin/read-package-json.js",
+    "semver": "bin/semver.js"
+  },
+  "files": [
+    ""
+  ],
+  "_defaultsLoaded": true,
+  "man": [
+    "man1/activate.1",
+    "man1/adduser.1",
+    "man1/build.1",
+    "man1/bundle.1",
+    "man1/cache.1",
+    "man1/changelog.1",
+    "man1/coding-style.1",
+    "man1/completion.1",
+    "man1/config.1",
+    "man1/deactivate.1",
+    "man1/deprecate.1",
+    "man1/developers.1",
+    "man1/docs.1",
+    "man1/edit.1",
+    "man1/explore.1",
+    "man1/faq.1",
+    "man1/find.1",
+    "man1/folders.1",
+    "man1/get.1",
+    "man1/init.1",
+    "man1/install.1",
+    "man1/json.1",
+    "man1/link.1",
+    "man1/list.1",
+    "man1/ln.1",
+    "man1/ls.1",
+    "man1/npm.1",
+    "man1/outdated.1",
+    "man1/owner.1",
+    "man1/publish.1",
+    "man1/rebuild.1",
+    "man1/registry.1",
+    "man1/restart.1",
+    "man1/rm.1",
+    "man1/run-script.1",
+    "man1/scripts.1",
+    "man1/search.1",
+    "man1/set.1",
+    "man1/start.1",
+    "man1/stop.1",
+    "man1/tag.1",
+    "man1/test.1",
+    "man1/uninstall.1",
+    "man1/unpublish.1",
+    "man1/update.1",
+    "man1/version.1",
+    "man1/view.1",
+    "man1/future-ideas/deploy.1",
+    "man1/future-ideas/new-module-system.1",
+    "man1/future-ideas/remote.1",
+    "man1/future-ideas/site.1"
+  ],
+  "dist": {
+    "shasum": "e152e0760182de9101e2d1ae31aa8cbd355d4bda",
+    "tarball": "http://registry.npmjs.org/npm/-/npm-0.2.17.tgz"
+  }
+}

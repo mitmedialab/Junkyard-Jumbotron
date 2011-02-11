@@ -1,0 +1,43 @@
+{
+  "name": "socket.io",
+  "description": "The cross-browser WebSocket",
+  "version": "0.6.10",
+  "author": {
+    "name": "LearnBoost"
+  },
+  "licenses": [
+    {
+      "type": "MIT",
+      "url": "http://github.com/learnboost/Socket.IO-node/raw/master/README.md"
+    }
+  ],
+  "repository": {
+    "type": "git",
+    "url": "http://github.com/learnboost/Socket.IO-node.git"
+  },
+  "engine": [
+    "node >=0.1.102"
+  ],
+  "main": "./index",
+  "scripts": {
+    "test": "make test"
+  },
+  "_id": "socket.io@0.6.10",
+  "engines": {
+    "node": "*"
+  },
+  "_engineSupported": true,
+  "_npmVersion": "0.2.17",
+  "_nodeVersion": "v0.3.7-pre",
+  "directories": {
+    "lib": "./lib"
+  },
+  "files": [
+    ""
+  ],
+  "_defaultsLoaded": true,
+  "dist": {
+    "shasum": "7b694adbb6789f34bb5ab34faf10fe5681f337c4",
+    "tarball": "http://registry.npmjs.org/socket.io/-/socket.io-0.6.10.tgz"
+  }
+}

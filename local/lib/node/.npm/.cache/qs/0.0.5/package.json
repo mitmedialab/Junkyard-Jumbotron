@@ -1,0 +1,33 @@
+{
+  "name": "qs",
+  "description": "querystring parser",
+  "version": "0.0.5",
+  "repository": {},
+  "author": {
+    "name": "TJ Holowaychuk",
+    "email": "tj@vision-media.ca",
+    "url": "http://tjholowaychuk.com"
+  },
+  "main": "index",
+  "engines": {
+    "node": "*"
+  },
+  "_id": "qs@0.0.5",
+  "_engineSupported": true,
+  "_npmVersion": "0.2.18",
+  "_nodeVersion": "v0.3.8",
+  "directories": {
+    "lib": "./lib"
+  },
+  "modules": {
+    "querystring.js": "lib/querystring.js"
+  },
+  "files": [
+    ""
+  ],
+  "_defaultsLoaded": true,
+  "dist": {
+    "shasum": "9ecdc515db3025ed5d0ed55c48ad23a847383875",
+    "tarball": "http://registry.npmjs.org/qs/-/qs-0.0.5.tgz"
+  }
+}
