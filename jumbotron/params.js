@@ -7,7 +7,7 @@ module.exports = {
 
     // Server listens on this port. NOTE: If you change this, also
     // change it in the apache configs and in jjclient.js.
-    port: 8077,
+    port: 8000,
 
     // Regexp for allowable jumbotron names
     jumbotronRegExp:  /^[a-zA-Z0-9][a-zA-Z0-9_-]*$/,
