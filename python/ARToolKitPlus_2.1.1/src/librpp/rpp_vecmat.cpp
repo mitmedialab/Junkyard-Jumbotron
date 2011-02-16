@@ -44,6 +44,7 @@
 #include "rpp_vecmat.h"
 #include "math.h"
 #include "assert.h"
+#include "stdio.h" //BK
 
 #ifndef __APPLE__ //BK
 #include <malloc.h>
