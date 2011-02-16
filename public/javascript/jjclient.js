@@ -60,7 +60,7 @@ Client.prototype = {
 
     initSocket: function initSocket() {
 	var socket = this.socket = new io.Socket(null, {
-	    port: 8000, // If you change this, also change in params.js and apache configs
+	    port: 80, // If you change this, also change in params.js and apache configs
 	    transports: ['websocket', 'xhr-multipart', 'xhr-polling', 'jsonp-polling'],
 	    //transports: ['websocket', 'flashsocket', 'htmlfile', 'xhr-multipart', 'xhr-polling', 'jsonp-polling'],
 	    rememberTransport: true});
