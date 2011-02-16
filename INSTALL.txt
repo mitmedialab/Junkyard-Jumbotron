@@ -1,26 +1,76 @@
+To install on a fresh unix box.
 
-install node.js:
-> download and unpack node-v0.3.3.tar.gz
-> ./configure
+1. INSTALL SYSTEM PACKAGES
+> sudo apt-get install make
+> sudo apt-get install gcc
+> sudo apt-get install g++
+> sudo apt-get install libssl-dev
+> sudo apt-get install git-core
+> sudo apt-get install graphicsmagik
+> sudo apt-get install libjpeg62-dev
+> sudo apt-get install python
+> sudo apt-get install python-imaging
+
+2. MAKE AND INSTALL PYTHON 2.6 OR 2.7, IF NEEDED.
+
+Check version
+> python --version
+
+If result is less than 2.5 or lower, follow these directions:
+> wget http://python.org/ftp/python/2.7.1/Python-2.7.1.tgz
+> tar -xvzf Python-2.7.1.tgz
+> cd Python-2.7.1
+> ./configure 
 > make
-> make install
+> sudo make install
+> sudo ln -s /usr/local/lib/libpython2.7.so /usr/
+> sudo ln -s /usr/local/lib/libpython2.7.so.1.0 /usr/lib64/
+> cd ..
+> rm Python-2.7.1.tgz
+> rm -r Python-2.7.1
 
-install npm:
-> curl http://npmjs.org/install.sh | sh
+And install the imaging library
+> wget http://effbot.org/downloads/Imaging-1.1.7.tar.gz
+> tar -xvzf Imaging-1.1.7.tar.gz
+> cd Imaging-1.1.7
+> sudo python setup.py install
+> cd ..
+> rm Imaging-1.1.7.tar.gz
+> rm -r Imaging-1.1.7
 
-npm install express		# mini framework
-npm install socket.io		# async io
-npm install formidable		# decode multipart form data
-npm install underscore		# utilities
-npm install underscore.string	# utilities
-npm install chaos		# disk store
-npm install jade		# templates
-npm install gm			# graphics magick
-npm install node-dev		#
+3. GET CODE FROM CODEBASEHQ
+Setup an ssh key pair with codebase
+> cd
+> git clone git@codebasehq.com:c4fcm/brownbag/jumbotron-node.git jumbotron-node
+> git submodule init
+> git submodule update
+
+4. MAKE ALL
+> cd jumbotron-node
+> make node
+> make python
+
+5. SET UP SERVICE
+> sudo TODO
+> sudo start jumbotron
+
+----------------------------------------------------------------------
+
+Additional info
+
+All required node packages are included in the git repo, so no manual
+installation is required. The following list is for reference only:
+NPM is used for package management.
+> npm install express		# mini framework
+> npm install socket.io		# async io
+> npm install formidable	# decode multipart form data
+> npm install underscore	# utilities
+> npm install underscore.string	# utilities
+> npm install chaos		# disk store
+> npm install jade		# templates
+> npm install gm		# graphics magick
+> npm install node-dev		#
 
 install gm:
 > follow instructions at http://www.graphicsmagick.org/
 	
-TODO: Change apache config from mode_rewrite to proxy?
-see: blog.depold.com/post/2073407414/deploying-a-node-js-web-application-with-express-and
-and: www.scribd.com/doc/4310225/When-Not-to-Use-modrewrite
