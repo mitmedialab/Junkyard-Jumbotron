@@ -1,0 +1,46 @@
+{
+  "name": "log4js",
+  "version": "0.2.3",
+  "description": "Port of Log4js to work with node.",
+  "keywords": [
+    "logging",
+    "log",
+    "log4j",
+    "node"
+  ],
+  "main": "./lib/log4js",
+  "author": {
+    "name": "Gareth Jones",
+    "email": "gareth.jones@sensis.com.au"
+  },
+  "bugs": {
+    "url": "http://github.com/csausdev/log4js-node/issues"
+  },
+  "engines": [
+    "node >=0.1.100"
+  ],
+  "scripts": {
+    "test": "vows test/logging.js"
+  },
+  "directories": {
+    "test": "test",
+    "lib": "lib"
+  },
+  "_id": "log4js@0.2.3",
+  "_nodeSupported": true,
+  "_npmVersion": "0.2.18",
+  "_nodeVersion": "v0.3.8",
+  "dist": {
+    "shasum": "59c12a2a88542baa722710f81c1412007709d4d3",
+    "tarball": "http://registry.npmjs.org/log4js/-/log4js-0.2.3.tgz"
+  },
+  "_engineSupported": true,
+  "modules": {
+    "log4js.json": "lib/log4js.json",
+    "log4js.js": "lib/log4js.js"
+  },
+  "files": [
+    ""
+  ],
+  "_defaultsLoaded": true
+}

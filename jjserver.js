@@ -16,6 +16,7 @@ var fs = require('fs');
 var io = require('socket.io');
 var formidable = require('formidable');
 var express = require('express');
+var log4js = require('log4js')(); //note the need to call the function
 
 // Use our own until connect.staticProvider makes clearCache accessible
 // https://github.com/senchalabs/connect/issues/issue/187
@@ -66,17 +67,17 @@ http.ServerResponse.prototype.sendStatus = function(status, args) {
 // Server
 
 function Server() {
-    this._socketMap = []; // maps sockets to displays
-
-    this._store = new Store();
-
-    if (! params.debug)
-	debug = utils.debug = function() {}
+    this.init();
 }
 
 Server.prototype = {
 
     init: function init() {
+	this.initLogging();
+
+	this._socketMap = []; // maps sockets to displays
+
+	this._store = new Store();
 	this.initServer();
 	this.initSocket();
 	this.initMail();
@@ -86,6 +87,48 @@ Server.prototype = {
 
 	log('Starting server --------------------------------------------------');
 	this._server.listen(params.port);
+    },
+
+    // ----------------------------------------------------------------------
+    // Logging
+
+    initLogging: function initLogging() {
+	// Log format (log4js.patternLayout crashes and doesn't log exceptions)
+	function layoutException(loggingEvent) {
+	    if (loggingEvent.exception.stack)
+		return loggingEvent.exception.stack;
+	    else
+		return loggingEvent.exception.name + ': '+ loggingEvent.exception.message;
+	}
+	function layout (loggingEvent) {
+	    var timestamp = loggingEvent.startTime.toFormattedString("MM-dd hh:mm:ss.SSS: ");
+	    var output = timestamp + loggingEvent.message;
+	    if (loggingEvent.exception)
+		output += '\n' + timestamp + layoutException(loggingEvent);
+	    return output;
+	}
+	function layoutSimple (loggingEvent) {
+	    var output = loggingEvent.message;
+	    if (loggingEvent.exception)
+		output += '\n' + layoutException(loggingEvent);
+	    return output;
+	}
+
+	// Log to console and/or file
+	var config = params.logging;
+	log4js.clearAppenders()
+	if (config.useConsole)
+	    log4js.addAppender(log4js.consoleAppender(layoutSimple));
+	if (config.useFile)
+	    log4js.addAppender(log4js.fileAppender(config.filename, layout,
+						   config.maxFileSize, config.backups,
+						   config.pollInterval));
+
+	// Set logging level, and clear out debug function for speed
+	var logger = log4js.getLogger();
+	logger.setLevel(params.debug ? 'DEBUG' : 'INFO');
+	if (! params.debug)
+	    debug = utils.debug = function() {}
     },
 
     // ----------------------------------------------------------------------
@@ -877,7 +920,6 @@ Server.prototype = {
 // ======================================================================
 
 var server = new Server();
-server.init();
 //server._store.clear();
 //server.initTest();
 

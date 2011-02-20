@@ -49,7 +49,19 @@ module.exports = {
     viewsDir: join('private', 'views'),
 
     // File for log, warning, and error messages
-    logFile: join('private', 'logs', 'output.log'),
+    logging: {
+	// Log messages to the console
+	useConsole: false,
+
+	// Log messages to a file
+	useFile: true,
+	filename: join('private', 'logs', 'output.log'),
+
+	// Rotating log file details
+	maxFileSize: 1024 * 1024, // Maximum number of bytes per file 
+	backups: 5,               // How many files to keep
+	pollInterval: 60          // Seconds between checking the file size
+    },
 
     // Python scripts
     pythonPath: '/usr/local/bin:/usr/bin',

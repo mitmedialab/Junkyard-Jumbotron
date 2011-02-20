@@ -1,6 +1,8 @@
 // ----------------------------------------------------------------------
 // Utilities, some mirrored from node.js, connect, underscore, and string
 
+var log4js = require('log4js')();
+var logger = log4js.getLogger();
 var nutils = require('util');
 var _  = require('underscore');
 _.mixin(require('underscore.string'));
@@ -15,23 +17,6 @@ function stringify(obj) {
     if (_.isArguments(obj))
 	return _.toArray(obj).map(stringify).join(" ");
     return nutils.inspect(obj, false, 0, false).replace(/\n|( ) */g, '$1');
-}
-
-function pad(n) {
-  return n < 10 ? '0' + n.toString(10) : n.toString(10);
-}
-
-var months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep',
-              'Oct', 'Nov', 'Dec'];
-
-// Feb 26 16:19:34
-function timestamp() {
-    var d = new Date();
-    //return d.toUTCString().substring(5,25)
-    var time = [pad(d.getHours()),
-		pad(d.getMinutes()),
-		pad(d.getSeconds())].join(':');
-    return [pad(d.getDate()), months[d.getMonth()], time].join(' ');
 }
 
 module.exports = {
@@ -55,22 +40,19 @@ module.exports = {
     },
 
     error: function error() {
-	var msg = [timestamp(), "ERROR", stringify(arguments)].join(': ');
-	nutils.error(msg);
+	logger.error("ERROR: " + stringify(arguments));
 	for (var a in arguments) {
 	    if (arguments[a].stack)
-		nutils.error(arguments[a].stack);
+		logger.error(arguments[a].stack);
 	}
     },
 
     log: function log() {
-	var msg = [timestamp(), stringify(arguments)].join(': ');
-	nutils.puts(msg);	// asynchronous
+	logger.info(stringify(arguments));
     },
 
     debug: function debug() {
-	var msg = [timestamp(), stringify(arguments)].join(': ');
-	nutils.error(msg);	// synchronous
+	logger.debug(stringify(arguments));
     },
 
     inherits: function inherits(superCtor, props) { 
