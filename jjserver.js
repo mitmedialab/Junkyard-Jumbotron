@@ -74,6 +74,7 @@ Server.prototype = {
 
     init: function init() {
 	this.initLogging();
+	log('Starting server --------------------------------------------------');
 
 	this._socketMap = []; // maps sockets to displays
 
@@ -85,7 +86,6 @@ Server.prototype = {
 	// Listen for Jumbotron changes
 	Jumbotron.listener = this.handleImageChange.bind(this);
 
-	log('Starting server --------------------------------------------------');
 	this._server.listen(params.port);
     },
 
@@ -618,7 +618,7 @@ Server.prototype = {
     // Socket
 
     initSocket: function initSocket() {
-	this._socketio = io.listen(this._server);
+	this._socketio = io.listen(this._server, { log: utils.log });
 	this._socketio.on('connection', this.handleSocketConnect.bind(this));
     },
 

@@ -61,9 +61,7 @@ Client.prototype = {
     initSocket: function initSocket() {
 	var socket = this.socket = new io.Socket(null, {
 	    port: 80, // If you change this, also change in params.js and apache configs
-	    transports: ['websocket', 'xhr-multipart', 'xhr-polling', 'jsonp-polling'],
-	    //transports: ['websocket', 'flashsocket', 'htmlfile', 'xhr-multipart', 'xhr-polling', 'jsonp-polling'],
-	    rememberTransport: true});
+	    rememberTransport: false});
 
 	// socket.90 v0.6.8: timeout doesn't work very well
 	socket.on('connect', bind(this, function() {
