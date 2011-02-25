@@ -36,10 +36,12 @@ Mail.prototype = {
 	    process.stdout.on('data', this._handleStdout.bind(this));
 	    process.stdin.write(JSON.stringify(params.email));
 	    process.stdin.write('\n');
+	    /*
 	    this.checkMail();
 	    fs.watchFile(params.email.mboxPath,
 			 { persistent: true, interval: 500 },
 			 this._handleMboxChange.bind(this));
+	    */
 	}.bind(this));
     },
 
@@ -58,13 +60,14 @@ Mail.prototype = {
 	stdin.flush();
     },
 
+    /*
     checkMail: function checkMail() {
 	//utils.debug("Checking mail");
 	this._sendCmd("check");
     },
+    */
 
     sendMail: function sendMail(receiver, subject, body) {
-	utils.debug('MAIL', '>', receiver, subject, body);
 	// If no body, split subject at first newline
 	if (! body) {
 	    var idx = subject.indexOf('\n');
@@ -73,15 +76,18 @@ Mail.prototype = {
 		subject = subject.substring(0, idx);
 	    }
 	}
+	utils.debug('MAIL', '>', receiver, subject, body);
 	this._sendCmd("send", { receiver: receiver,
 				subject: subject,
 				body: body || "" });
     },
 
+    /*
     _handleMboxChange: function _handleMboxChange(nStat, oStat) {
 	if (nStat.size > 0 && nStat.mtime != oStat.mtime)
 	    this.checkMail();
     },
+    */
 
     _handleStderr: function _handleStderr(data) {
 	utils.error("Mail Checker", data.toString());

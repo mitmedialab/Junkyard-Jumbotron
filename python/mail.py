@@ -28,8 +28,8 @@ class Mail(object):
 
         self._email_path = params['mboxPath']
         self._email_smtp_server = params['smtpServer']
-        self._email_user = params['smtpUser']
-        self._email_pwd = params['smtpPwd']
+        self._email_user = params['user']
+        self._email_pwd = params['pwd']
 
         # Find uid of the mailbox owner
         uname = params['mboxUser']
