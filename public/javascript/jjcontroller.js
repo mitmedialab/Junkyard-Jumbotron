@@ -98,13 +98,13 @@ $.extend(Controller.prototype, {
 	  case 'calibrate':
 	    if (! this.jumbotron)
 		return setMode('create');
-	    this.postMsg('recalibrate');
+	    this.postMsg('setMode' { mode: 'calibrate' });
 	    $.mobile.changePage("#jjCalibrate");
 	    break;
 	  case 'control':
 	    if (! this.jumbotron)
 		return setMode('create');
-	    this.postMsg('endCalibrate');
+	    this.postMsg('setMode' { mode: 'image' });
 	    $.mobile.changePage("#jjControl");
 	    break;
 	}
@@ -246,12 +246,14 @@ $.extend(Controller.prototype, {
 
 	jjDeleteOne: {
 	    action: 'remove',
+	    args: { which: 'current' },
 	    beforeSubmit: function() {
 		return confirm(l('delete'));
 	    }
 	},
 	jjDeleteAll: {
-	    action: 'removeAll',
+	    action: 'remove',
+	    args: { which: 'all' },
 	    beforeSubmit: function() {
 		return confirm(l('delete all'));
 	    }

@@ -1,0 +1,36 @@
+{
+  "name": "iconv",
+  "main": "iconv",
+  "version": "1.0.0",
+  "description": "Text recoding in JavaScript for fun and profit!",
+  "homepage": "https://github.com/bnoordhuis/node-iconv",
+  "author": {
+    "name": "Ben Noordhuis",
+    "email": "info@bnoordhuis.nl",
+    "url": "http://bnoordhuis.nl/"
+  },
+  "scripts": {
+    "preinstall": "node-waf configure",
+    "install": "node-waf build install"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/bnoordhuis/node-iconv.git"
+  },
+  "engines": {
+    "node": ">=0.3.0"
+  },
+  "_id": "iconv@1.0.0",
+  "_engineSupported": true,
+  "_npmVersion": "0.2.18",
+  "_nodeVersion": "v0.3.8",
+  "directories": {},
+  "files": [
+    ""
+  ],
+  "_defaultsLoaded": true,
+  "dist": {
+    "shasum": "d8d55a6eedf61b6e33b628da1f7e6584bae26c9e",
+    "tarball": "http://registry.npmjs.org/iconv/-/iconv-1.0.0.tgz"
+  }
+}

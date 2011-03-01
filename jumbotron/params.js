@@ -12,6 +12,9 @@ module.exports = {
     // Regexp for allowable jumbotron names
     jumbotronRegExp:  /^[a-zA-Z0-9][a-zA-Z0-9_-]*$/,
 
+    // Temporaty for for file uploads
+    tmpDir: '/tmp',
+
     // Public resource directory for web clients
     resourceDir: 'public',
 
@@ -51,7 +54,7 @@ module.exports = {
     // File for log, warning, and error messages
     logging: {
 	// Log messages to the console
-	useConsole: false,
+	useConsole: true,
 
 	// Log messages to a file
 	useFile: true,
@@ -71,14 +74,11 @@ module.exports = {
 
     // Email server info
     email: {
-	mboxUser: 'jj',
-	mboxPath: '/var/mail/jj', // unix specific
-	imapServer: 'imap.gmail.com',
 	smtpServer: 'smtp.gmail.com',
 	user: 'test.jj.brownbag@gmail.com',
 	pwd:  'Br0wnB@g',
-	poll: true,
-	pollInterval: 10, // seconds
+	ssl: true,
+	port: 465,
 	debug: true
     },
 

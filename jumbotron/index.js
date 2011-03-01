@@ -1,7 +1,7 @@
 this.params = require('./params');
 this.utils = require('./utils');
 this.calibrate = require('./calibrate');
-this.Mail = require('./mail');
+this.mail = require('./mail');
 this.Store = require('./store');
 this.Viewport = require('./viewport');
 this.Image = require('./image');

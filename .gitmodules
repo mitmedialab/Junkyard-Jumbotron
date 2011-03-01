@@ -1,6 +1,6 @@
 [submodule "dep/node"]
 	path = dep/node
-	url = https://github.com/ry/node.git
+	url = https://github.com/joyent/node.git
 [submodule "dep/npm"]
 	path = dep/npm
 	url = git://github.com/isaacs/npm.git

@@ -67,7 +67,8 @@ html(lang="en")
           p Take a calibration picture and upload it below or email it to
             span.jjEmailUrl none@jj.brownbag.me
 
-          form#jjCalibrateForm(action="calibrate", enctype="multipart/form-data", method="POST")
+          form#jjCalibrateForm(action="upload", enctype="multipart/form-data", method="POST")
+	    input#jjCalibrateType(name="type", type="hidden", value="calibrate")
             input#jjCalibrateFile(name="file", type="file")
             input#jjCalibrateSubmit(name="calibrate", type="submit", value="Next")
 
@@ -94,6 +95,7 @@ html(lang="en")
             span.jjEmailUrl none@jj.brownbag.me
 
           form#jjUploadForm(action="upload", enctype="multipart/form-data", method="POST")
+	    input#jjCalibrateType(name="type", type="hidden", value="image")
             input#jjUploadFile(name="file", type="file")
             input#jjUploadSubmit(name="upload", type="submit", value="Upload")
 
