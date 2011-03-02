@@ -98,13 +98,13 @@ $.extend(Controller.prototype, {
 	  case 'calibrate':
 	    if (! this.jumbotron)
 		return setMode('create');
-	    this.postMsg('setMode' { mode: 'calibrate' });
+	    this.postMsg('setMode', { mode: 'calibrate' });
 	    $.mobile.changePage("#jjCalibrate");
 	    break;
 	  case 'control':
 	    if (! this.jumbotron)
 		return setMode('create');
-	    this.postMsg('setMode' { mode: 'image' });
+	    this.postMsg('setMode', { mode: 'image' });
 	    $.mobile.changePage("#jjControl");
 	    break;
 	}
@@ -263,7 +263,7 @@ $.extend(Controller.prototype, {
 
     controlJumbotron: function controlJumbotron(jumbotron) {
 	this.jumbotron = jumbotron;
-	if (jumbotron.mode == 'calibrating')
+	if (jumbotron.mode == 'calibrate')
 	    this.setMode('calibrate');
 	else {
 	    console.log(jumbotron);

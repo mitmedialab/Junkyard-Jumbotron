@@ -40,7 +40,7 @@
 # PATH should only include /usr/* if it runs after the mountnfs.sh script
 PATH=/sbin:/usr/sbin:/bin:/usr/bin:/usr/local/bin # modify if you need
 
-DAEMON_DIR=/home/bleppie/jumbotron-node
+DAEMON_DIR=/home/jumbotron/jumbotron-node
 NAME=node
 DAEMON=$DAEMON_DIR/local/bin/$NAME
 DAEMON_ARGS=jjserver.js

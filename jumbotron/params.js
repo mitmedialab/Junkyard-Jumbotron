@@ -51,7 +51,7 @@ module.exports = {
     // Directory with jumbotron directories (with images and icons)
     viewsDir: join('private', 'views'),
 
-    // File for log, warning, and error messages
+    // Handle log, warning, and error messages
     logging: {
 	// Log messages to the console
 	useConsole: true,
@@ -66,13 +66,12 @@ module.exports = {
 	pollInterval: 60          // Seconds between checking the file size
     },
 
-    // Python scripts
+    // Python script(s)
     pythonPath: '/usr/local/bin:/usr/bin',
     python: 'python',
     calibrateScript: join('python', 'calibrate.py'),
-    mailScript: join('python', 'mailimap.py'),
 
-    // Email server info
+    // SMTP server info
     email: {
 	smtpServer: 'smtp.gmail.com',
 	user: 'test.jj.brownbag@gmail.com',
@@ -83,7 +82,6 @@ module.exports = {
     },
 
     // Debug flags
-    // TODO: better logging controls (see python's logging package)
     debug: true,
 };
 

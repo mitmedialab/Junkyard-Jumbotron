@@ -5,6 +5,7 @@ To install on a fresh unix box.
 > sudo apt-get install gcc
 > sudo apt-get install g++
 > sudo apt-get install libssl-dev
+> sudo apt-get install curl
 > sudo apt-get install git-core
 > sudo apt-get install graphicsmagik
 > sudo apt-get install libjpeg62-dev

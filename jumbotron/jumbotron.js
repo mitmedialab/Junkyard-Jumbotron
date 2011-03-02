@@ -27,8 +27,8 @@ function Jumbotron(options) {
     // Email, for retrieving lost password (Unused for now)
     this.email = options.email;
 
-    // Mode: calibrating, image, ...
-    this.mode = options.mode || "calibrating";
+    // Mode: calibrate, image, ...
+    this.mode = options.mode || "calibrate";
     // Aspect ratio
     this.aspectRatio = options.aspectRatio || 1;
 
@@ -170,15 +170,6 @@ Jumbotron.prototype = utils.inherits(Base, {
 	});
     },
 
-    uploadImageData: function saveImageFile(data, name, cb) {
-	name = name || utils.uniqueFileName();
-	var ext = "jpg"; // TODO: does it matter?
-	var dst = path.join(this.getDirectory(), name + ext);
-	fs.writeFile(dst, data, "base64", function(err) {
-	    cb(err, dst);
-	});
-    },
-
     _deleteImage: function _deleteImage(image) {
 	// Delete path
 	if (utils.isStartsWith(image.source, this.getDirectory()))
@@ -211,8 +202,8 @@ Jumbotron.prototype = utils.inherits(Base, {
 	}
     },
 
-    fitImage: function fitImage(fitMode) {
-	var image = this.getCurrentImage();
+    fitImage: function fitImage(fitMode, image) {
+	image = image || this.getCurrentImage();
 	var vp = new Viewport({ width: image.width, height: image.height });
 	vp = vp.fitted(this.aspectRatio, fitMode);
 	image.viewport = vp;
@@ -266,7 +257,7 @@ Jumbotron.prototype = utils.inherits(Base, {
 
     getDisplayImage: function getDisplayImage(display) {
 	var image = this.getCurrentImage();
-	if (this.mode == "calibrating")
+	if (this.mode == "calibrate")
 	    image = calibrate.getMarkerImage(display.idx);
 	else if (display.viewport.isEmpty())
 	    image = Image.getErrorImage();
@@ -276,7 +267,7 @@ Jumbotron.prototype = utils.inherits(Base, {
     getDisplayViewport: function getDisplayViewport(display) {
 	var image = this.getDisplayImage(display);
 	var viewport = image.viewport;
-	if (this.mode == "calibrating" || display.viewport.isEmpty())
+	if (this.mode == "calibrate" || display.viewport.isEmpty())
 	    viewport = viewport.fitted(display.aspectRatio, "minimize");
 	else
 	    viewport = viewport.cropped(display.viewport);
@@ -284,7 +275,7 @@ Jumbotron.prototype = utils.inherits(Base, {
     },
 
     getDisplayFrozen:  function getDisplayFrozen(display) {
-	return this.mode == "calibrating" || display.viewport.isEmpty();
+	return this.mode == "calibrate" || display.viewport.isEmpty();
     }
 
 });

@@ -1,25 +1,33 @@
+
+# Set program names
 CP = cp
 MV = mv
 ECHO = echo
-NODE = local/bin/node
+NODE = node
+MAKE = make
 WWW_DIR = app/ios/www
+
+# Add local/bin to path
+PWD := $(shell pwd)
+PATH := $(PWD)/local/bin:$(PATH)
+
+# Make all
+all: node python
+.PHONY: node python
+
+# Make node
+node-misc:
+	npm install iconv
+node: node-misc
+	cd dep/node; ./configure --prefix ../../local
+	$(MAKE) -C dep/node install
+
+
+# Make python extensions
+python:
+	$(MAKE) -C python all
 
 # Convert jade templates html and copy needed files to phonegap
 phonegap-www:
 	$(NODE) jjapp.js private/index.jade $(WWW_DIR)/index.html
-	$(CP) -r public/*.js public/*.css public/images $(WWW_DIR)
-
-# If you need ssl:
-# > sudo apt-get install libssl0.9.8 # Or latest
-# > sudo apt-get install libssl-dev
-# If you need gmL
-# > sudo apt-get install graphicsmagick
-node:
-	cd dep/node; ./configure --prefix ../../local
-	make -C dep/node install
-
-python:
-	make -C python all
-
-.PHONY: node python
-all: node python
+	$(CP) -r public/javascript/*.js public/css/*.css public/images $(WWW_DIR)

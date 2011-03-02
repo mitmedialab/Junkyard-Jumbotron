@@ -1,6 +1,7 @@
 // ----------------------------------------------------------------------
 // Utilities, some mirrored from node.js, connect, underscore, and string
 
+var path = require('path');
 var log4js = require('log4js')();
 var logger = log4js.getLogger();
 var nutils = require('util');
@@ -69,6 +70,10 @@ module.exports = {
     uniqueFileName: function uniqueFileName() {
 	return [Date.now().toString(36),
 		(Math.random() * 0x100000000 + 1).toString(36)].join('.');
+    },
+
+    tmpFileName: function tmpFileName() {
+	return path.join(params.tmpDir, this.uniqueFileName());
     },
 
     escapeForShell: function escapeForShell(str){

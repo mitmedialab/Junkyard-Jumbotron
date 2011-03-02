@@ -82,7 +82,6 @@ Server.prototype = {
 	this._store = new Store();
 	this.initServer();
 	this.initSocket();
-	////this.initMail();
 
 	// Listen for Jumbotron changes
 	Jumbotron.listener = this.handleImageChange.bind(this);
@@ -180,115 +179,6 @@ Server.prototype = {
 	server.get('/_test', function(req, res) { res.render('test'); });
 	server.get('/:jumbotron', this.handleJoin.bind(this));
 	server.post('/:cmd' , this.handleCommand.bind(this));
-    },
-
-    // ----------------------------------------------------------------------
-    // Mail handler
-
-    initMail: function initMail() {
-	this._mail = new Mail(this.handleMail.bind(this));
-	this._mail.start();
-    },
-
-    // TODO: combine these with controller feedback messages
-    feedbackMsgs: {
-	error:       ("Can't upload file to '{0}'\n" +
-		      "{1}"),
-
-	noAttachments: ("No attachments\n" +
-			"Whoops, your message has no attachments."),
-
-	noJumbotron: ("No jumbotron called '{0}'\n" +
-		      "Whoops, there is no jumbotron named '{0}'"),
-	
-	noDisplays:  ("No displays found while calibrating '{0}'\n" +
-		      "Whoops, I didn't find any displays in the image you emailed."),
-
-	fewDisplays: ("Not enough displays found calibrating '{0}'\n" +
-		      "I found only {1} display(s) in the image you emailed, " +
-		      "but there are {2} displays attached to your Junkyard Jumbotron '{0}'."),
-
-	moreDisplays: ("Too many displays found calibrating '{0}'\n" +
-		      "I found only {1} display(s) in the image you emailed, " +
-		      "but there are {2} displays attached to your Junkyard Jumbotron '{0}'."),
-
-	calibrated:  ("Calibrated '{0}'!\n" +
-		      "Junkyard Jumbotron '{0}' has been successfully calibrated."),
-
-	uploaded:    ("Image uploaded to '{0}'!\n" +
-		      "Image has been successfully uploaded to Junkyard Jumbotron '{0}'.")
-    },
-
-    handleMail: function handleMail(msg) {
-	var feedback = this.feedbackMsgs;
-
-	// Extract jumbotron name from email address "Foo Bar <jumbotron@jj.brownbag.me>"
-	var jName = new RegExp('([^<"]+)@').exec(msg.receiver);
-	if (! jName)
-	    return msg.reply(feedback.error.format(msg.receiver,
-			     'Badly formatted mail message'));
-	jName = jName[1];
-
-	// Handle error messages that should be sent to user
-	var error = msg.error;
-	if (error) {
-	    if (error == "no attachments")
-		return msg.reply(feedback.noAttachments);
-	    return msg.reply(feedback.error.format(jName, error));
-	}
-
-	// Handle mailed images
-	utils.debug('MAIL', '<', msg.sender, jName);
-	var filename = msg.filename;
-	this._store.getJumbotron(jName, function(err, jumbotron) {
-	    if (err) {
-		// Remove file and send feedback
-		fs.unlink(filename)
-		return msg.reply(feedback.error.format(jName, err));
-	    }
-
-	    if (! jumbotron) {
-		// Remove file and send feedback
-		fs.unlink(filename)
-		return msg.reply(feedback.noJumbotron.format(jName));
-	    }
-
-	    var name = jumbotron.mode == "calibrating" ? "_calibrate" : null;
-	    jumbotron.uploadImageFile(filename, name, function(err, filename) {
-		if (err)
-		    return msg.reply(feedback.error.format(jName, err.toString()));
-
-		if (jumbotron.mode == "calibrating") {
-		    this.calibrateJumbotron(jumbotron, filename, function(err, numFound) {
-			var reply = null;
-			var expected = jumbotron.numActiveDisplays();
-			if (err)
-			    reply = feedback.error.format(jName, err.toString());
-			else if (! numFound)
-			    reply = feedback.noDisplays.format(jName);
-			else if (numFound < expected)
-			    reply = feedback.fewDisplays.format(jName, numFound, expected);
-			if (numFound > expected)
-			    reply = feedback.moreDisplays.format(jName, numFound, expected);
-			else
-			    reply = feedback.calibrated.format(jName);
-			msg.reply(reply);
-		    });
-		}
-
-		else {
-		    this.uploadToJumbotron(jumbotron, filename, function(err) {
-			var reply = null;
-			if (err)
-			    reply = feedback.error.format(jName, err.toString());
-			else
-			    reply = feedback.uploaded.format(jName);
-			msg.reply(reply);
-		    });
-		}
-	    }.bind(this));
-
-	}.bind(this));
     },
 
     // ----------------------------------------------------------------------
@@ -460,28 +350,35 @@ Server.prototype = {
 		return 'no jumbotron';
 	    var jumbotron = controller.jumbotron;
 
-	    // Type indicates whether this is a regular or calibration image
-	    var type = req.body.type;
-	    if (! (type in { image:1, calibrate:1 }))
-		return 'bad type';
+	    // Body might contain raw data (from phonegap Camera, for example)
+	    if (req.body && req.body.data) {
+		// Save to a temporary file
+		var type = req.body.type;
+		var file = utils.tmpFileName() + '.jpg';
+		fs.writeFile(dst, req.body.data, "base64", function(err) {
+		    if (err)
+			return res.sendStatus(err);
+		    this.handleUpload(jumbotron, type, file,
+				      res.sendStatus.bind(res));
+		}.bind(this));
+	    }
 
-	    // TODO: limit file size
-
-	    var name = type == 'calibrate' ? '_calibrate_' : '';
-	    this.parseUpload(req, res, jumbotron, name, function(err, filename) {
-		if (err)
-		    return res.sendStatus(err);
-		if (type == 'calibrate') {
-		    this.calibrateJumbotron(jumbotron, filename, function(err) {
-			res.sendStatus(err);
-		    });
-		}
-		else {
-		    this.uploadToJumbotron(jumbotron, filename, function(err) {
-			res.sendStatus(err);
-		    });
-		}
-	    }.bind(this));
+	    // Otherwise it's a multipart form
+	    else {
+		// Let formidable parse and save the data
+		var form = new formidable.IncomingForm();
+		form.keepExtensions = true;
+		form.parse(req, function(err, fields, files) {
+		    if (err)
+ 			return res.sendStatus(err);
+		    var type = fields['type'];
+		    var file = files['file'];
+		    if (! file)
+ 			return res.sendStatus('no file');
+		    this.handleUpload(jumbotron, type, file.path, 
+				      res.sendStatus.bind(res));
+		}.bind(this));
+	    }
 	},
 
 	uploadMail: function uploadMail(req, res, controller) {
@@ -507,7 +404,7 @@ Server.prototype = {
 	    mp.on("astart", function(id, headers){
 		var filename = headers.filename;
 		var ext = filename ? path.extname(filename) : '.jpg';
-		msg.filename = path.join('/tmp', utils.uniqueFileName()) + ext;
+		msg.filename = utils.tmpFileName() + ext;
 		writeStream = new fs.WriteStream(msg.filename);
 	    });
 	    mp.on("astream", function(id, buffer){
@@ -519,7 +416,7 @@ Server.prototype = {
 	    mp.on("aend", function(id){
 		writeStream.end();
 		//writeStream.destroy();
-		this.handleMail(msg);
+		this.handleMailUpload(msg);
 	    }.bind(this));
 
 	    // Parse the form and send all data to the mail parser
@@ -569,8 +466,11 @@ Server.prototype = {
 		jumbotron.stop();
 		jumbotron.removeImages();
 	    }
-
+	    else {
+		return 'bad argument';
+	    }
 	    this.commitJumbotron(jumbotron);
+	    return 'ok';
 	},
 
 	slideshow: function slideshow(req, res, controller) {
@@ -644,27 +544,121 @@ o	    }
 	this.sendJumbotronLoad(jumbotron);
     },
 
-    parseUpload: function parseUpload(req, res,
-				      jumbotron, name, cb)  {
-	// Check if upload is raw base64 data
-	if (req.body && req.body.data) {
-	    jumbotron.uploadImageData(req.body.data, name, cb);
+    // ----------------------------------------------------------------------
+    // Upload handlers
+
+    // TODO: combine these with controller feedback messages
+    feedbackMsgs: {
+	error:       ("Can't upload file to '{0}'\n" +
+		      "{1}"),
+
+	noAttachments: ("No attachments\n" +
+			"Whoops, your message has no attachments."),
+
+	noJumbotron: ("No jumbotron called '{0}'\n" +
+		      "Whoops, there is no jumbotron named '{0}'"),
+	
+	noDisplays:  ("No displays found while calibrating '{0}'\n" +
+		      "Whoops, I didn't find any displays in the image you emailed."),
+
+	fewDisplays: ("Not enough displays found calibrating '{0}'\n" +
+		      "I found only {1} display(s) in the image you emailed, " +
+		      "but there are {2} displays attached to your Junkyard Jumbotron '{0}'."),
+
+	moreDisplays: ("Too many displays found calibrating '{0}'\n" +
+		      "I found only {1} display(s) in the image you emailed, " +
+		      "but there are {2} displays attached to your Junkyard Jumbotron '{0}'."),
+
+	calibrated:  ("Calibrated '{0}'!\n" +
+		      "Junkyard Jumbotron '{0}' has been successfully calibrated."),
+
+	uploaded:    ("Image uploaded to '{0}'!\n" +
+		      "Image has been successfully uploaded to Junkyard Jumbotron '{0}'.")
+    },
+
+    handleMailUpload: function handleMailUpload(msg) {
+	var feedback = this.feedbackMsgs;
+
+	// Extract jumbotron name from email address "Foo Bar <jumbotron@jj.brownbag.me>"
+	var jName = new RegExp('([^<"]+)@').exec(msg.receiver);
+	if (! jName)
+	    return msg.reply(feedback.error.format(msg.receiver,
+			     'Badly formatted mail message'));
+	jName = jName[1];
+
+	// Handle error messages that should be sent to user
+	var error = msg.error;
+	if (error) {
+	    if (error == "no attachments")
+		return msg.reply(feedback.noAttachments);
+	    return msg.reply(feedback.error.format(jName, error));
 	}
 
-	// Otherwise it's form data
-	else {
-	    var form = new formidable.IncomingForm();
-	    form.keepExtensions = true;
-	    form.parse(req, function(err, fields, files) {
+	// Handle mailed images
+	utils.debug('MAIL', '<', msg.sender, jName);
+	var filename = msg.filename;
+	this._store.getJumbotron(jName, function(err, jumbotron) {
+	    if (err) {
+		// Remove file and send feedback
+		fs.unlink(filename)
+		return msg.reply(feedback.error.format(jName, err));
+	    }
+
+	    if (! jumbotron) {
+		// Remove file and send feedback
+		fs.unlink(filename)
+		return msg.reply(feedback.noJumbotron.format(jName));
+	    }
+
+	    var name = jumbotron.mode == "calibrate" ? "_calibrate_" : null;
+	    jumbotron.uploadImageFile(filename, name, function(err, filename) {
 		if (err)
-		    return cb(err);
-		var file = files['file'];
-		if (! file)
-		    return cb('no file');
-		jumbotron.uploadImageFile(file.path, name, cb);
+		    return msg.reply(feedback.error.format(jName, err.toString()));
+
+		if (jumbotron.mode == "calibrate") {
+		    this.calibrateJumbotron(jumbotron, filename, function(err, numFound) {
+			var reply = null;
+			var expected = jumbotron.numActiveDisplays();
+			if (err)
+			    reply = feedback.error.format(jName, err.toString());
+			else if (! numFound)
+			    reply = feedback.noDisplays.format(jName);
+			else if (numFound < expected)
+			    reply = feedback.fewDisplays.format(jName, numFound, expected);
+			if (numFound > expected)
+			    reply = feedback.moreDisplays.format(jName, numFound, expected);
+			else
+			    reply = feedback.calibrated.format(jName);
+			msg.reply(reply);
+		    });
+		}
+
+		else {
+		    this.uploadToJumbotron(jumbotron, filename, function(err) {
+			var reply = null;
+			if (err)
+			    reply = feedback.error.format(jName, err.toString());
+			else
+			    reply = feedback.uploaded.format(jName);
+			msg.reply(reply);
+		    });
+		}
 	    }.bind(this));
-	}
+
+	}.bind(this));
     },
+
+    handleUpload: function handleUpload(jumbotron, type, filename, cb) {
+	var name = type == 'calibrate' ? '_calibrate_' : '';
+	jumbotron.uploadImageFile(filename, name, function(err, filename) {
+	    if (err)
+		return cb(err);
+	    if (type == 'calibrate')
+		this.calibrateJumbotron(jumbotron, filename, cb);
+	    else
+		this.uploadToJumbotron(jumbotron, filename, cb);
+	}.bind(this));
+    }, 
 
     // ======================================================================
     // Socket
@@ -945,7 +939,7 @@ o	    }
 	    if (err)
 		return cb && cb(err);
 	    jumbotron.addImage(image);
-	    this.fitJumbotronViewport(jumbotron, "maximize");
+	    jumbotron.fitImage("maximize", image);
 	    jumbotron.setCurrentImage(image);
 	    cb && cb(null);
 	}.bind(this));
