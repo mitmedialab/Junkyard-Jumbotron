@@ -35,8 +35,8 @@ module.exports = {
 	cp.exec(cmd, {env: {PATH: params.pythonPath}}, function(err, stdout, stderr) {
 	    if (err)
 		return cb && cb(err);
-	    utils.debug(jData);
-	    utils.debug(stdout);
+	    //utils.debug(jData);
+	    //utils.debug(stdout);
 	    var res = JSON.parse(stdout);
 	    jumbotron.aspectRatio = res.aspectRatio;
 	    var numFound = 0;
