@@ -16,7 +16,7 @@ var Image	= require('./image');
 
 // Constructor
 function Jumbotron(options) {
-    this._super(options);
+    Base.call(this, options);
 
     options = options || {};
 
@@ -89,12 +89,19 @@ Jumbotron.prototype = utils.inherits(Base, {
     },
 
     addController: function addController(cont) {
+	if (cont.idx < 0) {
+	    var idx = -1;
+	    for (var d in this.conts)
+		idx = Math.max(idx, this.conts[d].idx);
+	    cont.idx = idx + 1;
+	}
 	this.controllers[cont.clientId] = cont;
 	cont.jumbotron = this;
     },
     
     removeController: function removeController(cont) {
 	delete this.controllers[cont.clientId];
+	cont.idx = -666;
 	cont.jumbotron = null;
     },
 
@@ -289,7 +296,8 @@ Jumbotron.prototype = utils.inherits(Base, {
 Jumbotron.listener = null;
 
 Jumbotron.isValidName = function isValidName(name) {
-  return params.jumbotronRegExp.test(name);
+    return params.jumbotronRegExp.test(name) &&
+	! (name in params.jumbotronReserved);
 };
 
 // Export

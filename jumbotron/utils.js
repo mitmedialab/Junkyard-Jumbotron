@@ -5,6 +5,7 @@ var path = require('path');
 var log4js = require('log4js')();
 var logger = log4js.getLogger();
 var nutils = require('util');
+var params = require('./params');
 var _  = require('underscore');
 _.mixin(require('underscore.string'));
 
@@ -32,7 +33,7 @@ module.exports = {
     },
 
     uid: function uid(len) {
-	var chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
+	var chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
 	var charlen = chars.length;
 	var buf = [];
 	for (var i = 0; i < len; ++i)
@@ -57,11 +58,7 @@ module.exports = {
     },
 
     inherits: function inherits(superCtor, props) { 
-	var prototype = Object.create(superCtor.prototype, {
-	    _super : { value: superCtor, 
-		       configurable: false, 
-		       enumerable: false, 
-		       writable: false } });
+	var prototype = Object.create(superCtor.prototype);
 	if (props)
 	    _.extend(prototype, props);
 	return prototype;

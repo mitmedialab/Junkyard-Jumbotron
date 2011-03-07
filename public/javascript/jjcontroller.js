@@ -3,7 +3,7 @@
 
 function getValue(field) {
     return $('#' + field).val();
-};
+}
 
 // ======================================================================
 // Localization
@@ -33,7 +33,7 @@ function l(status) {
 
     arguments[0] = msg;
     return format.apply(null, arguments);
-};
+}
 
 // ======================================================================
 // Controller class
@@ -42,6 +42,7 @@ function Controller() {
     Client.call(this);
     //this.initSocket();
     this.initControls();
+    this.initSocket();
     this.jumbotron = null;
 }
 
@@ -91,6 +92,9 @@ $.extend(Controller.prototype, {
     },
 
     setMode: function setMode(mode) {
+	// Unclear why this needs to be here
+	$('[data-role=navbar]').undelegate('a', 'click');
+
 	switch(mode) {
 	  case 'create':
 	    $.mobile.changePage("#jjCreate");
@@ -106,6 +110,9 @@ $.extend(Controller.prototype, {
 		return setMode('create');
 	    this.postMsg('setMode', { mode: 'image' });
 	    $.mobile.changePage("#jjControl");
+		//$('.jjNavCreate').removeClass('ui-btn-active');
+		//$('.jjNavCalibrate').removeClass('ui-btn-active');
+		//$('.jjNavControl').addClass('ui-btn-active');
 	    break;
 	}
     },
@@ -346,13 +353,21 @@ $.extend(Controller.prototype, {
 	$('.jjNavControl').click(bind(this, function() {
 	    this.setMode('control');
 	}));
-    }
+
+	// Unclear why this doesn't work here
+	//$('[data-role=navbar]').undelegate('a', 'click');
+    },
+
+    // ----------------------------------------------------------------------
+    // Communication 
+
+
 });
 
 // ----------------------------------------------------------------------
 
 $(document).bind("mobileinit", function() {
-    $.mobile.ajaxFormsEnabled = false;
+    $.mobile.ajaxEnabled = false;
     $.mobile.defaultTransition = 'none';
 });
 

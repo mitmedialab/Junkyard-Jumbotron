@@ -2,18 +2,23 @@
 html(lang="en")
   head
     title Junkyard Jumbotron
-    link(rel="stylesheet", href="css/jquery.mobile-1.0a2.css", type="text/css")
+
+    //- TODO/PHONEGAP: Use local jquery and jquery mobile
+    //-   script(type="text/javascript", src="javascript/phonegap.js")
+    //-   script(type="text/javascript", src="javascript/jquery-1.4.4.min.js")
+    //-   script(type="text/javascript", src="javascript/jquery.mobile-1.0a3.min.js")
+    //-   link(rel="stylesheet", href="css/jquery.mobile-1.0a2.css", type="text/css")
+
+    link(rel="stylesheet", href="http://code.jquery.com/mobile/1.0a3/jquery.mobile-1.0a3.min.css", type="text/css")
     link(rel="stylesheet", href="css/jjcontroller.css", type="text/css")
 
-    //- Use local jquery and jquery mobile so they work in phonegap apps
-    script(type="text/javascript", src="javascript/jquery-1.4.4.min.js")
+    script(type="text/javascript", src="http://code.jquery.com/jquery-1.5.1.min.js")
     script(type="text/javascript", src="javascript/jquery.cookie.min.js")
     script(type="text/javascript", src="javascript/jquery.form.min.js")
     script(type="text/javascript", src="javascript/json2.min.js")
-    //- script(type="text/javascript", src="javascript/phonegap.js")
     script(type="text/javascript", src="javascript/jjclient.js")
     script(type="text/javascript", src="javascript/jjcontroller.js")
-    script(type="text/javascript", src="javascript/jquery.mobile-1.0a2.min.js")
+    script(type="text/javascript", src="http://code.jquery.com/mobile/1.0a3/jquery.mobile-1.0a3.min.js")
     script(type="text/javascript", src="socket.io/socket.io.js")
 
   body
@@ -21,7 +26,7 @@ html(lang="en")
     //- Create
     div(data-role="page", id="jjCreate")
 
-      div(data-role="header", data-position="fixed", data-nobackbtn="true")
+      div(data-role="header", data-position="fixed", data-backbtn="false")
         h1.jjTitle Junkyard Jumbotron
         div(data-role="navbar")
           ul
@@ -39,13 +44,13 @@ html(lang="en")
             span What's the name of your jumbotron?
           form#jjCreateForm(action="create", method="POST")
             input#jjCreateName(name="name", type="text")
-            inputjjCreateSubmit(name="create", type="submit", value="Create") Next
+            input#jjCreateSubmit(name="create", type="submit", value="Create") Next
 
 
     //- Calibrate
     div(data-role="page", id="jjCalibrate")
 
-      div(data-role="header", data-position="fixed", data-nobackbtn="true")
+      div(data-role="header", data-position="fixed", data-backbtn="false")
         h1.jjTitle Junkyard Jumbotron
         div(data-role="navbar")
           ul
@@ -75,7 +80,7 @@ html(lang="en")
     //- Control
     div(data-role="page", id="jjControl")
 
-      div(data-role="header", data-position="fixed", data-nobackbtn="true")
+      div(data-role="header", data-position="fixed", data-backbtn="false")
         h1.jjTitle Junkyard Jumbotron
         div(data-role="navbar")
           ul
@@ -126,7 +131,7 @@ html(lang="en")
     //- Join
     div(data-role="page", id="jjJoin")
 
-      div(data-role="header", data-position="fixed", data-nobackbtn="true")
+      div(data-role="header", data-position="fixed", data-backbtn="false")
         h1.jjTitle Junkyard Jumbotron
 
       div(data-role="content")

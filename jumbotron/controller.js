@@ -1,28 +1,22 @@
 // ======================================================================
 // Controller
+// Basically nothig more than a Client right now
 
 var utils = require('./utils');
-var Base = require('./base');
+var Client = require('./client');
 
 // Constructor
 function Controller(options) {
-    this._super(options);
-
-    options = options || {};
-
-    // Parent pointer
-    this.jumbotron = options.jumbotron;
-
-    // Unique id, from the client's jjID
-    this.clientId = options.clientId || 0;
-
+    Client.call(this, options);
 }
 
 // Subclass and Members
-Controller.prototype = utils.inherits(Base, {
+Controller.prototype = utils.inherits(Client, {
 
-    // Serialize everything but the jumbotron
-    fieldsToSerialize: ['clientId']
+    type: "controller",
+
+    // Serialize
+    fieldsToSerialize: [].concat(Client.prototype.fieldsToSerialize)
 
 });
 

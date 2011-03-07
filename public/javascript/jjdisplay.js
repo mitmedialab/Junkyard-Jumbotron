@@ -169,7 +169,7 @@ $.extend(Display.prototype, {
 			   'background-size'		: bgSizeStr,
 			   '-webkit-background-size'	: bgSizeStr,
 			   '-moz-background-size'	: bgSizeStr,
-			   '-o-background-size'		: bgSizeStr,
+			   '-o-background-size'		: bgSizeStr
 			 });
 
 	/*
@@ -408,9 +408,9 @@ $.extend(Display.prototype, {
 	var name = this.getJumbotronName();
 	var docWidth  = $(window).width();
 	var docHeight = $(window).height();
-	this.sendMsg('connect', {jjid: id, jjname: name,
-				 width: docWidth, height: docHeight});
-	this.sendSizeMsg();
+	this.sendMsg('connect', { jjid: id, jjname: name, type: 'display',
+				  width: docWidth, height: docHeight });
+	this.sendSizeMsg(); // TODO: necessary?
     },
 
     sendViewportMsg: function sendViewportMsg() {

@@ -12,7 +12,7 @@ var Viewport = require('./viewport');
 
 // Constructor
 function Image(options) {
-    this._super(options);
+    Base.call(this, options);
 
     // options can be a string, a list of options, or nothing
     options = options || {};

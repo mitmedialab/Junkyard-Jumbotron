@@ -203,7 +203,7 @@ function etag(stat) {
 function notModified(res, headers) {
     // Strip Content-* headers
     Object.keys(headers).forEach(function(field){
-        if (0 == field.indexOf('Content')) {
+        if (0 === field.indexOf('Content')) {
             delete headers[field];
         }
     });

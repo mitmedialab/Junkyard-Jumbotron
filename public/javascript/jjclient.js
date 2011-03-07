@@ -40,7 +40,7 @@ if (isUndefined(console)) {
 // Might be a really old browser without 'join' or 'var a in arguments'
 function log() {
     var msg = '';
-    var numArgs = arguments.length
+    var numArgs = arguments.length;
     for (var a = 0; a < numArgs; a++) {
 	msg += arguments[a];
 	msg += ' ';
@@ -115,26 +115,31 @@ Client.prototype = {
 	this.socket.send(JSON.stringify({cmd: cmd, args: args}));
     },
 
+    sendInitMsg: function sendInitMsg(msg) {
+	// Subclasses should override this
+    },
+
     sendErrorMsg: function sendErrorMsg(msg) {
 	msg = stringify(msg);
 	log("ERROR", msg);
-	this.sendMsg('errorMsg', {msg: msg});
+	this.sendMsg('log', { level: 'error', msg: msg});
     },
 
     sendInfoMsg: function sendInfoMsg(msg) {
 	msg = stringify(msg);
 	log(msg);
-	this.sendMsg('infoMsg', {msg: msg});
+	this.sendMsg('log', { level: 'info', msg: msg});
     },
 
     sendDebugMsg: function sendDebugMsg(msg) {
 	if (this.debug) {
 	    msg = stringify(msg);
 	    log(msg);
-	    this.sendMsg('debugMsg', {msg: msg});
+	    this.sendMsg('log', { level: 'debug', msg: msg});
 	}
     },
 
+    // Subclass must create msgHandlers
     handleMsg: function handleMsg(msg) {
 	try {
 	    var data = JSON.parse(msg);

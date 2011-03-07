@@ -12,7 +12,16 @@ module.exports = {
     // Regexp for allowable jumbotron names
     jumbotronRegExp:  /^[a-zA-Z0-9][a-zA-Z0-9_-]*$/,
 
-    // Temporaty for for file uploads
+    // Disallowed jumbotron names
+    jumbotronReserved: { postmaster: 1,
+			 abuse: 1,
+			 spam: 1,
+			 help: 1,
+			 info: 1,
+			 noreply: 1,
+			 'mailer-daemon': 1 },
+
+    // Directory for temporary file uploads
     tmpDir: '/tmp',
 
     // Public resource directory for web clients
@@ -78,11 +87,11 @@ module.exports = {
 	pwd:  'Br0wnB@g',
 	ssl: true,
 	port: 465,
-	debug: true
+	debug: false
     },
 
     // Debug flags
-    debug: true,
+    debug: true
 };
 
 // Merge in local changes, if any

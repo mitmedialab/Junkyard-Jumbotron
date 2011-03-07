@@ -35,10 +35,14 @@ var Controller = jumbotron.Controller;
 var Image = jumbotron.Image;
 var Jumbotron = jumbotron.Jumbotron;
 var Store = jumbotron.Store;
+var x = jumbotron.messages.translate;
 
 var log = utils.log;
 var debug = utils.debug;
 var error = utils.error;
+
+// ======================================================================
+// Augment the http and socket classes
 
 http.ServerResponse.prototype.sendStatus = function(status, args) {
     status = status || 'ok';
@@ -74,11 +78,8 @@ function Server() {
 Server.prototype = {
 
     init: function init() {
+	// Initialize
 	this.initLogging();
-	log('Starting server --------------------------------------------------');
-
-	this._socketMap = []; // maps sockets to displays
-
 	this._store = new Store();
 	this.initServer();
 	this.initSocket();
@@ -86,6 +87,7 @@ Server.prototype = {
 	// Listen for Jumbotron changes
 	Jumbotron.listener = this.handleImageChange.bind(this);
 
+	// Startup server
 	this._server.listen(params.port);
     },
 
@@ -93,13 +95,16 @@ Server.prototype = {
     // Logging
 
     initLogging: function initLogging() {
-	// Log format (log4js.patternLayout crashes and doesn't log exceptions)
+	// Format logs (log4js.patternLayout crashes and doesn't log exceptions)
+
+	// Format an exception
 	function layoutException(loggingEvent) {
 	    if (loggingEvent.exception.stack)
 		return loggingEvent.exception.stack;
 	    else
 		return loggingEvent.exception.name + ': '+ loggingEvent.exception.message;
 	}
+	// Format with timestamp, for log file
 	function layout (loggingEvent) {
 	    var timestamp = loggingEvent.startTime.toFormattedString("MM-dd hh:mm:ss.SSS: ");
 	    var output = timestamp + loggingEvent.message;
@@ -107,6 +112,7 @@ Server.prototype = {
 		output += '\n' + timestamp + layoutException(loggingEvent);
 	    return output;
 	}
+	// Format with no timestamp, for console
 	function layoutSimple (loggingEvent) {
 	    var output = loggingEvent.message;
 	    if (loggingEvent.exception)
@@ -116,7 +122,7 @@ Server.prototype = {
 
 	// Log to console and/or file
 	var config = params.logging;
-	log4js.clearAppenders()
+	log4js.clearAppenders();
 	if (config.useConsole)
 	    log4js.addAppender(log4js.consoleAppender(layoutSimple));
 	if (config.useFile)
@@ -128,13 +134,15 @@ Server.prototype = {
 	var logger = log4js.getLogger();
 	logger.setLevel(params.debug ? 'DEBUG' : 'INFO');
 	if (! params.debug)
-	    debug = utils.debug = function() {}
+	    debug = utils.debug = function() {};
     },
 
     // ----------------------------------------------------------------------
     // HTML Server
 	
     initServer: function initServer() {
+	log('Starting server --------------------------------------------------');
+
 	// Create server with the given middleware
 	var server = this._server = express.createServer(
 	    // Decode cookies
@@ -144,7 +152,6 @@ Server.prototype = {
 	    express.bodyDecoder(),
 
 	    // Intercept requests for static files
-	    // TODO: rewrite staticProvider to reap old cache elements
 	    staticProvider(__dirname + '/public')
 	);
 
@@ -176,25 +183,8 @@ Server.prototype = {
 	server.get('/', function(req, res) {
 	    res.render('index');
 	});
-	server.get('/_test', function(req, res) { res.render('test'); });
 	server.get('/:jumbotron', this.handleJoin.bind(this));
-	server.post('/:cmd' , this.handleCommand.bind(this));
-    },
-
-    // ----------------------------------------------------------------------
-    
-    initTest: function initTest() {
-	this.createJumbotron({ name: 'foo'}, function(err, jumbotron) {
-	    if (err)
-		return error(err);
-	    jumbotron.mode = 'image';
-	    this.createImage(
-		'http://www.blep.com/images/med/KNEP_Brian_HealingPool_01.jpg',
-		jumbotron, function(err, image) {
-		    assert.ifError(err);
-		    jumbotron.setFrame(0);
-		});
-	}.bind(this));
+	server.post('/:cmd' , this.handleHtmlMessage.bind(this));
     },
 
     // ----------------------------------------------------------------------
@@ -226,29 +216,6 @@ Server.prototype = {
 	}.bind(this));
     },
 
-    handleCommand: function handleCommand(req, res) {
-
-	// Make sure every client has a jjid cookie
-	this.ensureJJID(req, res);
-
-	// Get command handler
-	var cmd = req.params.cmd;
-	if (req.body)
-	    debug('#<', cmd, req.body);
-	else
-	    debug('#<', cmd);
-	var handler = this.commandHandlers[cmd];
-	if (! handler)
-	    return res.sendStatus('bad command', cmd);
-
-	// Get connected jumbotron, if any, and call handler
-	this.getConnectedController(req, res, function(err, controller) {
-	    // Ignore errors and missing controller
-	    var status = handler.call(this, req, res, controller);
-	    if (! utils.isUndefined(status))
-		res.sendStatus(status);
-	}.bind(this));
-    },
 
     // ----------------------------------------------------------------------
     // Handle controller messages
@@ -296,7 +263,31 @@ Server.prototype = {
 
     // ----------------------------------------------------------------------
 
-    commandHandlers: {
+    handleHtmlMessage: function handleHtmlMessage(req, res) {
+
+	// Make sure every client has a jjid cookie
+	this.ensureJJID(req, res);
+
+	// Get command handler
+	var cmd = req.params.cmd;
+	if (req.body)
+	    debug('#<', cmd, req.body);
+	else
+	    debug('#<', cmd);
+	var handler = this.htmlMsgHandlers[cmd];
+	if (! handler)
+	    return res.sendStatus('bad command', cmd);
+
+	// Get connected jumbotron, if any, and call handler
+	this.getConnectedController(req, res, function(err, controller) {
+	    // Ignore errors and missing controller
+	    var status = handler.call(this, req, res, controller);
+	    if (! utils.isUndefined(status))
+		res.sendStatus(status);
+	}.bind(this));
+    },
+
+    htmlMsgHandlers: {
 
 	create: function create(req, res, controller) {
 	    var options = { name : req.body.name,
@@ -355,7 +346,7 @@ Server.prototype = {
 		// Save to a temporary file
 		var type = req.body.type;
 		var file = utils.tmpFileName() + '.jpg';
-		fs.writeFile(dst, req.body.data, "base64", function(err) {
+		fs.writeFile(file, req.body.data, "base64", function(err) {
 		    if (err)
 			return res.sendStatus(err);
 		    this.handleUpload(jumbotron, type, file,
@@ -425,7 +416,7 @@ Server.prototype = {
 	    form.onPart = function(part) {
 		// Let formidable handle all non-file parts
 		if (! part.filename)
-		    incomingForm.handlePart(part);
+		    form.handlePart(part);
 		// Send file data to mail parser
 		else {
 		    part.addListener('data', function(buffer) {
@@ -510,7 +501,7 @@ Server.prototype = {
 		break;
 	    default:
 		return 'bad command';
-o	    }
+	    }
 
 	    return 'ok';
 	},
@@ -547,51 +538,20 @@ o	    }
     // ----------------------------------------------------------------------
     // Upload handlers
 
-    // TODO: combine these with controller feedback messages
-    feedbackMsgs: {
-	error:       ("Can't upload file to '{0}'\n" +
-		      "{1}"),
-
-	noAttachments: ("No attachments\n" +
-			"Whoops, your message has no attachments."),
-
-	noJumbotron: ("No jumbotron called '{0}'\n" +
-		      "Whoops, there is no jumbotron named '{0}'"),
-	
-	noDisplays:  ("No displays found while calibrating '{0}'\n" +
-		      "Whoops, I didn't find any displays in the image you emailed."),
-
-	fewDisplays: ("Not enough displays found calibrating '{0}'\n" +
-		      "I found only {1} display(s) in the image you emailed, " +
-		      "but there are {2} displays attached to your Junkyard Jumbotron '{0}'."),
-
-	moreDisplays: ("Too many displays found calibrating '{0}'\n" +
-		      "I found only {1} display(s) in the image you emailed, " +
-		      "but there are {2} displays attached to your Junkyard Jumbotron '{0}'."),
-
-	calibrated:  ("Calibrated '{0}'!\n" +
-		      "Junkyard Jumbotron '{0}' has been successfully calibrated."),
-
-	uploaded:    ("Image uploaded to '{0}'!\n" +
-		      "Image has been successfully uploaded to Junkyard Jumbotron '{0}'.")
-    },
-
     handleMailUpload: function handleMailUpload(msg) {
-	var feedback = this.feedbackMsgs;
 
 	// Extract jumbotron name from email address "Foo Bar <jumbotron@jj.brownbag.me>"
 	var jName = new RegExp('([^<"]+)@').exec(msg.receiver);
 	if (! jName)
-	    return msg.reply(feedback.error.format(msg.receiver,
-			     'Badly formatted mail message'));
+	    return msg.reply(x('bad email'));
 	jName = jName[1];
 
 	// Handle error messages that should be sent to user
-	var error = msg.error;
-	if (error) {
-	    if (error == "no attachments")
-		return msg.reply(feedback.noAttachments);
-	    return msg.reply(feedback.error.format(jName, error));
+	var err = msg.error;
+	if (err) {
+	    if (error == 'no attachments')
+		return msg.reply(x('no attachments'));
+	    return msg.reply(x('upload error', jName, err));
 	}
 
 	// Handle mailed images
@@ -600,35 +560,28 @@ o	    }
 	this._store.getJumbotron(jName, function(err, jumbotron) {
 	    if (err) {
 		// Remove file and send feedback
-		fs.unlink(filename)
-		return msg.reply(feedback.error.format(jName, err));
+		fs.unlink(filename);
+		return msg.reply(x('upload error', jName, err));
 	    }
 
 	    if (! jumbotron) {
 		// Remove file and send feedback
-		fs.unlink(filename)
-		return msg.reply(feedback.noJumbotron.format(jName));
+		fs.unlink(filename);
+		return msg.reply(x('no jumbotron', jName));
 	    }
 
 	    var name = jumbotron.mode == "calibrate" ? "_calibrate_" : null;
 	    jumbotron.uploadImageFile(filename, name, function(err, filename) {
 		if (err)
-		    return msg.reply(feedback.error.format(jName, err.toString()));
+		    return msg.reply(x('upload error', jName, err.toString()));
 
 		if (jumbotron.mode == "calibrate") {
-		    this.calibrateJumbotron(jumbotron, filename, function(err, numFound) {
+		    this.calibrateJumbotron(jumbotron, filename, function(err, numFound, expected) {
 			var reply = null;
-			var expected = jumbotron.numActiveDisplays();
-			if (err)
-			    reply = feedback.error.format(jName, err.toString());
-			else if (! numFound)
-			    reply = feedback.noDisplays.format(jName);
-			else if (numFound < expected)
-			    reply = feedback.fewDisplays.format(jName, numFound, expected);
-			if (numFound > expected)
-			    reply = feedback.moreDisplays.format(jName, numFound, expected);
-			else
-			    reply = feedback.calibrated.format(jName);
+			if (err) 
+			    reply = x(err, jName, numFound, expected);
+			else 
+			    reply = x('calibrated', jName);
 			msg.reply(reply);
 		    });
 		}
@@ -637,9 +590,9 @@ o	    }
 		    this.uploadToJumbotron(jumbotron, filename, function(err) {
 			var reply = null;
 			if (err)
-			    reply = feedback.error.format(jName, err.toString());
+			    reply = x('upload error', jName, err.toString());
 			else
-			    reply = feedback.uploaded.format(jName);
+			    reply = x('uploaded', jName);
 			msg.reply(reply);
 		    });
 		}
@@ -660,15 +613,22 @@ o	    }
 	}.bind(this));
     }, 
 
+
+
     // ======================================================================
     // Socket
 
     initSocket: function initSocket() {
+	// This maps sockets to clients (displays and controllers)
+	this._socketMap = [];
+
+	// Listen and handle new connections
 	this._socketio = io.listen(this._server, { log: utils.log });
 	this._socketio.on('connection', this.handleSocketConnect.bind(this));
     },
 
     handleSocketConnect: function handleSocketConnect(socket) {
+	// Setup socket handlers
 	socket.on('message',
 		  this.handleSocketMessage.bind(this, socket));
 	socket.on('disconnect',
@@ -678,27 +638,41 @@ o	    }
     handleSocketMessage: function handleSocketMessage(socket, msg) {
 	// Wrap the entire thing in a try/catch because socket.io can't
 	try {
+	    // Parse the msg and get the command
 	    var data = JSON.parse(msg);
-
-	    // Get handler
 	    var cmd = data.cmd;
-	    var handler = this.socketMsgHandlers[cmd];
-	    if (! handler) {
-		debug('<', socket.sessionId, data.cmd, data.args);
-		return error('bad command', cmd);
-	    }
 
-	    // Get connected display, if any, and call handler
-	    this.getConnectedDisplay(socket, function(err, display) {
-		if (display)
-		    debug('<', display.jumbotron.name, display.idx, data.cmd, data.args);
+	    // Get client mapped to this socket, if any
+	    this.getSocketClient(socket, function(err, client) {
+
+		// Log
+		if (client)
+		    debug('<', client.type, client.jumbotron.name, client.idx,
+			  data.cmd, data.args);
 		else
-		    debug('<', socket.sessionId, data.cmd, data.args);
+		    debug('<', socket.sessionId,
+			  data.cmd, data.args);
 
-		// Ignore errors and missing display
-		var status = handler.call(this, socket, display, data.args);
+		// Get generic command handler
+		var handler = this.socketMsgHandlers[cmd];
+
+		// Or get specific command handler
+		if (! handler && client)
+		    handler = (client.type == 'display')
+		        ? this.displaySocketMsgHandlers[cmd]
+		        : this.controllerSocketMsgHandlers[cmd];
+
+		// No handler is an error
+		if (! handler)
+		    return error('bad command', cmd);
+
+		// Handle
+		var status = handler.call(this, socket, client, data.args);
+
+		// Handler returns an error message on error
 		if (! utils.isUndefined(status))
-		    this.sendDisplayError(display, status);
+		    this.sendSocketError(client, status);
+
 	    }.bind(this));
 	}
 	catch (exception) {
@@ -707,22 +681,24 @@ o	    }
     },
 
     handleSocketDisconnect: function handleSocketDisconnect(socket) {
-	this.disconnectDisplay(socket);
+	this.clearSocketClient(socket);
     },
-    
+
+    // ----------------------------------------------------------------------
+
     sendSocketMsg: function sendSocketMsg(socket, cmd, args) {
 	socket.send(JSON.stringify({ cmd: cmd, args: args }));
     },
 
     sendSocketError: function sendSocketError(socket, err) {
 	error('>', socket.sessionId, err);
-	this.sendSocketMsg(socket, 'errorMsg', err);
+	this.sendSocketMsg(socket, 'error', err);
     },
 
-    sendDisplayMsg: function sendDisplayMsg(display, cmd, args) {
-	var jName = display.jumbotron ? display.jumbotron.name : "UNATTACHED";
-	debug('>', jName, display.idx, cmd, args);
-	this.sendSocketMsg(display.socket, cmd, args);
+    sendClientMsg: function sendDisplayMsg(client, cmd, args) {
+	var jName = client.jumbotron ? client.jumbotron.name : "UNATTACHED";
+	debug('>', jName, client.idx, cmd, args);
+	this.sendSocketMsg(client.socket, cmd, args);
     },
 
     sendDisplayLoad: function sendDisplayLoad(display) {
@@ -732,25 +708,25 @@ o	    }
 	var frozen    = jumbotron.getDisplayFrozen(display);
 	if (utils.isStartsWith(src, params.resourceDir))
 	    src = src.substring(params.resourceDir.length + 1); // +1 for '/'
-	this.sendDisplayMsg(display, 'load', { src: src,
-					       vp: viewport,
- 					       frozen: frozen });
+	this.sendClientMsg(display, 'load', { src: src,
+					      vp: viewport,
+ 					      frozen: frozen });
     },
 
     sendDisplayViewport: function sendDisplayViewport(display) {
 	var jumbotron = display.jumbotron;
 	var viewport = jumbotron.getDisplayViewport(display);
-	this.sendDisplayMsg(display, 'vp', viewport);
+	this.sendClientMsg(display, 'vp', viewport);
     },
 
     sendDisplayId: function sendDisplayViewport(display) {
 	var jumbotron = display.jumbotron;
-	this.sendDisplayMsg(display, 'id', { id: display.idx,
+	this.sendClientMsg(display, 'id', { id: display.idx,
 					     name: jumbotron.name });
     },
 
     sendDisplayShow: function sendDisplayShow(display, options) {
-	this.sendDisplayMsg(display, 'show', options);
+	this.sendClientMsg(display, 'show', options);
     },
 
     sendJumbotronMsg: function sendJumbotronMsg(jumbotron, msgFn, arg, ignoredDisplay) {
@@ -776,7 +752,49 @@ o	    }
     },
 
     // ----------------------------------------------------------------------
-    // Socket-to-display map
+    // Map sockets to clients
+    
+    setSocketClient: function setSocketClient(socket, client) {
+	debug("Connecting", socket.sessionId, "to",
+	      client.type, client.jumbotron.name, client.idx);
+	this._socketMap[socket.sessionId] = { jName: client.jumbotron.name,
+					      clientId: client.clientId,
+					      type: client.type };
+	client.socket = socket;
+    },
+
+    getSocketClient: function getSocketClient(socket, cb) {
+	var item = this._socketMap[socket.sessionId];
+	if (! item)
+	    return cb(null, null);
+	var getter = (item.type == "display")
+	    ? 'getDisplay'
+	    : 'getController';
+	this._store[getter](item.jName, item.clientId, function(err, client) {
+	    if (! err && client && client.socket != socket) {
+		if (client.socket)
+		    error("Socket mismatch", client, client.socket, socket);
+		client.socket = socket;
+	    }
+	    cb(err, client);
+	});
+    },
+
+    clearSocketClient: function clearSocketClient(socket) {
+	var item = this._socketMap[socket.sessionId];
+	if (item) {
+ 	    delete this._socketMap[socket.sessionId];
+	    var getter = (item.type == "display")
+		? 'getDisplay' : 'getController';
+	    this._store[getter](item.jName, item.clientId, function(err, client) {
+		if (! err && client && client.socket == socket)
+		    client.socket = null;
+	    });
+	}
+    },
+
+    // ----------------------------------------------------------------------
+    // Clients
     
     createDisplay: function createDisplay(socket, args, jumbotron) {
 	var clientId = args.jjid;
@@ -799,70 +817,77 @@ o	    }
 	}
 
 	// Connect client with display
-	debug("Connecting", socket.sessionId, "to display",
-	      jumbotron.name, display.idx);
-	this.connectDisplay(socket, display);
+	this.setSocketClient(socket, display);
 
 	// Send id and load image onto display
 	this.sendDisplayId(display);
 	this.sendDisplayLoad(display);
     },
 
-    connectDisplay: function createConnectedDisplay(socket, display) {
-	this._socketMap[socket.sessionId] = { jName: display.jumbotron.name,
-					      clientId: display.clientId };
-	display.socket = socket;
-    },
+/*
+    createController: function createController(req, res, jumbotron) {
+	var clientId = req.cookies.jjid;
 
-    getConnectedDisplay: function getConnectedDisplay(socket, cb) {
-	var item = this._socketMap[socket.sessionId];
-	if (! item)
-	    return cb(null, null);
-	this._store.getDisplay(item.jName, item.clientId, function(err, display) {
-	    if (! err && display && display.socket != socket) {
-		if (display.socket)
-		    error("Socket mismatch", display, display.socket, socket);
-		display.socket = socket;
-	    }
-	    cb(err, display);
-	});
-    },
+	// If no controller, create one
+	var cont = jumbotron.getController(clientId);
+	if (! cont) {
+	    cont = new Controller({ clientId: req.cookies.jjid });
+	    jumbotron.addController(cont);
+	    this.commitJumbotron(jumbotron);
+	}
 
-    disconnectDisplay: function disconnectDisplay(socket) {
-	var item = this._socketMap[socket.sessionId];
-	if (item) {
- 	    delete this._socketMap[socket.sessionId];
-	    this._store.getDisplay(item.jName, item.clientId, function(err, display) {
-		if (! err && display && display.socket == socket)
-		    display.socket = null;
-	    });
+	// Connect client to controller
+	this.connectController(req, res, cont);
+    },
+*/
+
+    // ----------------------------------------------------------------------
+    // Handle socket messages from clients
+
+    // Handlers for messages common to both displays and controllers
+    socketMsgHandlers: {
+
+	connect: function connect(socket, client, args) {
+	    var jName = args.jjname;
+	    var type = args.type;
+	    var handlers = (type == "display")
+		? this.displaySocketMsgHandlers
+		: this.controllerSocketMsgHandlers;
+	    handlers.connect.call(this, socket, client, args);
+	},
+
+	// Log a message from the display
+	log: function log(socket, client, args) {
+	    var logger = { 'error': error,
+			   'debug': debug,
+			   'info' : log }[args.level] || log;
+	    if (client)
+		logger(client.type, client.jumbotron.name,
+		       client.idx, args.msg);
+	    else
+		logger(socket.sessionId, args.msg);
 	}
     },
 
-    // ----------------------------------------------------------------------
-    // Socket message handlers
-
-    socketMsgHandlers: {
+    // Handlers for messages from displays
+    displaySocketMsgHandlers: {
 
 	connect: function connect(socket, display, args) {
 	    var jName = args.jjname;
-	    
+	    var type = args.type;
+
 	    this._store.getJumbotron(jName, function(err, jumbotron) {
 		if (err)
 		    return this.sendSocketError(socket, err);
 		if (! jumbotron)
 		    return this.sendSocketError(socket, 'no jumbotron');
 
-		// Create display
+		// Create client
 		this.createDisplay(socket, args, jumbotron);
 	    }.bind(this));
 	},
 
 	size: function size(socket, display, args) {
-	    // Ignore. Sometimes size message arrives before connect message.
-	    if (! display)
-		return;
-
 	    // Update aspect ratio, if necessary
 	    var aspectRatio = args.width / args.height;
 	    if (display.aspectRatio != aspectRatio) {
@@ -874,29 +899,18 @@ o	    }
 
 	// Display viewport changed. Propagate to jumbotron and other displays.
 	vp: function vp(socket, display, args) {
-	    if (! display)
-		return 'no display';
 	    if (! display.viewport)
 		return 'no display viewport';
 
 	    var vp = new Viewport(args);
 	    vp = vp.uncropped(display.viewport);
 	    this.setJumbotronViewport(display.jumbotron, vp, display);
-	},
+	}
+    },
 
-	// Log an error message from the display
-	errorMsg: function errorMsg(socket, display, args) {
-	    error('Client', socket.sessionId, args.msg);
-	},
-
-	// Log an informational message from the display
-	infoMsg: function infoMsg(socket, display, args) {
-	    log('Client', socket.sessionId, args.msg);
-	},
-
-	// Log a debugging message from the display
-	debugMsg: function debugMsg(socket, display, args) {
-	    debug('Client', socket.sessionId, args.msg);
+    // Handlers for messages from controllers
+    controllerSocketMsgHandlers: {
+	connect: function connect(socket, controlelr, args) {
 	}
     },
 
@@ -906,6 +920,7 @@ o	    }
     createJumbotron: function createJumbotron(options, cb) {
 	if (! Jumbotron.isValidName(options.name))
 	    return cb && cb('bad jumbotron name');
+
 	var jumbotron = new Jumbotron(options);
 	this._store.addJumbotron(jumbotron, function(err) {
 	    if (err)
@@ -923,13 +938,19 @@ o	    }
 
     calibrateJumbotron: function calibrateJumbotron(jumbotron, file, cb) {
 	// Image will be reoriented in calibrate.
-	calibrate.calibrate(jumbotron, file, function(err) {
+	calibrate.calibrate(jumbotron, file, function(err, numFound) {
 	    if (err)
 		return cb(err);
-	    jumbotron.mode = 'image';
+	    var expected = jumbotron.numActiveDisplays();
+	    log(numFound, expected);
+	    if (! numFound)
+		err = 'no displays';
+	    else if (numFound < expected)
+		err = 'few displays';
+	    else if (numFound > expected)
+		err = 'more displays';
 	    this.commitJumbotron(jumbotron);
-	    this.sendJumbotronLoad(jumbotron);
-	    cb(null);
+	    cb(err, numFound, expected);
 	}.bind(this));
     },
 
@@ -967,5 +988,4 @@ o	    }
 
 var server = new Server();
 //server._store.clear();
-//server.initTest();
 

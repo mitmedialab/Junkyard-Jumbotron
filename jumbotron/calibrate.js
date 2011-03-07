@@ -28,21 +28,25 @@ module.exports = {
     calibrate: function calibrate(jumbotron, source, cb) {
 	// Convert relevant jumbotron info to JSON
 	var jData = { name: jumbotron.name,
-		     displays: utils.values(jumbotron.displays) };
+		      displays: utils.values(jumbotron.displays) };
 	jData = "'" + JSON.stringify(jData) + "'";
 
 	var cmd = [params.python, params.calibrateScript, source, jData].join(" ");
 	cp.exec(cmd, {env: {PATH: params.pythonPath}}, function(err, stdout, stderr) {
 	    if (err)
 		return cb && cb(err);
+	    utils.debug(jData);
+	    utils.debug(stdout);
 	    var res = JSON.parse(stdout);
 	    jumbotron.aspectRatio = res.aspectRatio;
+	    var numFound = 0;
 	    for (var d in res.displays) {
 		var resDisplay = res.displays[d];
 		var display = jumbotron.getDisplay(resDisplay.clientId);
 		display.viewport = new Viewport(resDisplay.viewport);
+		numFound++;
 	    }
-	    cb && cb(null, res.displays.length);
+	    cb && cb(null, numFound);
 	});
     }
 };

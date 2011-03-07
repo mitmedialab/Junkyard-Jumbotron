@@ -146,7 +146,7 @@ Store.prototype = {
     },
 
     // ----------------------------------------------------------------------
-    // Displays
+    // Easy access to displays and controllers
 
     // Return the display with the given clientId, if any
     getDisplay: function getDisplay(jName, clientId, cb) {
@@ -158,9 +158,6 @@ Store.prototype = {
 	    cb(null, jumbotron.getDisplay(clientId));
 	});
     },
-
-    // ----------------------------------------------------------------------
-    // Controller
 
     // Return the controller with the given clientId, if any
     getController: function getController(jName, clientId, cb) {

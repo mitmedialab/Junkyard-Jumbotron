@@ -14,7 +14,7 @@ mailer.SMTP = {
     ssl: params.email.ssl,
     use_authentication: true,
     user: params.email.user,
-    pass: params.email.pwd,
+    pass: params.email.pwd
 };
 
 module.exports = {

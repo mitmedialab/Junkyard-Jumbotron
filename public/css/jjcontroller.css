@@ -12,8 +12,6 @@
     font-weight: bold;
     margin: 7px;
 }
-/* ---------------------------------------------------------------------- */
-
 
 #jjSlideshowPlay, #jjSlideshowStop, #jjSlideshowPrev,
 #jjSlideshowNext, #jjSlideshowFirst, #jjSlideshowLast {
@@ -35,9 +33,13 @@
     text-align: center;
 }
 
-.ui-page {
+/* ---------------------------------------------------------------------- */
+
+.ui-mobile-viewport {
     max-width: 600px;
     min-height: 100%;
     margin: 0 auto;
     position:relative;
 }
+
+
