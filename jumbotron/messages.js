@@ -40,5 +40,6 @@ module.exports.translate = function(which) {
     var msg = messages[which];
     if (! msg)
 	return messages['unknown message'].format(which);
-    return msg.format([].splice.call(arguments,1));
+    arguments = [].splice.call(arguments,1) // Remove first
+    return msg.format.apply(msg, arguments);
 };
