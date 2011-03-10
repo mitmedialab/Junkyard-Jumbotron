@@ -97,19 +97,19 @@ $.extend(Controller.prototype, {
 
 	switch(mode) {
 	  case 'create':
-	    $.mobile.changePage("#jjCreate");
+	    $.mobile.changePage("#create");
 	    break;
 	  case 'calibrate':
 	    if (! this.jumbotron)
 		return setMode('create');
 	    this.postMsg('setMode', { mode: 'calibrate' });
-	    $.mobile.changePage("#jjCalibrate");
+	    $.mobile.changePage("#calibrate");
 	    break;
 	  case 'control':
 	    if (! this.jumbotron)
 		return setMode('create');
 	    this.postMsg('setMode', { mode: 'image' });
-	    $.mobile.changePage("#jjControl");
+	    $.mobile.changePage("#control");
 		//$('.jjNavCreate').removeClass('ui-btn-active');
 		//$('.jjNavCalibrate').removeClass('ui-btn-active');
 		//$('.jjNavControl').addClass('ui-btn-active');
@@ -367,11 +367,10 @@ $.extend(Controller.prototype, {
 // ----------------------------------------------------------------------
 
 $(document).bind("mobileinit", function() {
-    $.mobile.ajaxEnabled = false;
     $.mobile.defaultTransition = 'none';
 });
 
 $(function() {
     var controller = new Controller();
-    //setTimeout(function() {$.mobile.changePage("#jjControl")}, 1000);
+    //setTimeout(function() {$.mobile.changePage("#control")}, 1000);
 });

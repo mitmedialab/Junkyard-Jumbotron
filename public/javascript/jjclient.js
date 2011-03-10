@@ -90,8 +90,8 @@ Client.prototype = {
 	log('Connecting...', socket.host, socket.options.port);
 	socket.connect();
 
-	// Try again in n seconds if no connection was made (server down?)
-	this.scheduleConnect(20000);
+	// Try again in 10 seconds if no connection was made (server down?)
+	this.scheduleConnect(10 * 1000);
     },
 
     scheduleConnect: function scheduleConnect(delay) {
