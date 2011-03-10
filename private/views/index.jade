@@ -23,35 +23,62 @@ html(lang="en")
 
   body
 
-    //- Create
-    div(data-role="page", id="jjCreate")
+    //- Home
+    div(data-role="page", id="home")
 
       div(data-role="header", data-position="fixed", data-backbtn="false")
+        a.jjNavHome(href="#home", data-icon="home") Home
         h1.jjTitle Junkyard Jumbotron
+        a.jjNavHelp(href="#help", data-icon="info") Help
+
+      div(data-role="content")
+        | Welcome
+        a(href="#create") Create
+
+    //- Help
+    div(data-role="page", id="help")
+
+      div(data-role="header", data-position="fixed", data-backbtn="false")
+        a.jjNavHome(href="#home", data-icon="home") Home
+        h1.jjTitle Junkyard Jumbotron
+        a.jjNavHelp(href="#help", data-icon="info") Help
+
+      div(data-role="content")
+        Here is some help...
+
+    //- Create
+    div(data-role="page", id="create")
+
+      div(data-role="header", data-position="fixed", data-backbtn="false")
+        a.jjNavHome(href="#home", data-icon="home") Home
+        h1.jjTitle Junkyard Jumbotron
+        a.jjNavHelp(href="#help", data-icon="info") Help
         div(data-role="navbar")
           ul
             li
-              a.jjNavCreate.ui-btn-active(href="#") 1. Create
+              a.jjNavCreate.ui-btn-active(href="#create") 1. Create
             li
-              a.jjNavCalibrate(href="#") 2. Calibrate
+              a.jjNavCalibrate(href="#calibrate", rel="external") 2. Calibrate
             li
-              a.jjNavControl(href="#") 3. Control
+              a.jjNavControl(href="#control") 3. Control
 
       div(data-role="content")
         div
           p
             span.jjStepNumber 1
             span What's the name of your jumbotron?
-          form#jjCreateForm(action="create", method="POST")
+          form#jjCreateForm(action="create", method="POST", data-ajax="false")
             input#jjCreateName(name="name", type="text")
             input#jjCreateSubmit(name="create", type="submit", value="Create") Next
 
 
     //- Calibrate
-    div(data-role="page", id="jjCalibrate")
+    div(data-role="page", id="calibrate")
 
       div(data-role="header", data-position="fixed", data-backbtn="false")
+        a.jjNavHome(href="#home", data-icon="home") Home
         h1.jjTitle Junkyard Jumbotron
+        a.jjNavHelp(href="#help", data-icon="info") Help
         div(data-role="navbar")
           ul
             li
@@ -72,16 +99,18 @@ html(lang="en")
           p Take a calibration picture and upload it below or email it to
             span.jjEmailUrl none@jj.brownbag.me
 
-          form#jjCalibrateForm(action="upload", enctype="multipart/form-data", method="POST")
+          form#jjCalibrateForm(action="upload", enctype="multipart/form-data", method="POST", data-ajax="false")
             input#jjCalibrateType(name="type", type="hidden", value="calibrate")
             input#jjCalibrateFile(name="file", type="file")
             input#jjCalibrateSubmit(name="calibrate", type="submit", value="Next")
 
     //- Control
-    div(data-role="page", id="jjControl")
+    div(data-role="page", id="control")
 
       div(data-role="header", data-position="fixed", data-backbtn="false")
+        a.jjNavHome(href="#home", data-icon="home") Home
         h1.jjTitle Junkyard Jumbotron
+        a.jjNavHelp(href="#help", data-icon="info") Help
         div(data-role="navbar")
           ul
             li
@@ -99,7 +128,7 @@ html(lang="en")
             span Upload pictures below or email them to 
             span.jjEmailUrl none@jj.brownbag.me
 
-          form#jjUploadForm(action="upload", enctype="multipart/form-data", method="POST")
+          form#jjUploadForm(action="upload", enctype="multipart/form-data", method="POST", data-ajax="false")
             input#jjCalibrateType(name="type", type="hidden", value="image")
             input#jjUploadFile(name="file", type="file")
             input#jjUploadSubmit(name="upload", type="submit", value="Upload")
@@ -129,14 +158,16 @@ html(lang="en")
               a#jjShowIdOff(data-role="button", href="#") Ids Off
 
     //- Join
-    div(data-role="page", id="jjJoin")
+    div(data-role="page", id="join")
 
       div(data-role="header", data-position="fixed", data-backbtn="false")
+        a.jjNavHome(href="#home", data-icon="home") Home
         h1.jjTitle Junkyard Jumbotron
+        a.jjNavHelp(href="#help", data-icon="info") Help
 
       div(data-role="content")
         div
           p There's no jumbotron with that name, please try again.
-          form#jjJoinForm(action="join", method="POST")
+          form#jjJoinForm(action="join", method="POST", data-ajax="false")
             input#jjJoinName(name="name", type="text")
             inputjjJoinSubmit(name="join", type="submit", value="Join") Next
