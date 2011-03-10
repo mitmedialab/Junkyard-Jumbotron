@@ -1,1 +1,1 @@
-./socket.io@0.6.15
+./socket.io@0.6.16
