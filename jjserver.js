@@ -210,7 +210,7 @@ Server.prototype = {
 		err = "no jumbotron";
 	    if (err) {
 		error(err, name);
-		return res.redirect('/#jjJoin');
+		return res.redirect('/#join');
 	    }
 	    res.render('display');
 	}.bind(this));
@@ -623,7 +623,35 @@ Server.prototype = {
 	this._socketMap = [];
 
 	// Listen and handle new connections
-	this._socketio = io.listen(this._server, { log: utils.log });
+	this._socketio = io.listen(this._server, {
+	    log: utils.log,
+	    transportOptions: {
+		'flashsocket': { 
+		    closeTimeout: 8000, 
+		    timeout: 8000 
+		},
+		'websocket': { 
+		    closeTimeout: 8000, 
+		    timeout: 8000 
+		},
+		'htmlfile': { 
+		    closeTimeout: 8000, 
+		    timeout: 8000 
+		},
+		'xhr-multipart': { 
+		    closeTimeout: 8000, 
+		    timeout: 8000 
+		},
+		'xhr-polling': { 
+		    closeTimeout: 8000, 
+		    timeout: 8000 
+		},
+		'jsonp-polling': { 
+		    closeTimeout: 8000, 
+		    timeout: 8000 
+		} 
+	    }
+	});
 	this._socketio.on('connection', this.handleSocketConnect.bind(this));
     },
 
@@ -711,6 +739,7 @@ Server.prototype = {
 	this.sendClientMsg(display, 'load', { src: src,
 					      vp: viewport,
  					      frozen: frozen });
+	debug('vp', viewport);
     },
 
     sendDisplayViewport: function sendDisplayViewport(display) {
