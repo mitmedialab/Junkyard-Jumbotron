@@ -410,7 +410,6 @@ $.extend(Display.prototype, {
 	var docHeight = $(window).height();
 	this.sendMsg('connect', { jjid: id, jjname: name, type: 'display',
 				  width: docWidth, height: docHeight });
-	this.sendSizeMsg(); // TODO: necessary?
     },
 
     sendViewportMsg: function sendViewportMsg() {
@@ -488,7 +487,6 @@ $.extend(Display.prototype, {
 });
 
 // ----------------------------------------------------------------------
-
 $(function() {
     var display = new Display();
 });
