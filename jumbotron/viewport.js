@@ -84,7 +84,7 @@ Viewport.prototype = {
 			      y: round(crop.y * this.height + this.y),
 			      width: round(crop.width  * this.width),
 			      height: round(crop.height * this.height),
-			      rotation: this.rotation });
+			      rotation: crop.rotation });
     },
 
     // Return a new viewport of which this viewport is a crop, where
