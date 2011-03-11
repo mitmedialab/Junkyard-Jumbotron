@@ -28,23 +28,48 @@ html(lang="en")
 
       div(data-role="header", data-position="fixed", data-backbtn="false")
         a.jjNavHome(href="#home", data-icon="home") Home
-        h1.jjTitle Junkyard Jumbotron
+        h1 Junkyard Jumbotron
         a.jjNavHelp(href="#help", data-icon="info") Help
 
       div(data-role="content")
-        | Welcome
-        a(href="#create") Create
+        img#jjExampleImg(src="images/example.jpg")
+        p
+          | The
+          b Junkyard Jumbotron
+          | lets you take a bunch of random displays and instantly
+          | stitch them together into a large, virtual display, simply
+          | by taking a photograph of them (check out
+          a(href="#") this video
+          | ).
+          | It works with laptops, smartphones, tablets --- anything
+          | that runs a web browser. It also highlights a new way of
+          | connecting a large number of heterogenous devices to each
+          | other in the field, on an ad-hoc basis.
+        p
+          | The Junkyard Jumbotron is designed by Rick Borovoy,
+          | Ph.D. and Brian Knep at MIT's Center for Future Civic
+          | Media.
+        p
+          a(href="#create") Create
+          | your own Junkyard Jumbotron.
+          | (The software is currently in BETA.)
+        p
+          | Discuss the Junkyard Jumbotron on 
+          a(href="http://www.facebook.com/pages/Junkyard-Jumbotron/207846822564634") Facebook
+        p
+          | Contact us at
+          a(href="mailto:jumbotron@media.mit.edu") jumbotron@media.mit.edu
 
     //- Help
     div(data-role="page", id="help")
 
       div(data-role="header", data-position="fixed", data-backbtn="false")
         a.jjNavHome(href="#home", data-icon="home") Home
-        h1.jjTitle Junkyard Jumbotron
+        h1 Junkyard Jumbotron
         a.jjNavHelp(href="#help", data-icon="info") Help
 
       div(data-role="content")
-        Here is some help...
+        p Sorry, no help yet. Stay tuned!
 
     //- Create
     div(data-role="page", id="create")
@@ -65,11 +90,12 @@ html(lang="en")
       div(data-role="content")
         div
           p
-            span.jjStepNumber 1
-            span What's the name of your jumbotron?
+            div.jjStepNumber 1
+            div.jjStepHeader What is the name of your jumbotron?
           form#jjCreateForm(action="create", method="POST", data-ajax="false")
             input#jjCreateName(name="name", type="text")
             input#jjCreateSubmit(name="create", type="submit", value="Create") Next
+          p Tip: you can also connect to an existing jumbotron
 
 
     //- Calibrate
@@ -92,17 +118,24 @@ html(lang="en")
 
         div
           p
-            span.jjStepNumber 2
-            span Open
-            span.jjDisplayUrl jj.brownbag.me/none
-            span on each of the devices.
-          p Take a calibration picture and upload it below or email it to
-            span.jjEmailUrl none@jj.brownbag.me
+            div.jjStepNumber 2
+            div.jjStepHeader Open
+              span.jjDisplayUrl jj.brownbag.me/none
+              span on each of the devices.
+              br
+              span Take a calibration picture and upload it below or email it to
+              span.jjEmailUrl none@jj.brownbag.me
 
           form#jjCalibrateForm(action="upload", enctype="multipart/form-data", method="POST", data-ajax="false")
             input#jjCalibrateType(name="type", type="hidden", value="calibrate")
             input#jjCalibrateFile(name="file", type="file")
+            p 
+              | If emailing the image, please wait until the
+              | "Jumbotron" image comes up before clicking Next or
+              | Control above. (We're working on a fix!) 
+              | If the calibration doesn't work, check your email for feedback.
             input#jjCalibrateSubmit(name="calibrate", type="submit", value="Next")
+          p Tip: Make sure each marker can be seen completely and avoid glare.
 
     //- Control
     div(data-role="page", id="control")
@@ -124,9 +157,9 @@ html(lang="en")
 
         div
           p
-            span.jjStepNumber 3
-            span Upload pictures below or email them to 
-            span.jjEmailUrl none@jj.brownbag.me
+            div.jjStepNumber 3
+            div.jjStepHeader Upload pictures below or email them to 
+              span.jjEmailUrl none@jj.brownbag.me
 
           form#jjUploadForm(action="upload", enctype="multipart/form-data", method="POST", data-ajax="false")
             input#jjCalibrateType(name="type", type="hidden", value="image")
@@ -162,7 +195,7 @@ html(lang="en")
 
       div(data-role="header", data-position="fixed", data-backbtn="false")
         a.jjNavHome(href="#home", data-icon="home") Home
-        h1.jjTitle Junkyard Jumbotron
+        h1 Junkyard Jumbotron
         a.jjNavHelp(href="#help", data-icon="info") Help
 
       div(data-role="content")

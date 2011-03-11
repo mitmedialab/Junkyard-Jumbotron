@@ -978,7 +978,11 @@ Server.prototype = {
 		err = 'few displays';
 	    else if (numFound > expected)
 		err = 'more displays';
-	    this.commitJumbotron(jumbotron);
+	    if (numFound) {
+		jumbotron.mode = "image";
+		this.commitJumbotron(jumbotron);
+		this.sendJumbotronLoad(jumbotron);
+	    }
 	    cb(err, numFound, expected);
 	}.bind(this));
     },

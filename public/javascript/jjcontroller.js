@@ -110,9 +110,6 @@ $.extend(Controller.prototype, {
 		return setMode('create');
 	    this.postMsg('setMode', { mode: 'image' });
 	    $.mobile.changePage("#control");
-		//$('.jjNavCreate').removeClass('ui-btn-active');
-		//$('.jjNavCalibrate').removeClass('ui-btn-active');
-		//$('.jjNavControl').addClass('ui-btn-active');
 	    break;
 	}
     },
