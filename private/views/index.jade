@@ -32,33 +32,38 @@ html(lang="en")
         a.jjNavHelp(href="#help", data-icon="info") Help
 
       div(data-role="content")
-        img#jjExampleImg(src="images/example.jpg")
+        img#jjExampleImage(src="images/example.jpg")
         p
           | The
           b Junkyard Jumbotron
           | lets you take a bunch of random displays and instantly
           | stitch them together into a large, virtual display, simply
-          | by taking a photograph of them (check out
-          a(href="#") this video
-          | ).
+          | by taking a photograph of them.
           | It works with laptops, smartphones, tablets --- anything
           | that runs a web browser. It also highlights a new way of
           | connecting a large number of heterogenous devices to each
           | other in the field, on an ad-hoc basis.
         p
-          | The Junkyard Jumbotron is designed by Rick Borovoy,
-          | Ph.D. and Brian Knep at MIT's Center for Future Civic
-          | Media.
+          iframe#jjExampleVideo(src="http://player.vimeo.com/video/20962561?title=0&amp;byline=0&amp;portrait=0", width="400", height="225", frameborder="0")
         p
           a(href="#create") Create
           | your own Junkyard Jumbotron.
           | (The software is currently in BETA.)
         p
+          | The Junkyard Jumbotron is designed by Rick Borovoy,
+          | Ph.D. and Brian Knep at MIT's Center for Future Civic
+          | Media.
+        p
           | Discuss the Junkyard Jumbotron on 
-          a(href="http://www.facebook.com/pages/Junkyard-Jumbotron/207846822564634") Facebook
+          a(href="https://www.facebook.com/JunkyardJumbotron") Facebook
         p
           | Contact us at
           a(href="mailto:jumbotron@media.mit.edu") jumbotron@media.mit.edu
+        p
+          a(href="http://twitter.com/share", class="twitter-share-button", data-url="http://jumbotron.media.mit.edu", data-text="Junkyard Jumbotron", data-count="none") Tweet
+          script(type="text/javascript", src="http://platform.twitter.com/widgets.js")
+        p
+          iframe(src="http://www.facebook.com/plugins/like.php?href=http%3A%2F%2Fjumbotron.media.mit.edu&amp;layout=standard&amp;show_faces=true&amp;width=450&amp;action=like&amp;font&amp;colorscheme=light&amp;height=80", scrolling="no", frameborder="0", style="border:none; overflow:hidden; width:450px; height:80px;", allowTransparency="true")
 
     //- Help
     div(data-role="page", id="help")
