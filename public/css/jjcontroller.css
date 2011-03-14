@@ -14,8 +14,13 @@
     float:left;
 }
 
-#jjExampleImg {
+#jjExampleImage {
     width:280px;
+    display:block;
+    margin-left: auto;
+    margin-right: auto;
+}
+#jjExampleVideo {
     display:block;
     margin-left: auto;
     margin-right: auto;
