@@ -37,6 +37,11 @@
 # with your own name if you copy and modify this script.
 # ______________________________________________________________________________ 
 #
+
+# For node.js:express, very important for caching mechanisms
+NODE_ENV=production
+export NODE_ENV
+
 # PATH should only include /usr/* if it runs after the mountnfs.sh script
 PATH=/sbin:/usr/sbin:/bin:/usr/bin:/usr/local/bin # modify if you need
 
