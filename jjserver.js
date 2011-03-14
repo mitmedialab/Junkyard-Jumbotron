@@ -142,6 +142,7 @@ Server.prototype = {
 	
     initServer: function initServer() {
 	log('Starting server --------------------------------------------------');
+	log(process.env);
 
 	// Create server with the given middleware
 	var server = this._server = express.createServer(
@@ -164,15 +165,16 @@ Server.prototype = {
 
 	// Add middleware for production mode
 	server.configure('production', function(){
-	    server.use(express.errorHandler());
+	    server.use(express.errorHandler({ dumpExceptions: true,
+					      showStack: true }));
 	});
 
 	// Catch all exceptions in production mode
-	if (server.set('env') == 'production') {
+	//if (server.set('env') == 'production') {
 	    process.on('uncaughtException', function (err) {
 		error('ERROR: UNCAUGHT', err);
 	    });
-	}
+	//}
 
 	// Template options
 	server.set('views', params.viewsDir);
