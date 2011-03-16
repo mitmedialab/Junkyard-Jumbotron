@@ -35,14 +35,15 @@ module.exports = {
 	cp.exec(cmd, {env: {PATH: params.pythonPath}}, function(err, stdout, stderr) {
 	    if (err)
 		return cb && cb(err);
-	    //utils.debug(jData);
-	    //utils.debug(stdout);
+	    // Stdout occasionaly starts with bogus characters '??? 3'. 
+	    // Chop these. TODO: Why? On the python or node end? Unicode?
+	    stdout = stdout.substring(stdout.indexOf('{'));
 	    try {
                 var res = JSON.parse(stdout);
             }
             catch (exception) {
                 utils.error("Bad json from calibration script '", stdout, "'");
-                cb("calibrate error")
+                return cb("calibrate error")
             }
 	    jumbotron.aspectRatio = res.aspectRatio;
 	    var numFound = 0;
