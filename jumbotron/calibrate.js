@@ -37,7 +37,13 @@ module.exports = {
 		return cb && cb(err);
 	    //utils.debug(jData);
 	    //utils.debug(stdout);
-	    var res = JSON.parse(stdout);
+	    try {
+                var res = JSON.parse(stdout);
+            }
+            catch (exception) {
+                utils.error("Bad json from calibration script '", stdout, "'");
+                cb("calibrate error")
+            }
 	    jumbotron.aspectRatio = res.aspectRatio;
 	    var numFound = 0;
 	    for (var d in res.displays) {
