@@ -70,8 +70,8 @@ module.exports = {
 	filename: join('private', 'logs', 'output.log'),
 
 	// Rotating log file details
-	maxFileSize: 1024 * 1024, // Maximum number of bytes per file 
-	backups: 5,               // How many files to keep
+	maxFileSize: 10 * 1024 * 1024, // Maximum number of bytes per file 
+	backups: 10,               // How many files to keep
 	pollInterval: 60          // Seconds between checking the file size
     },
 
