@@ -158,7 +158,7 @@ Client.prototype = {
 	    handler.call(this, data.args);
 	}
 	catch (exception) {
-	    this.sendErrorMsg(exception.message);
+	    this.sendErrorMsg(exception.message + "(" + msg + ")");
 	    log(exception.stack);
 	}
     }
