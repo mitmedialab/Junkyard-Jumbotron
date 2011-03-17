@@ -7,7 +7,6 @@ var logger = log4js.getLogger();
 var nutils = require('util');
 var params = require('./params');
 var _  = require('underscore');
-_.mixin(require('underscore.string'));
 
 // Return string version of an object
 function stringify(obj) {
@@ -75,7 +74,13 @@ module.exports = {
 
     escapeForShell: function escapeForShell(str){
 	return str.replace(/(?=[^a-zA-Z0-9_.\/\-\x7F-\xFF\n])/gm, '\\');
+    },
+    
+    // copied from underscore.strings
+    isStartsWith: function(str, starts){
+    return str.length >= starts.length && str.substring(0, starts.length) === starts;
     }
+    
 };
 
 // Add all of underscore
