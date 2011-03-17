@@ -80,16 +80,20 @@ module.exports = {
     python: 'python',
     calibrateScript: join('python', 'calibrate.py'),
 
-    // SMTP server info
+    // SMTP server info (override in paramsLocal.js)
     email: {
-	smtpServer: 'smtp.gmail.com',
-	user: 'test.jj.brownbag@gmail.com',
-	pwd:  'Br0wnB@g',
+	smtpServer: 'smtp.myserver.com',
+	user: 'jumbotronuser@myserver.com',
+	pwd:  'mypass',
 	ssl: true,
 	port: 465,
 	debug: false
     },
 
+	// The server that will receive emails of the form 
+	// [jumbotron-name]@thiserver.com.  Override this in paramLocal.js
+	imageReceiveServer: 'thisserver.com',
+	
     // Debug flags
     debug: true
 };

@@ -26,6 +26,8 @@ function Jumbotron(options) {
     this.pwd = options.pwd;
     // Email, for retrieving lost password (Unused for now)
     this.email = options.email;
+    // The server emails should be sent to
+    this.imageReceiveServer = params.imageReceiveServer;
 
     // Mode: calibrate, image, ...
     this.mode = options.mode || "calibrate";
@@ -60,7 +62,7 @@ Jumbotron.prototype = utils.inherits(Base, {
 
     // Everything but the curImage and playTimer
     fieldsToSerialize: ['name', 'pwd', 'email',
-			'mode', 'aspectRatio',
+			'mode', 'aspectRatio', 'imageReceiveServer',
 			'images', 'displays', 'controllers'],
 
     isActive: function isActive() {
