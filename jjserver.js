@@ -975,11 +975,11 @@ Server.prototype = {
 	    var expected = jumbotron.numActiveDisplays();
 	    log(numFound, expected);
 	    if (! numFound)
-		err = 'no displays';
+		err = 'no displays (expected '+expected+')';
 	    else if (numFound < expected)
-		err = 'few displays';
+		err = 'too few displays (found '+numFound+', expected '+expected+')';
 	    else if (numFound > expected)
-		err = 'more displays';
+		err = 'too many displays (found '+numFound+', expected '+expected+')';
 	    if (numFound) {
 		jumbotron.mode = "image";
 		this.commitJumbotron(jumbotron);
