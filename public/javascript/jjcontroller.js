@@ -351,6 +351,8 @@ $.extend(Controller.prototype, {
 	    this.setMode('control');
 	}));
 
+	$('.link-button').button();
+
 	// Unclear why this doesn't work here
 	//$('[data-role=navbar]').undelegate('a', 'click');
     },
