@@ -22,6 +22,9 @@ need to install Python 2.6 or 2.7.
   http://www.python.org/download/
 You also need the Python Imaging Library to support the image processing:
   http://www.pythonware.com/products/pil/
+You also need to compile the ARToolkit:
+> cd python
+> make
 
 3. GraphicsMagick
 You need the GraphicsMagick library to support the image processing:
