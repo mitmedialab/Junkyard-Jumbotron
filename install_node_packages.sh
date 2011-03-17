@@ -7,7 +7,7 @@ npm install formidable@0.9.11
 npm install gently@0.8.0
 npm install gm@0.4.0
 npm install iconv@1.0.0
-npm install jade@0.6.3
+npm install jade@0.9.1
 npm install log4js@0.2.3
 npm install mailparser@0.1.0
 npm install node-dev@0.0.5
