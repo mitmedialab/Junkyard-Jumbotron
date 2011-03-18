@@ -1,0 +1,11 @@
+// ======================================================================
+// Params - local parameters.
+// Keep passwords and unique developer options here.
+
+module.exports = {
+
+    imageReceiveServer: 'my_catch_all.mailserver.com',
+
+    pythonPath: '/path/to/python'
+
+};
