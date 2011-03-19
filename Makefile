@@ -4,27 +4,34 @@ CP = cp
 MV = mv
 ECHO = echo
 NODE = node
+NPM = sudo npm
 MAKE = make
 WWW_DIR = app/ios/www
 
-# Add local/bin to path
-PWD := $(shell pwd)
-PATH := $(PWD)/local/bin:$(PATH)
-
 # Make all
-all: node python
-.PHONY: node python
+all: node-packages python-extension
 
-# Make node
-node-misc:
-	npm install iconv
-node: node-misc
-	cd dep/node; ./configure --prefix ../../local
-	$(MAKE) -C dep/node install
+# Install required node modules
+# TODO: Probably should be local to avoid stepping on anyones toes.
+node-packages:
+	$(NPM) install chaos@0.1.6-pre
+	$(NPM) install connect@0.5.9
+	$(NPM) install express@1.0.7
+	$(NPM) install formidable@0.9.11
+	$(NPM) install gently@0.8.0
+	$(NPM) install gm@0.4.0
+	$(NPM) install iconv@1.0.0
+	$(NPM) install jade@0.9.1
+	$(NPM) install log4js@0.2.3
+	$(NPM) install mailparser@0.1.0
+	$(NPM) install node-dev@0.0.5
+	$(NPM) install nodemailer@0.1.6
+	$(NPM) install qs@0.0.5
+	$(NPM) install socket.io@0.6.16
+	$(NPM) install underscore@1.1.4
 
-
-# Make python extensions
-python:
+# Make python extension
+python-extension:
 	$(MAKE) -C python all
 
 # Convert jade templates html and copy needed files to phonegap
