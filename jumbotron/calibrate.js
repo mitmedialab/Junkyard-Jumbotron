@@ -43,15 +43,18 @@ module.exports = {
             }
             catch (exception) {
                 utils.error("Bad json from calibration script '", stdout, "'");
-                return cb("calibrate error")
+                return cb("calibrate error");
             }
 	    jumbotron.aspectRatio = res.aspectRatio;
 	    var numFound = 0;
 	    for (var d in res.displays) {
 		var resDisplay = res.displays[d];
-		var display = jumbotron.getDisplay(resDisplay.clientId);
-		display.viewport = new Viewport(resDisplay.viewport);
-		numFound++;
+		if (resDisplay.viewport.width > 0 &&
+		    resDisplay.viewport.height > 0) {
+		    var display = jumbotron.getDisplay(resDisplay.clientId);
+		    display.viewport = new Viewport(resDisplay.viewport);
+		    numFound++;
+		}
 	    }
 	    cb && cb(null, numFound);
 	});

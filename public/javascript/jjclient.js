@@ -60,7 +60,7 @@ Client.prototype = {
 
     initSocket: function initSocket() {
 	var socket = this.socket = new io.Socket(null, {
-	    port: 80, // If you change this, also change in params.js and apache configs
+	    port: location.port,
 	    rememberTransport: false});
 
 	// socket.90 v0.6.8: timeout doesn't work very well

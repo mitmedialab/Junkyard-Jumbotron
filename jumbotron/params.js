@@ -90,9 +90,9 @@ module.exports = {
 	debug: false
     },
 
-	// The server that will receive emails of the form 
-	// [jumbotron-name]@thiserver.com.  Override this in paramLocal.js
-	imageReceiveServer: 'thisserver.com',
+    // The server that will receive emails of the form 
+    // [jumbotron-name]@thiserver.com.  Override this in paramLocal.js
+    imageReceiveServer: 'thisserver.com',
 	
     // Debug flags
     debug: true
@@ -103,7 +103,8 @@ var utils = require('./utils');
 try {
     var local = require('./paramsLocal');
     utils.extend(module.exports, local);
-    utils.log("WARNING: Using local parameters from 'paramsLocal.js'");
+    // Save the local parameters so we can log about them later
+    module.exports.localParams = local;
 }
 catch (exception) {
     if (! utils.isStartsWith(exception.message, 'Cannot find module'))

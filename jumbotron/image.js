@@ -44,8 +44,16 @@ function Image(options) {
 
 Image.prototype = utils.inherits(Base, {
     
-    // Serialize everything but the jumbotron
-    fieldsToSerialize: ['source', 'width', 'height', 'viewport', 'active'],
+    // Serialize
+    toJSON: function toJSON() {
+	var ret = Base.prototype.toJSON.call(this);
+	ret.source = this.source;
+	ret.width = this.width;
+	ret.height = this.height;
+	ret.viewport = this.viewport;
+	ret.active = this.active;
+	return ret;
+    },
 
     init: function init(cb) {
 

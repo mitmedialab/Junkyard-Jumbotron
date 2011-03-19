@@ -65,7 +65,8 @@ http.ServerResponse.prototype.sendStatus = function(status, args) {
     }
     else if (args)
 	debug('#>', status, args);
-    this.send({ status: status, args: args },  { 'Content-Type': 'text/plain' });
+    this.send({ status: status, args: args },
+	      { 'Content-Type': 'text/plain' });
 };
 
 // ======================================================================
@@ -141,8 +142,16 @@ Server.prototype = {
     // HTML Server
 	
     initServer: function initServer() {
-	log('Starting server --------------------------------------------------');
-	log(process.env);
+	log('\n----------------------------------------------------------------------');
+	log('Starting Junkyard Jumbotron Server');
+	if (params.localParams) {
+	    log("WARNING: Using local parameters from 'paramsLocal.js'");
+	    for (var param in params.localParams)
+		log('\t', param, '\t', params.localParams[param]);
+	}
+	log('Environment:');
+	for (var env in process.env)
+	    log('\t', env, '\t', process.env[env]);
 
 	// Create server with the given middleware
 	var server = this._server = express.createServer(
@@ -158,7 +167,7 @@ Server.prototype = {
 
 	// Add middleware for dev mode
 	server.configure('development', function() {
-	    server.use(express.logger());
+	    //server.use(express.logger());
 	    server.use(express.errorHandler({ dumpExceptions: true,
 					      showStack: true }));
 	});
@@ -172,7 +181,7 @@ Server.prototype = {
 	// Catch all exceptions in production mode
 	//if (server.set('env') == 'production') {
 	    process.on('uncaughtException', function (err) {
-		error('ERROR: UNCAUGHT', err);
+		error('UNCAUGHT EXCEPTION', err);
 	    });
 	//}
 
@@ -186,7 +195,7 @@ Server.prototype = {
 	    res.render('index');
 	});
 	server.get('/:jumbotron', this.handleJoin.bind(this));
-	server.post('/:cmd' , this.handleHtmlMessage.bind(this));
+	server.post('/:cmd' , this.handleHttpMessage.bind(this));
     },
 
     // ----------------------------------------------------------------------
@@ -265,7 +274,7 @@ Server.prototype = {
 
     // ----------------------------------------------------------------------
 
-    handleHtmlMessage: function handleHtmlMessage(req, res) {
+    handleHttpMessage: function handleHttpMessage(req, res) {
 
 	// Make sure every client has a jjid cookie
 	this.ensureJJID(req, res);
@@ -334,7 +343,7 @@ Server.prototype = {
 
 	    jumbotron.mode = mode;
 	    this.commitJumbotron(jumbotron);
-	    this.sendJumbotronLoad(jumbotron);
+	    jumbotron.broadcastLoad();
 	    return 'ok';
 	},
 
@@ -407,7 +416,8 @@ Server.prototype = {
 		error("uploadMail: mailparser:", err);
 	    });
 	    mp.on("aend", function(id){
-		writeStream.end();
+		if (writeStream)
+		    writeStream.end();
 		//writeStream.destroy();
 		this.handleMailUpload(msg);
 	    }.bind(this));
@@ -534,7 +544,9 @@ Server.prototype = {
 	    oldImage.source != params.calibratedImageOptions.source) {
 	    staticProvider.clearCache(oldImage.source);
 	}
-	this.sendJumbotronLoad(jumbotron);
+	// Don't bother sending changes if calibrating
+	if (jumbotron.mode != 'calibrate')
+	    jumbotron.broadcastLoad();
     },
 
     // ----------------------------------------------------------------------
@@ -578,24 +590,14 @@ Server.prototype = {
 		    return msg.reply(x('upload error', jName, err.toString()));
 
 		if (jumbotron.mode == "calibrate") {
-		    this.calibrateJumbotron(jumbotron, filename, function(err, numFound, expected) {
-			var reply = null;
-			if (err) 
-			    reply = x(err, jName, numFound, expected);
-			else 
-			    reply = x('calibrated', jName);
-			msg.reply(reply);
+		    this.calibrateJumbotron(jumbotron, filename, function(err, feedback) {
+			msg.reply(feedback);
 		    });
 		}
 
 		else {
-		    this.uploadToJumbotron(jumbotron, filename, function(err) {
-			var reply = null;
-			if (err)
-			    reply = x('upload error', jName, err.toString());
-			else
-			    reply = x('uploaded', jName);
-			msg.reply(reply);
+		    this.uploadToJumbotron(jumbotron, filename, function(err, feedback) {
+			msg.reply(feedback);
 		    });
 		}
 	    }.bind(this));
@@ -658,6 +660,15 @@ Server.prototype = {
     },
 
     handleSocketConnect: function handleSocketConnect(socket) {
+	// Add some methods to the socket 
+	// Must do it here because socket.io does not expose the Client class
+	socket.sendMsg = function sendMsg(cmd, args) {
+	    this.send(JSON.stringify({ cmd: cmd, args: args }));
+	};
+	socket.sendError = function sendError(err) {
+	    this.sendMsg('error', err);
+	};
+
 	// Setup socket handlers
 	socket.on('message',
 		  this.handleSocketMessage.bind(this, socket));
@@ -677,7 +688,7 @@ Server.prototype = {
 
 		// Log
 		if (client)
-		    debug('<', client.type, client.jumbotron.name, client.idx,
+		    debug('<', client.jumbotron.name, client.type, client.idx,
 			  data.cmd, data.args);
 		else
 		    debug('<', socket.sessionId,
@@ -701,7 +712,7 @@ Server.prototype = {
 
 		// Handler returns an error message on error
 		if (! utils.isUndefined(status))
-		    this.sendSocketError(client, status);
+		    client.sendError(status);
 
 	    }.bind(this));
 	}
@@ -715,80 +726,13 @@ Server.prototype = {
     },
 
     // ----------------------------------------------------------------------
-
-    sendSocketMsg: function sendSocketMsg(socket, cmd, args) {
-	socket.send(JSON.stringify({ cmd: cmd, args: args }));
-    },
-
-    sendSocketError: function sendSocketError(socket, err) {
-	error('>', socket.sessionId, err);
-	this.sendSocketMsg(socket, 'error', err);
-    },
-
-    sendClientMsg: function sendDisplayMsg(client, cmd, args) {
-	var jName = client.jumbotron ? client.jumbotron.name : "UNATTACHED";
-	debug('>', jName, client.idx, cmd, args);
-	this.sendSocketMsg(client.socket, cmd, args);
-    },
-
-    sendDisplayLoad: function sendDisplayLoad(display) {
-	var jumbotron = display.jumbotron;
-	var src       = jumbotron.getDisplayImage(display).source;
-	var viewport  = jumbotron.getDisplayViewport(display);
-	var frozen    = jumbotron.getDisplayFrozen(display);
-	if (utils.isStartsWith(src, params.resourceDir))
-	    src = src.substring(params.resourceDir.length + 1); // +1 for '/'
-	this.sendClientMsg(display, 'load', { src: src,
-					      vp: viewport,
- 					      frozen: frozen });
-	debug('vp', viewport);
-    },
-
-    sendDisplayViewport: function sendDisplayViewport(display) {
-	var jumbotron = display.jumbotron;
-	var viewport = jumbotron.getDisplayViewport(display);
-	this.sendClientMsg(display, 'vp', viewport);
-    },
-
-    sendDisplayId: function sendDisplayViewport(display) {
-	var jumbotron = display.jumbotron;
-	this.sendClientMsg(display, 'id', { id: display.idx,
-					     name: jumbotron.name });
-    },
-
-    sendDisplayShow: function sendDisplayShow(display, options) {
-	this.sendClientMsg(display, 'show', options);
-    },
-
-    sendJumbotronMsg: function sendJumbotronMsg(jumbotron, msgFn, arg, ignoredDisplay) {
-	var displays = jumbotron.displays;
-	for (var d in displays) {
-	    var display = displays[d];
-	    if (display != ignoredDisplay && display.isActive())
-		msgFn.apply(this, [display, arg]);
-	}
-    },
-
-    sendJumbotronLoad: function sendJumbotronLoad(jumbotron) {
-	this.sendJumbotronMsg(jumbotron, this.sendDisplayLoad);
-    },
-
-    sendJumbotronViewport: function sendJumbotronViewport(jumbotron, ignoredDisplay) {
-	this.sendJumbotronMsg(jumbotron, this.sendDisplayViewport,
-			      null, ignoredDisplay);
-    },
-
-    sendJumbotronShow: function sendJumbotronShow(jumbotron, options) {
-	this.sendJumbotronMsg(jumbotron, this.sendDisplayShow, options);
-    },
-
-    // ----------------------------------------------------------------------
     // Map sockets to clients
     
     setSocketClient: function setSocketClient(socket, client) {
-	debug("Connecting", socket.sessionId, "to",
-	      client.type, client.jumbotron.name, client.idx);
+	debug("Connecting", client.type, client.jumbotron.name, client.idx,
+	      "with socket", socket.sessionId);
 	this._socketMap[socket.sessionId] = { jName: client.jumbotron.name,
+					      idx: client.idx,
 					      clientId: client.clientId,
 					      type: client.type };
 	client.socket = socket;
@@ -814,6 +758,8 @@ Server.prototype = {
     clearSocketClient: function clearSocketClient(socket) {
 	var item = this._socketMap[socket.sessionId];
 	if (item) {
+	    debug("Disconnecting", item.type, item.jName, item.idx,
+		  "from", socket.sessionId);
  	    delete this._socketMap[socket.sessionId];
 	    var getter = (item.type == "display")
 		? 'getDisplay' : 'getController';
@@ -851,8 +797,8 @@ Server.prototype = {
 	this.setSocketClient(socket, display);
 
 	// Send id and load image onto display
-	this.sendDisplayId(display);
-	this.sendDisplayLoad(display);
+	display.sendId();
+	display.sendLoad();
     },
 
 /*
@@ -909,9 +855,9 @@ Server.prototype = {
 
 	    this._store.getJumbotron(jName, function(err, jumbotron) {
 		if (err)
-		    return this.sendSocketError(socket, err);
+		    return socket.sendError(err);
 		if (! jumbotron)
-		    return this.sendSocketError(socket, 'no jumbotron');
+		    return socket.sendError('no jumbotron');
 
 		// Create client
 		this.createDisplay(socket, args, jumbotron);
@@ -924,7 +870,7 @@ Server.prototype = {
 	    if (display.aspectRatio != aspectRatio) {
 		display.aspectRatio = aspectRatio;
 		this.commitJumbotron(jumbotron);
-		this.sendDisplayViewport(display);
+		display.sendViewport();
 	    }
 	},
 
@@ -941,7 +887,7 @@ Server.prototype = {
 
     // Handlers for messages from controllers
     controllerSocketMsgHandlers: {
-	connect: function connect(socket, controlelr, args) {
+	connect: function connect(socket, controller, args) {
 	}
     },
 
@@ -950,7 +896,7 @@ Server.prototype = {
 
     createJumbotron: function createJumbotron(options, cb) {
 	if (! Jumbotron.isValidName(options.name))
-	    return cb && cb('bad jumbotron name');
+	    return cb && cb('bad name');
 
 	var jumbotron = new Jumbotron(options);
 	this._store.addJumbotron(jumbotron, function(err) {
@@ -971,21 +917,25 @@ Server.prototype = {
 	// Image will be reoriented in calibrate.
 	calibrate.calibrate(jumbotron, file, function(err, numFound) {
 	    if (err)
-		return cb(err);
+		return cb && cb(err, x(err));
+
 	    var expected = jumbotron.numActiveDisplays();
-	    log(numFound, expected);
 	    if (! numFound)
-		err = 'no displays (expected '+expected+')';
+		err = 'no displays';
 	    else if (numFound < expected)
-		err = 'too few displays (found '+numFound+', expected '+expected+')';
+		err = 'few displays';
 	    else if (numFound > expected)
-		err = 'too many displays (found '+numFound+', expected '+expected+')';
+		err = 'more displays';
 	    if (numFound) {
 		jumbotron.mode = "image";
+		jumbotron.fitImage("maximize");
 		this.commitJumbotron(jumbotron);
-		this.sendJumbotronLoad(jumbotron);
+		jumbotron.broadcastLoad();
 	    }
-	    cb(err, numFound, expected);
+	    if (err)
+		cb && cb(err, x(err, jumbotron.name, numFound, expected));
+	    else
+		cb && cb(null, x("calibrated", jumbotron.name));
 	}.bind(this));
     },
 
@@ -993,29 +943,29 @@ Server.prototype = {
 	var image = new Image({ source: file });
 	image.init(function(err) {
 	    if (err)
-		return cb && cb(err);
-	    jumbotron.addImage(image);
+		return cb && cb(err, x(err, jumbotron.name));
 	    jumbotron.fitImage("maximize", image);
+	    jumbotron.addImage(image);
 	    jumbotron.setCurrentImage(image);
-	    cb && cb(null);
+	    cb && cb(null, x('uploaded', jumbotron.name));
 	}.bind(this));
     },
 
     setJumbotronViewport: function setJumbotronViewport(jumbotron, vp,
 							originatingDisplay) {
 	jumbotron.getCurrentImage().viewport = vp;
-	this.sendJumbotronViewport(jumbotron, originatingDisplay);
+	jumbotron.broadcastViewport(originatingDisplay);
 	this.commitJumbotron(jumbotron);
     },
 
     fitJumbotronViewport: function fitJumbotronViewport(jumbotron, fitMode) {
 	jumbotron.fitImage(fitMode);
+	jumbotron.broadcastViewport();
 	this.commitJumbotron(jumbotron);
-	this.sendJumbotronViewport(jumbotron);
     },
 
     identifyDisplays: function identifyDisplays(jumbotron, on) {
-	this.sendJumbotronShow(jumbotron, { id: on });
+	jumbotron.broadcastShow({ id: on });
     }
 };
 

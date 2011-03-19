@@ -1,3 +1,20 @@
+
+/* Paragraph style for no-javascript warning */
+.jsNone {
+    border-style: solid;
+    border-width: 1px;
+    margin: 10px;
+    padding: 5px;
+    text-align: center;
+}
+
+/* Only show these if javascript is enabled. Need to separate out
+pages (.jsOnlyPage), which jquery mobile handles, from other elements
+(.jsOnly).  */
+.jsOnly, .jsOnlyPage {
+    display: none;
+}
+
 .jjStepNumber {
     font-size: xx-large;
     font-weight: bolder;
@@ -57,6 +74,10 @@
 }
 
 /* ---------------------------------------------------------------------- */
+
+body {
+    max-width: 600px;
+}
 
 .ui-mobile-viewport {
     max-width: 600px;

@@ -1,8 +1,10 @@
 // ======================================================================
-// Client
+// Client - base class for displays and controllers
 
 var utils = require('./utils');
 var Base = require('./base');
+var debug = utils.debug;
+var error = utils.error;
 
 // Constructor
 function Client(options) {
@@ -27,11 +29,30 @@ function Client(options) {
 Client.prototype = utils.inherits(Base, {
 
     // Serialize everything but the jumbotron and socket
-    fieldsToSerialize: ['clientId'],
+    toJSON: function toJSON() {
+	var ret = Base.prototype.toJSON.call(this);
+	ret.idx = this.idx;
+	ret.clientId = this.clientId;
+	return ret;
+    },
 
     // Client is active if there is a connected socket
     isActive: function isActive() {
 	return !! this.socket;
+    },
+
+    // Send a command with arguments through the socket
+    sendMsg: function sendMsg(cmd, args) {
+	var jName = this.jumbotron ? this.jumbotron.name : "UNATTACHED";
+	debug('>', jName, this.type, this.idx, cmd, args);
+	this.socket.sendMsg(cmd, args);
+    },
+
+    // Send an error message through the socket
+    sendError: function sendError(err) {
+	var jName = this.jumbotron ? this.jumbotron.name : "UNATTACHED";
+	error('>', jName, this.idx, err);
+	this.socket.sendError(err);
     }
 
 });

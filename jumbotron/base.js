@@ -1,5 +1,5 @@
 // ======================================================================
-// Base class for jumbotrons, displays, controllers, images
+// Base class for jumbotrons, clients, and images
 
 function Base(options) {
     options = options || {};
@@ -13,18 +13,13 @@ function Base(options) {
 
 Base.prototype = {
 
-    // Subclasses should override fieldsToSerialize for custom JSON behavior
+    // Serialize
     toJSON: function toJSON() {
-	var ret = { createTime : this.createTime,
-		    accessTime : this.createTime };
-	var fields = this.fieldsToSerialize;
-	for (var f = 0; f < fields.length; f++) {
-	    var field = fields[f];
-	    ret[field] = this[field];
-	}
-	return ret;
+	return  { createTime : this.createTime,
+		  accessTime : this.createTime };
     },
 
+    // Update access time
     touch: function touch() {
 	this.accessTime = Date.now();
     }

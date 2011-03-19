@@ -6,7 +6,6 @@ html(lang="en")
     //- TODO/PHONEGAP: Use local jquery and jquery mobile
     //-   script(type="text/javascript", src="javascript/phonegap.js")
     //-   script(type="text/javascript", src="javascript/jquery-1.4.4.min.js")
-    //-   script(type="text/javascript", src="javascript/jquery.mobile-1.0a3.min.js")
     //-   link(rel="stylesheet", href="css/jquery.mobile-1.0a2.css", type="text/css")
 
     link(rel="stylesheet", href="http://code.jquery.com/mobile/1.0a3/jquery.mobile-1.0a3.min.css", type="text/css")
@@ -18,6 +17,7 @@ html(lang="en")
     script(type="text/javascript", src="javascript/json2.min.js")
     script(type="text/javascript", src="javascript/jjclient.js")
     script(type="text/javascript", src="javascript/jjcontroller.js")
+    //-script(type="text/javascript", src="javascript/jquery.mobile-1.0a3.js")
     script(type="text/javascript", src="http://code.jquery.com/mobile/1.0a3/jquery.mobile-1.0a3.min.js")
     script(type="text/javascript", src="socket.io/socket.io.js")
     script(type='text/javascript')
@@ -35,13 +35,19 @@ html(lang="en")
     //- Home
     div(data-role="page", id="home")
 
-      div(data-role="header", data-position="fixed", data-backbtn="false")
+      div.jsOnlyPage(data-role="header", data-position="fixed", data-backbtn="false")
         a.jjNavHome(href="#home", data-icon="home") Home
         h1 Junkyard Jumbotron
         a.jjNavHelp(href="#help", data-icon="info") Help
 
       div(data-role="content")
-        img#jjExampleImage(src="images/example.jpg")
+        noscript
+          p.jsNone
+            | The Junkyard Jumbotron requires javascript.
+            br
+            | Please enable javascript in your browser preferences.
+        p
+          img#jjExampleImage(src="images/example.jpg")
         p
           | The
           b Junkyard Jumbotron 
@@ -52,10 +58,10 @@ html(lang="en")
           | that runs a web browser. It also highlights a new way of
           | connecting a large number of heterogenous devices to each
           | other in the field, on an ad-hoc basis.
-        p(style="text-align:center")
-          a(href="#create",class="link-button") Create One Now!
+        p.jsOnly
+          a.jjButton(href="#create") Create One Now!
           | (The software is currently in BETA.)
-        p
+        p.jsOnly
           iframe#jjExampleVideo(src="http://player.vimeo.com/video/20962561?title=0&amp;byline=0&amp;portrait=0", width="400", height="225", frameborder="0")
         p
           | The Junkyard Jumbotron is designed by Rick Borovoy,
@@ -74,7 +80,7 @@ html(lang="en")
           iframe(src="http://www.facebook.com/plugins/like.php?href=http%3A%2F%2Fjumbotron.media.mit.edu&amp;layout=standard&amp;show_faces=true&amp;width=450&amp;action=like&amp;font&amp;colorscheme=light&amp;height=80", scrolling="no", frameborder="0", style="border:none; overflow:hidden; width:450px; height:80px;", allowTransparency="true")
 
     //- Help
-    div(data-role="page", id="help")
+    div.jsOnlyPage(data-role="page", id="help")
 
       div(data-role="header", data-position="fixed", data-backbtn="false")
         a.jjNavHome(href="#home", data-icon="home") Home
@@ -85,20 +91,20 @@ html(lang="en")
         p Sorry, no help yet. Stay tuned!
 
     //- Create
-    div(data-role="page", id="create")
+    div.jsOnlyPage(data-role="page", id="create")
 
       div(data-role="header", data-position="fixed", data-backbtn="false")
         a.jjNavHome(href="#home", data-icon="home") Home
         h1.jjTitle Junkyard Jumbotron
         a.jjNavHelp(href="#help", data-icon="info") Help
-        div(data-role="navbar")
+        div.jjNavBar(data-role="navbar")
           ul
             li
-              a.jjNavCreate.ui-btn-active(href="#create") 1. Create
+              a.jjNavCreate.ui-btn-active(href="#") 1. Create
             li
-              a.jjNavCalibrate(href="#calibrate", rel="external") 2. Calibrate
+              a.jjNavCalibrate(href="#") 2. Calibrate
             li
-              a.jjNavControl(href="#control") 3. Control
+              a.jjNavControl(href="#") 3. Control
 
       div(data-role="content")
         div
@@ -112,13 +118,13 @@ html(lang="en")
 
 
     //- Calibrate
-    div(data-role="page", id="calibrate")
+    div.jsOnlyPage(data-role="page", id="calibrate")
 
       div(data-role="header", data-position="fixed", data-backbtn="false")
         a.jjNavHome(href="#home", data-icon="home") Home
         h1.jjTitle Junkyard Jumbotron
         a.jjNavHelp(href="#help", data-icon="info") Help
-        div(data-role="navbar")
+        div.jjNavBar(data-role="navbar")
           ul
             li
               a.jjNavCreate(href="#") 1. Create
@@ -151,13 +157,13 @@ html(lang="en")
           p Tip: Make sure each marker can be seen completely and avoid glare.
 
     //- Control
-    div(data-role="page", id="control")
+    div.jsOnlyPage(data-role="page", id="control")
 
       div(data-role="header", data-position="fixed", data-backbtn="false")
         a.jjNavHome(href="#home", data-icon="home") Home
         h1.jjTitle Junkyard Jumbotron
         a.jjNavHelp(href="#help", data-icon="info") Help
-        div(data-role="navbar")
+        div.jjNavBar(data-role="navbar")
           ul
             li
               a.jjNavCreate(href="#") 1. Create
@@ -204,7 +210,7 @@ html(lang="en")
               a#jjShowIdOff(data-role="button", href="#") Ids Off
 
     //- Join
-    div(data-role="page", id="join")
+    div.jsOnlyPage(data-role="page", id="join")
 
       div(data-role="header", data-position="fixed", data-backbtn="false")
         a.jjNavHome(href="#home", data-icon="home") Home

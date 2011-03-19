@@ -5,28 +5,28 @@ function getValue(field) {
     return $('#' + field).val();
 }
 
+
 // ======================================================================
 // Localization
 // TODO: optionally include each language
 
 localizeTable = {
+    'unknown error'	: "Can't {0}\n({1})",
+    'localize error'	: "Can't localize {0}",
+
     'need name'	: "Please enter a name for the Jumbotron",
     'bad name'	: "Jumbotron names must begin with a letter or number"
 	+ " and may only contain letters, numbers, dashes, and underscores",
     'duplicate'	: "A Jumbotron named {0} already exists, would you like to control it?",
 
     'need file' : "Please browse for an image file", 
-    'calibrated': "Jumbotron calibrated!",
     'bad image'	: "Can't understand that image, please try another",
 
     'delete'	: "Delete the current image?",
-    'delete all': "Delete ALL images?",
-
-    'unknown error'	: "Can't {0}\n({1})",
-    'localize error'	: "Can't localize {0}"
+    'delete all': "Delete ALL images?"
 };
 
-function l(status) {
+function x(status) {
     var msg = this.localizeTable[status];
     if (! msg)
 	msg = this.localizeTable['localize error'];
@@ -60,7 +60,7 @@ $.extend(Controller.prototype, {
 
     checkStatus: function checkStatus(response) {
 	if (response.status != 'ok')
-	    alert(l('unknown error', 'complete', response.status));
+	    alert(x('unknown error', 'complete', response.status));
     },
 
     convertFormData: function convertFormData(data) {
@@ -91,29 +91,33 @@ $.extend(Controller.prototype, {
 	$.post(cmd, args, success || this.checkStatus, dataType || 'json');
     },
 
+    changePage: function changePage(which) {
+	$.mobile.changePage("#" + which);
+    },
+
     setMode: function setMode(mode) {
-	// Unclear why this needs to be here
-	$('[data-role=navbar]').undelegate('a', 'click');
+	// Can't disable jquery pages, so turn off jquery-mobilen navigation 
+	$('.jjNavBar').undelegate('a', 'click');
 
 	switch(mode) {
 	  case 'create':
-	    $.mobile.changePage("#create");
+	    this.changePage('create');
 	    break;
 	  case 'calibrate':
 	    if (! this.jumbotron)
-		return setMode('create');
+		return;// this.setMode('create');
 	    this.postMsg('setMode', { mode: 'calibrate' });
-	    $.mobile.changePage("#calibrate");
+	    this.changePage('calibrate');
 	    break;
 	  case 'control':
 	    if (! this.jumbotron)
-		return setMode('create');
+		return;// this.setMode('create');
 	    this.postMsg('setMode', { mode: 'image' });
-	    $.mobile.changePage("#control");
+	    this.changePage('control');
 	    break;
 	}
     },
-
+    
     // ----------------------------------------------------------------------
     // Buttons, forms and other controls
 
@@ -125,9 +129,9 @@ $.extend(Controller.prototype, {
 		var ok = false;
 		var name = getValue("jjJoinName");
 		if (! name)
-		    alert(l('need name'));
+		    alert(x('need name'));
 		else if (! this.isValidJumbotronName(name))
-		    alert(l('bad name'));
+		    alert(x('bad name'));
 		else
 		    window.location = name;
 		return false;
@@ -141,9 +145,9 @@ $.extend(Controller.prototype, {
 		var ok = false;
 		var name = getValue("jjCreateName");
 		if (! name)
-		    alert(l('need name'));
+		    alert(x('need name'));
 		else if (! this.isValidJumbotronName(name))
-		    alert(l('bad name'));
+		    alert(x('bad name'));
 		else
 		    ok = true;
 		return ok;
@@ -157,14 +161,14 @@ $.extend(Controller.prototype, {
 		    break;
 		  case 'duplicate':
 		    name = getValue("jjCreateName");
-		    if (confirm(l('duplicate', name))) {
+		    if (confirm(x('duplicate', name))) {
 			this.postMsg('control', { name: name  }, bind(this, function(response) {
 			    this.controlJumbotron(response.args);
 			}));
 		    }
 		    break;
 		  default:
-		    alert(l('unknown error', 'create', status));
+		    alert(x('unknown error', 'create', status));
 		    break;
 		}
 	    }
@@ -184,16 +188,10 @@ $.extend(Controller.prototype, {
 	    },
 	    success: function success(response) {
 		var status = response.status;
-		switch (status) {
-		  case 'ok':
-		    status = l('calibrated');
+		var feedback = response.args;
+		alert(feedback);
+		if (status == 'ok')
 		    this.setMode('control');
-		    break;
-		  default:
-		    status = l('unknown error', 'calibrate', status);
-		    break;
-		}
-		alert(status);
 	    }
 	},
 
@@ -203,20 +201,15 @@ $.extend(Controller.prototype, {
 		data = this.convertFormData(data);
 		var file = data.file;
 		if (! file) {
-		    alert(l('need file'));
+		    alert(x('need file'));
 		    ok = false;
 		}
 		return ok;
 	    },
 	    success: function success(response) {
 		var status = response.status;
-		switch (status) {
-		  case 'ok':
-		    break;
-		  default:
-		    alert(l('unknown error', 'upload', status));
-		    break;
-		}
+		var feedback = response.args;
+		alert(feedback);
 	    }
 	},
 
@@ -252,14 +245,14 @@ $.extend(Controller.prototype, {
 	    action: 'remove',
 	    args: { which: 'current' },
 	    beforeSubmit: function() {
-		return confirm(l('delete'));
+		return confirm(x('delete'));
 	    }
 	},
 	jjDeleteAll: {
 	    action: 'remove',
 	    args: { which: 'all' },
 	    beforeSubmit: function() {
-		return confirm(l('delete all'));
+		return confirm(x('delete all'));
 	    }
 	}
 
@@ -341,20 +334,17 @@ $.extend(Controller.prototype, {
 	if (name)
 	    $('#jjCreateName').val(name);
 
-	$('.jjNavCreate').click(bind(this, function() {
+	$('.jjNavCreate').click(bind(this, function(event) {
 	    this.setMode('create');
 	}));
-	$('.jjNavCalibrate').click(bind(this, function() {
+	$('.jjNavCalibrate').click(bind(this, function(event) {
 	    this.setMode('calibrate');
 	}));
-	$('.jjNavControl').click(bind(this, function() {
+	$('.jjNavControl').click(bind(this, function(event) {
 	    this.setMode('control');
 	}));
 
-	$('.link-button').button();
-
-	// Unclear why this doesn't work here
-	//$('[data-role=navbar]').undelegate('a', 'click');
+	$('.jjButton').button();
     },
 
     // ----------------------------------------------------------------------
@@ -371,5 +361,5 @@ $(document).bind("mobileinit", function() {
 
 $(function() {
     var controller = new Controller();
-    //setTimeout(function() {$.mobile.changePage("#control")}, 1000);
+    $('.jsOnly').css({ display: 'block' })
 });

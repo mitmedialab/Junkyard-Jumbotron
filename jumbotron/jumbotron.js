@@ -60,10 +60,19 @@ function Jumbotron(options) {
 // Subclass and Members
 Jumbotron.prototype = utils.inherits(Base, { 
 
-    // Everything but the curImage and playTimer
-    fieldsToSerialize: ['name', 'pwd', 'email',
-			'mode', 'aspectRatio', 'imageReceiveServer',
-			'images', 'displays', 'controllers'],
+    // Serialize
+    toJSON: function toJSON() {
+	var ret = Base.prototype.toJSON.call(this);
+	ret.name = this.name;
+	ret.pwd = this.pwd;
+	ret.email = this.email;
+	ret.mode = this.mode;
+	ret.aspectRation = this.aspectRation;
+	ret.images = this.images;
+	ret.displays = this.displays;
+	ret.controllers = this.controllers;
+	return ret;
+    },
 
     isActive: function isActive() {
 	return utils.any(this.displays, function(display) {
@@ -170,15 +179,6 @@ Jumbotron.prototype = utils.inherits(Base, {
 	return this.images.length - 1;
     },
 
-    uploadImageFile: function saveImageFile(file, name, cb) {
-	name = name || utils.uniqueFileName();
-	var ext = path.extname(file);
-	var dst = path.join(this.getDirectory(), name + ext);
-	fs.rename(file, dst, function(err) {
-	    cb(err, dst);
-	});
-    },
-
     _deleteImage: function _deleteImage(image) {
 	// Delete path
 	if (utils.isStartsWith(image.source, this.getDirectory()))
@@ -216,6 +216,16 @@ Jumbotron.prototype = utils.inherits(Base, {
 	var vp = new Viewport({ width: image.width, height: image.height });
 	vp = vp.fitted(this.aspectRatio, fitMode);
 	image.viewport = vp;
+	return vp;
+    },
+
+    uploadImageFile: function saveImageFile(file, name, cb) {
+	name = name || utils.uniqueFileName();
+	var ext = path.extname(file);
+	var dst = path.join(this.getDirectory(), name + ext);
+	fs.rename(file, dst, function(err) {
+	    cb(err, dst);
+	});
     },
 
     // ----------------------------------------------------------------------
@@ -257,7 +267,8 @@ Jumbotron.prototype = utils.inherits(Base, {
 	    this.setCurrentImage(image);
 	}
 	else if (! this.curImage ||
-		 this.curImage.source != params.calibratedImageOptions.source) {
+		 this.curImage.source !=
+		 params.calibratedImageOptions.source) {
 	    this.setCurrentImage(Image.getCalibratedImage());
 	}
     },
@@ -285,6 +296,47 @@ Jumbotron.prototype = utils.inherits(Base, {
 
     getDisplayFrozen:  function getDisplayFrozen(display) {
 	return this.mode == "calibrate" || display.viewport.isEmpty();
+    },
+
+    // ----------------------------------------------------------------------
+    // Convenient loopers
+
+    _forEachClient: function _forEachClient(clients, iterator, context, activeOnly) {
+	for (var c in clients) {
+	    var client = clients[c];
+	    if (! activeOnly || client.isActive())
+		iterator.call(context, client)
+	}
+    },
+
+    forEachDisplay: function forEachDisplay(iterator, context, activeOnly) {
+	this._forEachClient(this.displays, iterator, context, activeOnly);
+    },
+
+    forEachController: function forEachController(iterator, context, activeOnly) {
+	this._forEachClient(this.controllers, iterator, context, activeOnly);
+    },
+
+    // ----------------------------------------------------------------------
+    // Broadcast messages to clients
+
+    broadcastLoad: function broadcastLoad() {
+	this.forEachDisplay(function(display) {
+	    display.sendLoad()
+	}, null, true);
+    },
+
+    broadcastViewport: function broadcastViewport(ignoredDisplay) {
+	this.forEachDisplay(function(display) {
+	    if (display != ignoredDisplay)
+		display.sendViewport()
+	}, null, true);
+    },
+
+    broadcastShow: function broadcastShow(options) {
+	this.forEachDisplay(function(display) {
+	    display.sendShow(options);
+	}, null, true);
     }
 
 });

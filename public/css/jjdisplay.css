@@ -3,6 +3,14 @@ body {
     margin: 0px;
     font-size: 100%;
 }
+
+#noscript {
+    color: white;
+    font-family: sans-serif;
+    z-index: 1;
+    font-size: x-large;
+}
+
 #finalcrop {
     overflow: hidden;
 }
