@@ -1,11 +1,17 @@
 Junkyard Jumbotron
 ==================
 
-The Junkyard Jumbotron lets you take a bunch of random displays and instantly stitch them together into a large, virtual display, simply by taking a photograph of them. It works with laptops, smartphones, tablets --- anything that runs a web browser. It also highlights a new way of connecting a large number of heterogenous devices to each other in the field, on an ad-hoc basis.
+The Junkyard Jumbotron lets you take a bunch of random displays and
+instantly stitch them together into a large, virtual display, simply
+by taking a photograph of them. It works with laptops, smartphones,
+tablets --- anything that runs a web browser. It also highlights a new
+way of connecting a large number of heterogenous devices to each other
+in the field, on an ad-hoc basis.
 
-Here are instructions for installing the Junkyard Jumbotron.  Most of these
-packages are available via apt-get on Linux, or in MacPorts of OS X (deployments
-are intended to be on Ubuntu boxes, and currently most development happens on OS X).
+Here are instructions for installing the Junkyard Jumbotron.  Most of
+these packages are available via apt-get on Linux, or in MacPorts or
+Homebrew of OS X (deployments are intended to be on Ubuntu or Debian
+boxes, and currently most development happens on OS X).
 
 1. Git
 ------
@@ -34,8 +40,7 @@ To support the image processing you also need the
 
 You also need to compile the ARToolkit, which is included in the repo:
 
-    > cd python
-    > make
+    > make python-extension
 
 4. GraphicsMagick
 -----------------
@@ -49,7 +54,7 @@ To support the image manipulation you also need the
 The Junkyard Jumbotron server relies on a number of node.js packages.  You
 can install them all by running this command:
 
-    > sudo install_node_packages.sh
+    > make node-packages
 
 6. Run It!
 ----------
