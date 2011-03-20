@@ -71,6 +71,9 @@ Jumbotron.prototype = utils.inherits(Base, {
 	ret.images = this.images;
 	ret.displays = this.displays;
 	ret.controllers = this.controllers;
+
+	// TODO: deal with this differently
+	ret.imageReceiveServer = this.imageReceiveServer
 	return ret;
     },
 
