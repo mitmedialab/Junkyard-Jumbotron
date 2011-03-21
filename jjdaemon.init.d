@@ -38,6 +38,9 @@
 # ______________________________________________________________________________ 
 #
 
+# Increase number of allowed open files (from 1024)
+ulimit -n 90000
+
 # For node.js:express, very important for caching mechanisms
 NODE_ENV=production
 export NODE_ENV

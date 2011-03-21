@@ -11,6 +11,7 @@ var assert = require('assert');
 var path = require('path');
 var url = require('url');
 var fs = require('fs');
+var exec = require('child_process').exec;
 
 // 3rd party add-on libs
 var io = require('socket.io');
@@ -144,6 +145,12 @@ Server.prototype = {
     initServer: function initServer() {
 	log('\n----------------------------------------------------------------------');
 	log('Starting Junkyard Jumbotron Server');
+	exec("ulimit -n", function(err, stdout, stderr) {
+		if (err)
+		    error("Can't run ulimit:", stderr);
+		else
+		    log("Number of allowed opened files", stdout);
+	    });
 	if (params.localParams) {
 	    log("WARNING: Using local parameters from 'paramsLocal.js'");
 	    for (var param in params.localParams)
