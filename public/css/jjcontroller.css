@@ -15,6 +15,30 @@ pages (.jsOnlyPage), which jquery mobile handles, from other elements
     display: none;
 }
 
+.jjMainTop {
+    float: left;
+    width: 80%;
+    padding: 15px 0px;
+}
+
+.jjSidebar {
+    font-size: smaller;
+    float: right;
+    width: 20%;
+}
+
+.jjMainBottom {
+    clear: both;
+    padding: 0 15px;
+}
+
+.jjCaption {
+    font-size: smaller;
+    text-align: center;
+    margin: 0;
+    padding: 0;
+}
+
 .jjStepNumber {
     font-size: xx-large;
     font-weight: bolder;
@@ -86,4 +110,6 @@ body {
     position:relative;
 }
 
-
+.ui-content {
+    padding: 0;
+}
