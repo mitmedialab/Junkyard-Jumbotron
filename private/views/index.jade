@@ -112,13 +112,13 @@ html(lang="en")
 
       div(data-role="content")
         div
-          p
-            div.jjStepNumber 1
-            div.jjStepHeader What is the name of your jumbotron?
-          form#jjCreateForm(action="create", method="POST", data-ajax="false")
-            input#jjCreateName(name="name", type="text")
-            input#jjCreateSubmit(name="create", type="submit", value="Create") Next
-          p Tip: you can also connect to an existing jumbotron
+          div.jjStepNumber 1
+          div.jjStepHeader What is the name of your jumbotron?
+          div.jjStepBody
+            form#jjCreateForm(action="create", method="POST", data-ajax="false")
+              input#jjCreateName(name="name", type="text")
+              input#jjCreateSubmit(name="create", type="submit", value="Create") Next
+            p Tip: you can also connect to an existing jumbotron
 
 
     //- Calibrate
@@ -140,25 +140,24 @@ html(lang="en")
       div(data-role="content")
 
         div
-          p
-            div.jjStepNumber 2
-            div.jjStepHeader Open
-              span.jjDisplayUrl jj.brownbag.me/none
-              span on each of the devices.
-              br
-              span Take a calibration picture and upload it below or email it to
-              span.jjEmailUrl none@jj.brownbag.me
-
-          form#jjCalibrateForm(action="upload", enctype="multipart/form-data", method="POST", data-ajax="false")
-            input#jjCalibrateType(name="type", type="hidden", value="calibrate")
-            input#jjCalibrateFile(name="file", type="file")
-            p 
-              | If emailing the image, please wait until the
-              | "Jumbotron" image comes up before clicking Next or
-              | Control above. (We're working on a fix!) 
-              | If the calibration doesn't work, check your email for feedback.
-            input#jjCalibrateSubmit(name="calibrate", type="submit", value="Next")
-          p Tip: Make sure each marker can be seen completely and avoid glare.
+          div.jjStepNumber 2
+          div.jjStepHeader Open
+            span.jjDisplayUrl jj.brownbag.me/none
+            span on each of the devices.
+            br
+            span Take a calibration picture and upload it below or email it to 
+            span.jjEmailUrl none@jj.brownbag.me
+          div.jjStepBody
+            form#jjCalibrateForm(action="upload", enctype="multipart/form-data", method="POST", data-ajax="false")
+              input#jjCalibrateType(name="type", type="hidden", value="calibrate")
+              input#jjCalibrateFile(name="file", type="file")
+              p 
+                | If emailing the image, please wait until the
+                | "Jumbotron" image comes up before clicking Next or
+                | Control above. (We're working on a fix!) 
+                | If the calibration doesn't work, check your email for feedback.
+              input#jjCalibrateSubmit(name="calibrate", type="submit", value="Next")
+            p Tip: Make sure each marker can be seen completely and avoid glare.
 
     //- Control
     div.jsOnlyPage(data-role="page", id="control")
@@ -179,39 +178,39 @@ html(lang="en")
       div(data-role="content")
 
         div
-          p
-            div.jjStepNumber 3
-            div.jjStepHeader Upload pictures below or email them to 
-              span.jjEmailUrl none@jj.brownbag.me
+          div.jjStepNumber 3
+          div.jjStepHeader Upload pictures below or email them to 
+            span.jjEmailUrl none@jj.brownbag.me
 
-          form#jjUploadForm(action="upload", enctype="multipart/form-data", method="POST", data-ajax="false")
-            input#jjCalibrateType(name="type", type="hidden", value="image")
-            input#jjUploadFile(name="file", type="file")
-            input#jjUploadSubmit(name="upload", type="submit", value="Upload")
+          div.jjStepBody
+            form#jjUploadForm(action="upload", enctype="multipart/form-data", method="POST", data-ajax="false")
+              input#jjUploadType(name="type", type="hidden", value="image")
+              input#jjUploadFile(name="file", type="file")
+              input#jjUploadSubmit(name="upload", type="submit", value="Upload")
 
-          div#jjControls(data-role="fieldcontain")
-            //- Slideshow
-            div#jjSlideshowButtons(data-role="controlgroup", data-type="horizontal")
-              a#jjSlideshowFirst(data-role="button", href="#") 
-              a#jjSlideshowPrev(data-role="button", href="#")  
-              a#jjSlideshowPlay(data-role="button", href="#")  
-              a#jjSlideshowStop(data-role="button", href="#")  
-              a#jjSlideshowNext(data-role="button", href="#")  
-              a#jjSlideshowLast(data-role="button", href="#")  
-              input#jjSlideshowInterval(name="interval", type="hidden", value="5")
-            //- Fit
-            div#jjFitButtons(data-role="controlgroup", data-type="horizontal")  
-              a#jjFitMaximize(data-role="button", href="#") Max
-              a#jjFitMinimize(data-role="button", href="#") Min
-              a#jjFitStretch(data-role="button", href="#") Stretch
-            //- Delete
-            div#jjDeleteButtons(data-role="controlgroup", data-type="horizontal")  
-              a#jjDeleteOne(data-role="button", href="#") Delete
-              a#jjDeleteAll(data-role="button", href="#") Delete All
-            //- Debug
-            div#jjShowButtons(data-role="controlgroup", data-type="horizontal")  
-              a#jjShowIdOn(data-role="button", href="#") Ids On
-              a#jjShowIdOff(data-role="button", href="#") Ids Off
+            div#jjControls(data-role="fieldcontain")
+              //- Slideshow
+              div#jjSlideshowButtons(data-role="controlgroup", data-type="horizontal")
+                a#jjSlideshowFirst(data-role="button", href="#") 
+                a#jjSlideshowPrev(data-role="button", href="#")  
+                a#jjSlideshowPlay(data-role="button", href="#")  
+                a#jjSlideshowStop(data-role="button", href="#")  
+                a#jjSlideshowNext(data-role="button", href="#")  
+                a#jjSlideshowLast(data-role="button", href="#")  
+                input#jjSlideshowInterval(name="interval", type="hidden", value="5")
+              //- Fit
+              div#jjFitButtons(data-role="controlgroup", data-type="horizontal")  
+                a#jjFitMaximize(data-role="button", href="#") Max
+                a#jjFitMinimize(data-role="button", href="#") Min
+                a#jjFitStretch(data-role="button", href="#") Stretch
+              //- Delete
+              div#jjDeleteButtons(data-role="controlgroup", data-type="horizontal")  
+                a#jjDeleteOne(data-role="button", href="#") Delete
+                a#jjDeleteAll(data-role="button", href="#") Delete All
+              //- Debug
+              div#jjShowButtons(data-role="controlgroup", data-type="horizontal")  
+                a#jjShowIdOn(data-role="button", href="#") Ids On
+                a#jjShowIdOff(data-role="button", href="#") Ids Off
 
     //- Join
     div.jsOnlyPage(data-role="page", id="join")

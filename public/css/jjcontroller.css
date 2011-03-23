@@ -23,19 +23,20 @@ pages (.jsOnlyPage), which jquery mobile handles, from other elements
 
 .jjMainTop {
     float: left;
-    width: 78%;
     padding: 15px 0px;
+    width: 75%;
 }
 
 .jjSidebar {
     font-size: smaller;
     float: right;
     width: 22%;
+    padding: 0 0 20px 4px;
+    background:#F0F0F0;
 }
 
 .jjMainBottom {
     clear: both;
-    padding: 0 15px;
 }
 
 .jjCaption {
@@ -56,9 +57,13 @@ pages (.jsOnlyPage), which jquery mobile handles, from other elements
 }
 
 .jjStepHeader {
-    width: 80%;
+    width: 75%;
     margin: 15px 10px;
     float:left;
+}
+
+.jjStepBody {
+    clear: both;
 }
 
 #jjExampleImage {
@@ -67,6 +72,7 @@ pages (.jsOnlyPage), which jquery mobile handles, from other elements
     margin-left: auto;
     margin-right: auto;
 }
+
 #jjExampleVideo {
     display:block;
     margin-left: auto;
@@ -117,5 +123,6 @@ body {
 }
 
 .ui-content {
-    padding: 0;
+    background: #F0F0F0;
+    padding: 0 15px;
 }
