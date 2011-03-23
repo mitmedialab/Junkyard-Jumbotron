@@ -344,7 +344,9 @@ $.extend(Controller.prototype, {
 	    this.setMode('control');
 	}));
 
-	$('.jjButton').button();
+	$('.jjButton').button()
+	    .siblings('.ui-btn-inner')
+	    .css({ padding: "4px 0" });;
     },
 
     // ----------------------------------------------------------------------

@@ -1,3 +1,9 @@
+a {
+  text-decoration:  none;
+} 
+a:hover   {
+  text-decoration:  underline;
+} 
 
 /* Paragraph style for no-javascript warning */
 .jsNone {
@@ -17,14 +23,14 @@ pages (.jsOnlyPage), which jquery mobile handles, from other elements
 
 .jjMainTop {
     float: left;
-    width: 80%;
+    width: 78%;
     padding: 15px 0px;
 }
 
 .jjSidebar {
     font-size: smaller;
     float: right;
-    width: 20%;
+    width: 22%;
 }
 
 .jjMainBottom {
