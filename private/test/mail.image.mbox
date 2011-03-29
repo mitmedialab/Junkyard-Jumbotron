@@ -1,12 +1,12 @@
 From bleppie@gmail.com  Fri Jan 28 21:37:59 2011
 Return-Path: <bleppie@gmail.com>
-X-Original-To: flob1@jj.brownbag.me
+X-Original-To: test@jj.brownbag.me
 Delivered-To: jj@localhost
 Received: from mail-ww0-f42.google.com (mail-ww0-f42.google.com [74.125.82.42])
 	by brownbag.me (Postfix) with ESMTPS id 296AF36004
-	for <flob1@jj.brownbag.me>; Fri, 28 Jan 2011 21:37:56 +0000 (UTC)
+	for <test@jj.brownbag.me>; Fri, 28 Jan 2011 21:37:56 +0000 (UTC)
 Received: by wwi17 with SMTP id 17so1469589wwi.5
-        for <flob1@jj.brownbag.me>; Fri, 28 Jan 2011 13:37:52 -0800 (PST)
+        for <test@jj.brownbag.me>; Fri, 28 Jan 2011 13:37:52 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=gamma;
         h=domainkey-signature:mime-version:sender:from:date
@@ -32,7 +32,7 @@ Date: Fri, 28 Jan 2011 16:37:00 -0500
 X-Google-Sender-Auth: Bpki95Tb7NppfQbx1YMeWtZrKZA
 Message-ID: <AANLkTinHgAL5kZrSpXy3KaoRNFA_ersCOZXb21gzc2Pr@mail.gmail.com>
 Subject: 
-To: flob1@jj.brownbag.me
+To: test@jj.brownbag.me
 Content-Type: multipart/mixed; boundary=0016367fb6c7df8aa4049aeee077
 
 --0016367fb6c7df8aa4049aeee077
