@@ -17,7 +17,6 @@ var exec = require('child_process').exec;
 var io = require('socket.io');
 var formidable = require('formidable');
 var express = require('express');
-var mailparser = require('mailparser');
 var log4js = require('log4js')(); //note the need to call the function
 
 // Use our own until connect.staticProvider makes clearCache accessible
@@ -35,7 +34,7 @@ var Display = jumbotron.Display;
 var Controller = jumbotron.Controller;
 var Image = jumbotron.Image;
 var Jumbotron = jumbotron.Jumbotron;
-var Store = jumbotron.Store;
+var Manager = jumbotron.Manager;
 var x = jumbotron.messages.translate;
 
 var log = utils.log;
@@ -50,19 +49,15 @@ http.ServerResponse.prototype.sendStatus = function(status, args) {
     if (status != 'ok') {
 	// If 'status' is an exception, print the stack trace
 	if (status.stack) {
-	    error('#>', status.message);
-	    error('#>', status.stack);
-	    status = status.message;
+            error('#>', status.stack);
+            status = status.message;
 	}
-	// If 'status' looks like an exception, print a stack trace 
-	else if (status.split(/\s+/).length > 3) {
-	    error('#>', status);
-	    error('#>', utils.stackTrace());
-	}
+
 	// Otherwise just print it
-	else {
+	else if (! utils.isUndefined(args))
+	    error('#>', status, args);
+	else
 	    error('#>', status);
-	}
     }
     else if (args)
 	debug('#>', status, args);
@@ -82,7 +77,7 @@ Server.prototype = {
     init: function init() {
 	// Initialize
 	this.initLogging();
-	this._store = new Store();
+	this._manager = new Manager();
 	this.initServer();
 	this.initSocket();
 
@@ -202,7 +197,7 @@ Server.prototype = {
 	    res.render('index');
 	});
 	server.get('/:jumbotron', this.handleJoin.bind(this));
-	server.post('/:cmd' , this.handleHttpMessage.bind(this));
+	server.post('/:cmd' , this.handlePostMessage.bind(this));
     },
 
     // ----------------------------------------------------------------------
@@ -223,7 +218,7 @@ Server.prototype = {
 	var name = req.params.jumbotron;
 	var jjid = this.ensureJJID(req, res);
 
-	this._store.getJumbotron(name, function(err, jumbotron) {
+	this._manager.getJumbotron(name, function(err, jumbotron) {
 	    if (! err && ! jumbotron)
 		err = "no jumbotron";
 	    if (err) {
@@ -246,7 +241,7 @@ Server.prototype = {
 	if (! cont) {
 	    cont = new Controller({ clientId: req.cookies.jjid });
 	    jumbotron.addController(cont);
-	    this.commitJumbotron(jumbotron);
+	    this.commitJumbotron(jumbotron, true);
 	}
 
 	// Connect client to controller
@@ -271,7 +266,7 @@ Server.prototype = {
 	    return cb(null, null);
 
 	// Get connected controller
-	this._store.getController(jName, clientId, cb);
+	this._manager.getController(jName, clientId, cb);
     },
 
     disconnectController: function disconnectController(req, res) {
@@ -281,7 +276,7 @@ Server.prototype = {
 
     // ----------------------------------------------------------------------
 
-    handleHttpMessage: function handleHttpMessage(req, res) {
+    handlePostMessage: function handlePostMessage(req, res) {
 
 	// Make sure every client has a jjid cookie
 	this.ensureJJID(req, res);
@@ -292,30 +287,28 @@ Server.prototype = {
 	    debug('#<', cmd, req.body);
 	else
 	    debug('#<', cmd);
-	var handler = this.htmlMsgHandlers[cmd];
+	var handler = this.postMsgHandlers[cmd];
 	if (! handler)
-	    return res.sendStatus('bad command', cmd);
+	    return res.sendStatus('bad command', x('bad command', cmd));
 
 	// Get connected jumbotron, if any, and call handler
 	this.getConnectedController(req, res, function(err, controller) {
 	    // Ignore errors and missing controller
 	    var status = handler.call(this, req, res, controller);
-	    if (! utils.isUndefined(status))
+            if (! utils.isUndefined(status))
 		res.sendStatus(status);
 	}.bind(this));
     },
 
-    htmlMsgHandlers: {
+    postMsgHandlers: {
 
 	create: function create(req, res, controller) {
 	    var options = { name : req.body.name,
 			    pwd  : req.body.pwd,
 			    email: req.body.email };
 	    this.createJumbotron(options, function(err, jumbotron) {
-		var status = 'ok';
-		if (err)
-		    status = err;
-		else
+		var status = err || 'ok';
+		if (! err)
 		    this.createController(req, res, jumbotron);
 		res.sendStatus(status, jumbotron);
 	    }.bind(this));
@@ -324,7 +317,7 @@ Server.prototype = {
 	control: function control(req, res, controller) {
 	    // TODO: remove old controller if any?
 	    var name = req.body.name;
-	    this._store.getJumbotron(name, function(err, jumbotron) {
+	    this._manager.getJumbotron(name, function(err, jumbotron) {
 		var status = 'ok';
 		if (err)
 		    status = err;
@@ -338,10 +331,10 @@ Server.prototype = {
 	    }.bind(this));
 	},
 
-	// TODO: combine recalibrate/endCalibrate into 'mode'
 	setMode : function setMode(req, res, controller) {
 	    if (! controller)
 		return 'no jumbotron';
+
 	    var jumbotron = controller.jumbotron;
 
 	    var mode = req.body.mode;
@@ -358,9 +351,14 @@ Server.prototype = {
 	    if (! controller)
 		return 'no jumbotron';
 	    var jumbotron = controller.jumbotron;
+	    var maxSize = params.maxFileSize * 1024 * 1024; // Mb to bytes
 
 	    // Body might contain raw data (from phonegap Camera, for example)
 	    if (req.body && req.body.data) {
+		// Limit size. (1.4 for base64 inflation)
+		if (req.header("content-length") > maxSize * 1.4)
+		    return res.sendStatus('too big', x('too big'));
+
 		// Save to a temporary file
 		var type = req.body.type;
 		var file = utils.tmpFileName() + '.jpg';
@@ -374,6 +372,10 @@ Server.prototype = {
 
 	    // Otherwise it's a multipart form
 	    else {
+		// Limit size.
+		if (req.header("content-length") > maxSize)
+		    return res.sendStatus('too big', x('too big'));
+
 		// Let formidable parse and save the data
 		var form = new formidable.IncomingForm();
 		form.keepExtensions = true;
@@ -392,75 +394,22 @@ Server.prototype = {
 
 	uploadMail: function uploadMail(req, res, controller) {
 
-	    // TODO: limit file size
-	    var msg = {};
-	    var writeStream;
-
-	    msg.reply = function(feedback) {
-		mail.sendMail(msg.sender, feedback);
-	    };
-
-	    // TODO: check for no attachments
-	    var mp = new mailparser.MailParser();
-	    mp.on("headers", function(headers) {
-		//debug('HEADER', headers);
-		msg.sender = headers.addressesFrom[0].address;
-		msg.receiver = headers.addressesTo[0].address;
-	    });
-	    mp.on("body", function(body){
-		//debug('BODY', body);
-	    });
-	    mp.on("astart", function(id, headers){
-		var filename = headers.filename;
-		var ext = filename ? path.extname(filename) : '.jpg';
-		msg.filename = utils.tmpFileName() + ext;
-		writeStream = new fs.WriteStream(msg.filename);
-	    });
-	    mp.on("astream", function(id, buffer){
-		writeStream.write(buffer);
-	    });
-	    mp.on('error', function(err) {
-		error("uploadMail: mailparser:", err);
-	    });
-	    mp.on("aend", function(id){
-		if (writeStream)
-		    writeStream.end();
-		//writeStream.destroy();
-		this.handleMailUpload(msg);
-	    }.bind(this));
-
-	    // Parse the form and send all data to the mail parser
-	    var form = new formidable.IncomingForm();
-	    form.keepExtensions = true;
-	    form.onPart = function(part) {
-		// Let formidable handle all non-file parts
-		if (! part.filename)
-		    form.handlePart(part);
-		// Send file data to mail parser
+	    mail.parseForm(req, function(err, msg) {
+		if (! err && ! msg.filename)
+		    err =  'no attachment';
+		if (err) {
+		    error('MAIL', '<', msg && msg.sender, err);
+		    if (msg && msg.sender)
+			mail.sendMail(msg.sender, x(err));
+		}
 		else {
-		    part.addListener('data', function(buffer) {
-			var str = buffer.toString('ascii');
-			str = str.replace(/^\n/gm, '\r\n');
-			str = str.replace(/([^\r])\n/g, '$1\r\n');
-			//debug('FORM data');
-			mp.feed(str);
-		    });
-		    part.addListener('end', function() {
-			//debug('FORM data end');
-			mp.end();
-		    });
-		    part.addListener('error', function(err) {
-			error('PART', err);
+		    this.handleMailUpload(msg, function (status, message) {
+			mail.sendMail(msg.sender, message);
 		    });
 		}
-	    };
-	    form.on('error', function(err) {
-		error("uploadMail: formidable:", err);
-	    });
-	    form.on('end', function() {
 		res.sendStatus('ok');
-	    });
-	    form.parse(req);
+	    }.bind(this));
+
 	},
 
 	remove: function remove(req, res, controller) {
@@ -479,7 +428,7 @@ Server.prototype = {
 	    else {
 		return 'bad argument';
 	    }
-	    this.commitJumbotron(jumbotron);
+	    this.commitJumbotron(jumbotron, true);
 	    return 'ok';
 	},
 
@@ -559,72 +508,53 @@ Server.prototype = {
     // ----------------------------------------------------------------------
     // Upload handlers
 
-    handleMailUpload: function handleMailUpload(msg) {
 
-	// Extract jumbotron name from email address "Foo Bar <jumbotron@jj.brownbag.me>"
-	var jName = new RegExp('([^<"]+)@').exec(msg.receiver);
-	if (! jName)
-	    return msg.reply(x('bad email'));
-	jName = jName[1];
-
-	// Handle error messages that should be sent to user
-	var err = msg.error;
-	if (err) {
-	    if (error == 'no attachments')
-		return msg.reply(x('no attachments'));
-	    return msg.reply(x('upload error', jName, err));
-	}
-
-	// Handle mailed images
-	utils.debug('MAIL', '<', msg.sender, jName);
+    handleMailUpload: function handleMailUpload(msg, cb) {
+	var sender = msg.sender;
+	var jName = msg.jName;
 	var filename = msg.filename;
-	this._store.getJumbotron(jName, function(err, jumbotron) {
-	    if (err) {
-		// Remove file and send feedback
-		fs.unlink(filename);
-		return msg.reply(x('upload error', jName, err));
-	    }
 
-	    if (! jumbotron) {
-		// Remove file and send feedback
-		fs.unlink(filename);
-		return msg.reply(x('no jumbotron', jName));
-	    }
+	debug('MAIL', '<', sender, jName);
 
-	    var name = jumbotron.mode == "calibrate" ? "_calibrate_" : null;
-	    jumbotron.uploadImageFile(filename, name, function(err, filename) {
-		if (err)
-		    return msg.reply(x('upload error', jName, err.toString()));
-
-		if (jumbotron.mode == "calibrate") {
-		    this.calibrateJumbotron(jumbotron, filename, function(err, feedback) {
-			msg.reply(feedback);
-		    });
-		}
-
-		else {
-		    this.uploadToJumbotron(jumbotron, filename, function(err, feedback) {
-			msg.reply(feedback);
-		    });
-		}
-	    }.bind(this));
+	this._manager.getJumbotron(jName, function(err, jumbotron) {
+	    if (err) 
+		return cb('upload error', x('upload error', err));
+	    if (! jumbotron) 
+		return cb('no jumbotron', x('no jumbotron', msg.jName));
+	    this.handleUpload(jumbotron, jumbotron.mode, filename, cb);
 
 	}.bind(this));
     },
 
     handleUpload: function handleUpload(jumbotron, type, filename, cb) {
-	var name = type == 'calibrate' ? '_calibrate_' : '';
-	jumbotron.uploadImageFile(filename, name, function(err, filename) {
-	    if (err)
-		return cb(err);
-	    if (type == 'calibrate')
-		this.calibrateJumbotron(jumbotron, filename, cb);
-	    else
-		this.uploadToJumbotron(jumbotron, filename, cb);
-	}.bind(this));
+	if (type == 'calibrate') {
+	    jumbotron.calibrate(filename, function(err, numFound) {
+		if (err) 
+		    return cb(err, x(err, jumbotron.name));
+		if (! numFound)
+		    return cb('no displays', x('no displays', jumbotron.name));
+
+		// We don't know the number of legitimate, connected
+		// displays, so messages about 'too-many' or 'too-few'
+		// display are often incorrect. Instead, just tell the
+		// user how many where found.
+		jumbotron.mode = "image";
+		jumbotron.fitImage("maximize");
+		this.commitJumbotron(jumbotron, true);
+		jumbotron.broadcastLoad();
+		cb(null, x('calibrated', jumbotron.name, numFound));
+	    }.bind(this));
+	}
+	else {
+	    jumbotron.addImageFromFile(filename, function(err, image) {
+		if (err)
+		    return cb(err, x(err, jumbotron.name));
+		this.commitJumbotron(jumbotron, true);
+		jumbotron.setCurrentImage(image);
+		cb(null, x('uploaded', jumbotron.name));
+	    }.bind(this));
+	}
     }, 
-
-
 
     // ======================================================================
     // Socket
@@ -752,7 +682,7 @@ Server.prototype = {
 	var getter = (item.type == "display")
 	    ? 'getDisplay'
 	    : 'getController';
-	this._store[getter](item.jName, item.clientId, function(err, client) {
+	this._manager[getter](item.jName, item.clientId, function(err, client) {
 	    if (! err && client && client.socket != socket) {
 		if (client.socket)
 		    error("Socket mismatch", client, client.socket, socket);
@@ -770,7 +700,7 @@ Server.prototype = {
  	    delete this._socketMap[socket.sessionId];
 	    var getter = (item.type == "display")
 		? 'getDisplay' : 'getController';
-	    this._store[getter](item.jName, item.clientId, function(err, client) {
+	    this._manager[getter](item.jName, item.clientId, function(err, client) {
 		if (! err && client && client.socket == socket)
 		    client.socket = null;
 	    });
@@ -860,7 +790,7 @@ Server.prototype = {
 	    var jName = args.jjname;
 	    var type = args.type;
 
-	    this._store.getJumbotron(jName, function(err, jumbotron) {
+	    this._manager.getJumbotron(jName, function(err, jumbotron) {
 		if (err)
 		    return socket.sendError(err);
 		if (! jumbotron)
@@ -906,7 +836,7 @@ Server.prototype = {
 	    return cb && cb('bad name');
 
 	var jumbotron = new Jumbotron(options);
-	this._store.addJumbotron(jumbotron, function(err) {
+	this._manager.addJumbotron(jumbotron, function(err) {
 	    if (err)
 		return cb && cb(err);
 	    fs.mkdir(jumbotron.getDirectory(), 0755, function() {
@@ -916,46 +846,8 @@ Server.prototype = {
 	});
     },
 
-    commitJumbotron: function commitJumbotron(jumbotron, cb) {
-	this._store.commitJumbotron(jumbotron, cb);
-    },
-
-    calibrateJumbotron: function calibrateJumbotron(jumbotron, file, cb) {
-	// Image will be reoriented in calibrate.
-	calibrate.calibrate(jumbotron, file, function(err, numFound) {
-	    if (err)
-		return cb && cb(err, x(err));
-
-	    var expected = jumbotron.numActiveDisplays();
-	    if (! numFound)
-		err = 'no displays';
-	    else if (numFound < expected)
-		err = 'few displays';
-	    else if (numFound > expected)
-		err = 'more displays';
-	    if (numFound) {
-		jumbotron.mode = "image";
-		jumbotron.fitImage("maximize");
-		this.commitJumbotron(jumbotron);
-		jumbotron.broadcastLoad();
-	    }
-	    if (err)
-		cb && cb(err, x(err, jumbotron.name, numFound, expected));
-	    else
-		cb && cb(null, x("calibrated", jumbotron.name));
-	}.bind(this));
-    },
-
-    uploadToJumbotron: function uploadToJumbotron(jumbotron, file, cb) {
-	var image = new Image({ source: file });
-	image.init(function(err) {
-	    if (err)
-		return cb && cb(err, x(err, jumbotron.name));
-	    jumbotron.fitImage("maximize", image);
-	    jumbotron.addImage(image);
-	    jumbotron.setCurrentImage(image);
-	    cb && cb(null, x('uploaded', jumbotron.name));
-	}.bind(this));
+    commitJumbotron: function commitJumbotron(jumbotron, force) {
+	this._manager.commitJumbotron(jumbotron, force);
     },
 
     setJumbotronViewport: function setJumbotronViewport(jumbotron, vp,
@@ -979,5 +871,5 @@ Server.prototype = {
 // ======================================================================
 
 var server = new Server();
-//server._store.clear();
+//server._manager.clear();
 
