@@ -162,7 +162,8 @@ $.extend(Controller.prototype, {
 		  case 'duplicate':
 		    name = getValue("jjCreateName");
 		    if (confirm(x('duplicate', name))) {
-			this.postMsg('control', { name: name  }, bind(this, function(response) {
+			this.postMsg('control', { name: name  },
+				     bind(this, function(response) {
 			    this.controlJumbotron(response.args);
 			}));
 		    }
@@ -188,7 +189,7 @@ $.extend(Controller.prototype, {
 	    },
 	    success: function success(response) {
 		var status = response.status;
-		var feedback = response.args;
+		var feedback = response.args || status;
 		alert(feedback);
 		if (status == 'ok')
 		    this.setMode('control');
@@ -208,7 +209,7 @@ $.extend(Controller.prototype, {
 	    },
 	    success: function success(response) {
 		var status = response.status;
-		var feedback = response.args;
+		var feedback = response.args || status;
 		alert(feedback);
 	    }
 	},
