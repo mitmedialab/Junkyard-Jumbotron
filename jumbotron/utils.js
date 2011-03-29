@@ -20,6 +20,24 @@ function stringify(obj) {
     return nutils.inspect(obj, false, 0, false).replace(/\n|( ) */g, '$1');
 }
 
+var _lastLevel;
+var _lastMessage = null;
+var _lastMessageCount = 0;
+function _log(level, message) {
+    if (level == _lastLevel && message == _lastMessage) {
+	_lastMessageCount++;
+	return false;
+    }
+
+    if (_lastMessageCount) 
+	logger.log(_lastLevel, _lastMessage + '[X' + _lastMessageCount + ']');
+    _lastLevel = level;
+    _lastMessage = message;
+    _lastMessageCount = 0;
+    logger.log(level, message);
+    return true;
+}
+
 module.exports = {
 
     stringify: stringify,
@@ -41,19 +59,21 @@ module.exports = {
     },
 
     error: function error() {
-	logger.error("ERROR: " + stringify(arguments));
-	for (var a in arguments) {
-	    if (arguments[a].stack)
-		logger.error(arguments[a].stack);
+	if (_log(log4js.levels.ERROR, "ERROR: " + stringify(arguments))) {
+	    for (var a in arguments) {
+		if (arguments[a].stack)
+		    logger.error(arguments[a].stack);
+	    }
 	}
     },
 
     log: function log() {
-	logger.info(stringify(arguments));
+	_log(log4js.levels.INFO, stringify(arguments));
     },
 
     debug: function debug() {
-	logger.debug(stringify(arguments));
+	if (logger.isLevelEnabled(log4js.levels.DEBUG))
+	    _log(log4js.levels.DEBUG, stringify(arguments));
     },
 
     inherits: function inherits(superCtor, props) { 
