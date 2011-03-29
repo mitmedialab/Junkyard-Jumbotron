@@ -60,8 +60,14 @@ Image.prototype = utils.inherits(Base, {
 	// Try to identify the file
 	var gmImg = gm(this.source);
 	gmImg.identify(function(err, data) {
-	    if (err)
+	    if (err) {
+		if (err.code == 1)
+		    err = 'bad image';
 		return cb && cb(err);
+	    }
+	    if (! (data.format &&
+		   data.format.toLowerCase() in params.allowedFileTypes))
+		return cb && cb('bad image');
 
 	    // Save format info
 	    this.format = data.format;
