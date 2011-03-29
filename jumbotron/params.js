@@ -14,12 +14,21 @@ module.exports = {
 
     // Disallowed jumbotron names
     jumbotronReserved: { postmaster: 1,
-			 abuse: 1,
-			 spam: 1,
-			 help: 1,
-			 info: 1,
+			 abuse	: 1,
+			 spam	: 1,
+			 help	: 1,
+			 info	: 1,
 			 noreply: 1,
+			 admin	: 1, 
 			 'mailer-daemon': 1 },
+
+    // File size and type limits
+    allowedFileTypes: { jpg : 1,
+			jpeg: 1,
+			png : 1,
+			gif : 1 },
+    maxFileSize: 2.5, // Individual file size limit, in megabytes
+    //UNUSEDmaxTotalSize: 100, // Total limit per jumbotron
 
     // Directory for temporary file uploads
     tmpDir: '/tmp',
@@ -32,6 +41,12 @@ module.exports = {
 
     // Directory with sample images
     samplesDir: join('public', 'samples'),
+
+    // Database directory
+    databaseDir: join('private', 'database'),
+
+    // Directory with jade template files
+    viewsDir: join('private', 'views'),
 
     // Image shown on all the displays after a calibration
     calibratedImageOptions: {
@@ -53,13 +68,12 @@ module.exports = {
 	width: 1000,
 	height: 1000
     },
+
+    // How long to delay between making a change to a jumbotorn and
+    // committing that change to disk. All changes made in the ensuing
+    // interval will be committed in one go.
+    commitDelay: 10 * 60, // 10 minutes
  
-    // Database directory
-    databaseDir: join('private', 'database'),
-
-    // Directory with jumbotron directories (with images and icons)
-    viewsDir: join('private', 'views'),
-
     // Handle log, warning, and error messages
     logging: {
 	// Log messages to the console
@@ -72,7 +86,7 @@ module.exports = {
 	// Rotating log file details
 	maxFileSize: 10 * 1024 * 1024, // Maximum number of bytes per file 
 	backups: 10,               // How many files to keep
-	pollInterval: 60          // Seconds between checking the file size
+	pollInterval: 60           // Seconds between checking the file size
     },
 
     // Python script(s)
