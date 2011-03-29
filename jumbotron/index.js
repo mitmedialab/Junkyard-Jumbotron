@@ -9,3 +9,4 @@ this.Image = require('./image');
 this.Display = require('./display');
 this.Controller = require('./controller');
 this.Jumbotron = require('./jumbotron');
+this.Manager = require('./manager');
