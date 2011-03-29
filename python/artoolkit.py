@@ -9,9 +9,7 @@ from ctypes import c_void_p, c_char_p, c_bool, c_int, c_float
 import copy
 import logging
 import math
-import Image
-import ImageOps
-import ImageDraw
+from PIL import Image, ImageOps, ImageDraw
 from vectypes import Vec2, Vec3, Mat4
 
 # ----------------------------------------------------------------------

@@ -6,8 +6,7 @@ from __future__ import print_function
 import logging
 import math
 import operator 
-import Image
-import ImageDraw
+from PIL import Image, ImageDraw
 from PIL.ExifTags import TAGS
 import artoolkit 
 from vectypes import Mat4, Vec3
