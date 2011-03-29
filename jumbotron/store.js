@@ -6,8 +6,6 @@ var params = require('./params');
 var utils = require('./utils');
 var Cache = require('./cacheChunked'); // memory store
 var Chaos = require('chaos'); // simple disk store
-var Image = require('./image');
-var Display = require('./display');
 var Jumbotron = require('./jumbotron');
 
 function Store(options) {
@@ -139,35 +137,26 @@ Store.prototype = {
 	this._diskStore.del(jumbotron.name, cb);
     },
 
-    commitJumbotron: function commitJumbotron(jumbotron, cb) {
-	// Commit in persistent store
-	this._diskStore.set(jumbotron.name,
-			    this._jumbotronToString(jumbotron), cb);
-    },
+    commitJumbotron: function commitJumbotron(jumbotron, force, cb) {
+	// If no commit delay, commit immediately
+	if (force || params.commitDelay <= 0) {
+	    utils.debug('Committing', jumbotron.name);
+	    if (jumbotron.commitTimer) {
+		clearTimeout(jumbotron.commitTimer);
+		jumbotron.commitTimer = null;
+	    }
+	    // Commit in persistent store
+	    this._diskStore.set(jumbotron.name,
+				this._jumbotronToString(jumbotron), cb);
+	}
 
-    // ----------------------------------------------------------------------
-    // Easy access to displays and controllers
-
-    // Return the display with the given clientId, if any
-    getDisplay: function getDisplay(jName, clientId, cb) {
-	this.getJumbotron(jName, function(err, jumbotron) {
-	    if (err)
-		return cb(err);
-	    if (! jumbotron)
-		return cb("no jumbotron");
-	    cb(null, jumbotron.getDisplay(clientId));
-	});
-    },
-
-    // Return the controller with the given clientId, if any
-    getController: function getController(jName, clientId, cb) {
-	this.getJumbotron(jName, function(err, jumbotron) {
-	    if (err)
-		return cb(err);
-	    if (! jumbotron)
-		return cb("no jumbotron");
-	    cb(null, jumbotron.getController(clientId));
-	});
+	// Otherwise schedule a commit if not already scheduled
+	else if (! jumbotron.commitTimer) {
+	    utils.debug('Scheduling commit for', jumbotron.name);
+	    jumbotron.commitTimer = setTimeout(
+		this.commitJumbotron.bind(this, jumbotron, true, cb),
+		params.commitDelay * 1000);
+	}
     }
 };
 
