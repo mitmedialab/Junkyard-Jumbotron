@@ -7,7 +7,7 @@ var fs		= require('fs');
 
 var params	= require('./params');
 var utils	= require('./utils');
-var calibrate	= require('./calibrate');
+var calib	= require('./calibrate');
 var Base	= require('./base');
 var Viewport	= require('./viewport');
 var Controller	= require('./controller');
@@ -55,6 +55,9 @@ function Jumbotron(options) {
 
     // Slide show timer
     this.playTimer = null;
+
+    // Commit timer
+    this.commitTimer = null;
 }
 
 // Subclass and Members
@@ -73,7 +76,7 @@ Jumbotron.prototype = utils.inherits(Base, {
 	ret.controllers = this.controllers;
 
 	// TODO: deal with this differently
-	ret.imageReceiveServer = this.imageReceiveServer
+	ret.imageReceiveServer = this.imageReceiveServer;
 	return ret;
     },
 
@@ -147,6 +150,26 @@ Jumbotron.prototype = utils.inherits(Base, {
     },
 
     // ----------------------------------------------------------------------
+    
+    calibrate: function calibrate(src, cb) {
+	var dst = path.join(this.getDirectory(),
+			    '_calibrate_' + path.extname(src));
+	fs.rename(src, dst, function(err) {
+	    if (err)
+		return cb && cb(err);
+
+	    var image = new Image({ source: dst });
+	    image.init(function(err) {
+		if (err) {
+		    fs.unlink(dst);
+		    return cb && cb(err);
+		}
+		calib.calibrate(this, dst, cb);
+	    }.bind(this));
+	}.bind(this));
+    },
+
+    // ----------------------------------------------------------------------
     // TODO: make this an EventEmitter than emits "imageChanged"?
 
     setCurrentImage: function setCurrentImage(image) {
@@ -180,6 +203,26 @@ Jumbotron.prototype = utils.inherits(Base, {
 	    this.setFrame(0);
 
 	return this.images.length - 1;
+    },
+
+    addImageFromFile: function addImageFromFile(src, cb) {
+	var dst = path.join(this.getDirectory(),
+			    utils.uniqueFileName() + path.extname(src));
+	fs.rename(src, dst, function(err) {
+	    if (err)
+		return cb && cb(err);
+	    var image = new Image({ source: dst });
+	    image.init(function(err) {
+		if (err) {
+		    fs.unlink(dst);
+		    return cb && cb(err);
+		}
+		this.fitImage("maximize", image);
+		var frame = this.addImage(image);
+		cb && cb(null, image, frame);
+	    }.bind(this));
+	}.bind(this));
+	
     },
 
     _deleteImage: function _deleteImage(image) {
@@ -220,15 +263,6 @@ Jumbotron.prototype = utils.inherits(Base, {
 	vp = vp.fitted(this.aspectRatio, fitMode);
 	image.viewport = vp;
 	return vp;
-    },
-
-    uploadImageFile: function saveImageFile(file, name, cb) {
-	name = name || utils.uniqueFileName();
-	var ext = path.extname(file);
-	var dst = path.join(this.getDirectory(), name + ext);
-	fs.rename(file, dst, function(err) {
-	    cb(err, dst);
-	});
     },
 
     // ----------------------------------------------------------------------
@@ -281,7 +315,7 @@ Jumbotron.prototype = utils.inherits(Base, {
     getDisplayImage: function getDisplayImage(display) {
 	var image = this.getCurrentImage();
 	if (this.mode == "calibrate")
-	    image = calibrate.getMarkerImage(display.idx);
+	    image = calib.getMarkerImage(display.idx);
 	else if (display.viewport.isEmpty())
 	    image = Image.getErrorImage();
 	return image;
@@ -308,7 +342,7 @@ Jumbotron.prototype = utils.inherits(Base, {
 	for (var c in clients) {
 	    var client = clients[c];
 	    if (! activeOnly || client.isActive())
-		iterator.call(context, client)
+		iterator.call(context, client);
 	}
     },
 
@@ -325,14 +359,14 @@ Jumbotron.prototype = utils.inherits(Base, {
 
     broadcastLoad: function broadcastLoad() {
 	this.forEachDisplay(function(display) {
-	    display.sendLoad()
+	    display.sendLoad();
 	}, null, true);
     },
 
     broadcastViewport: function broadcastViewport(ignoredDisplay) {
 	this.forEachDisplay(function(display) {
 	    if (display != ignoredDisplay)
-		display.sendViewport()
+		display.sendViewport();
 	}, null, true);
     },
 
