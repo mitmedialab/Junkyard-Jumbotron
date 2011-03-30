@@ -395,12 +395,13 @@ Server.prototype = {
 	uploadMail: function uploadMail(req, res, controller) {
 
 	    mail.parseForm(req, function(err, msg) {
-		if (! err && ! msg.filename)
-		    err =  'no attachment';
+		if (! err && ! (msg && msg.filename))
+		    err =  'no attachments';
 		if (err) {
-		    error('MAIL', '<', msg && msg.sender, err);
 		    if (msg && msg.sender)
 			mail.sendMail(msg.sender, x(err));
+		    else
+			error('MAIL', err);
 		}
 		else {
 		    this.handleMailUpload(msg, function (status, message) {
