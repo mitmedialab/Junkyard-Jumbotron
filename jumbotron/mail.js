@@ -9,16 +9,6 @@ var utils = require('./utils');
 
 var formidable = require('formidable');
 var mailparser = require('mailparser');
-var mailer = require('nodemailer');
-mailer.SMTP = {
-    host: params.email.smtpServer,
-    port: params.email.port,
-    ssl: params.email.ssl,
-    use_authentication: true,
-    user: params.email.user,
-    pass: params.email.pwd
-};
-
 var Email = require('email').Email;
 
 function MailParser() {
@@ -156,7 +146,7 @@ module.exports = {
 	    }
 	}
 
-	var msg = new Email({ from: "jumbotron@media.mit.edu",
+	var msg = new Email({ from: params.emailReplyTo,
 			      to: receiver,
 			      subject: subject,
 			      body: body });
@@ -166,16 +156,5 @@ module.exports = {
 	    else
 		utils.debug('MAIL', '>', receiver, subject, body);
 	});
-
-	/*
-	mailer.send_mail({ sender: 'noreply@jj.brownbag.me',
-			   to: receiver,
-			   subject: subject,
-			   body: body,
-			   debug: params.email.debug },
-			 function(err, success){
-			     utils.debug("Message "+(success?"sent":"failed"));
-			 });
-	*/
     }
 };
