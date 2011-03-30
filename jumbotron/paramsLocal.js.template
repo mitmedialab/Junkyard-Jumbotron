@@ -4,6 +4,8 @@
 
 module.exports = {
 
+    emailReplyTo: "info@mailserver.com",
+
     imageReceiveServer: 'my_catch_all.mailserver.com',
 
     pythonPath: '/path/to/python'

@@ -23,12 +23,12 @@ node-packages:
 	$(NPM) install iconv@1.0.0
 	$(NPM) install jade@0.9.1
 	$(NPM) install log4js@0.2.3
-	$(NPM) install mailparser@0.1.0
 	$(NPM) install node-dev@0.0.5
-	$(NPM) install nodemailer@0.1.6
 	$(NPM) install qs@0.0.5
 	$(NPM) install socket.io@0.6.16
 	$(NPM) install underscore@1.1.4
+	$(NPM) install mailparser@0.1.0
+	$(NPM) install email@0.2.2
 
 # Make python extension
 python-extension:

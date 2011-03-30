@@ -20,6 +20,7 @@ module.exports = {
 			 info	: 1,
 			 noreply: 1,
 			 admin	: 1, 
+			 jumbotron : 1,
 			 'mailer-daemon': 1 },
 
     // File size and type limits
@@ -94,15 +95,8 @@ module.exports = {
     python: 'python',
     calibrateScript: join('python', 'calibrate.py'),
 
-    // SMTP server info (override in paramsLocal.js)
-    email: {
-	smtpServer: 'smtp.myserver.com',
-	user: 'jumbotronuser@myserver.com',
-	pwd:  'mypass',
-	ssl: true,
-	port: 465,
-	debug: false
-    },
+    // sendmail info SMTP server info (override in paramsLocal.js)
+    emailReplyTo: "info@thisserver.com",
 
     // The server that will receive emails of the form 
     // [jumbotron-name]@thiserver.com.  Override this in paramLocal.js
