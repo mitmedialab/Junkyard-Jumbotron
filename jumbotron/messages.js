@@ -16,7 +16,9 @@ var messages = {
     'bad email'         : ("Badly formatted message\n" +
                            "Sorry, we can't understand your email message."),
     'no attachments'    : ("No attached images\n" +
-                           "Whoops, your message has no attached images."),
+                           "Whoops, your message had no attached images."),
+    'multiple attachments': ("Too many attached images\n" +
+                           "Sorry, we can only handle one image per message."),
 
     'too big'           : ("File too big\n" +
 			   "Whoops, you're file was too big. " +
