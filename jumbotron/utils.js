@@ -61,8 +61,9 @@ module.exports = {
     error: function error() {
 	if (_log(log4js.levels.ERROR, "ERROR: " + stringify(arguments))) {
 	    for (var a in arguments) {
-		if (arguments[a].stack)
-		    logger.error(arguments[a].stack);
+		var arg = arguments[a];
+		if (arg && arg.stack)
+		    logger.error(arg.stack);
 	    }
 	}
     },
