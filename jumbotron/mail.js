@@ -97,7 +97,7 @@ MailParser.prototype = utils.inherits(mailparser.MailParser, {
 	    utils.error('\t', this.headers);
 	    this.emit('error', 'bad email');
 	}
-    },
+    }
 });
 
 module.exports = {
@@ -114,7 +114,7 @@ module.exports = {
 	form.onPart = function(part) {
 	    // Let formidable handle all non-file parts (shouldn't be any)
 	    if (!part.filename)
-		incomingForm.handlePart(part);
+		form.handlePart(part);
 	    else {
 		part.addListener('data', parser.feed.bind(parser));
 		part.addListener('end' , parser.end .bind(parser));

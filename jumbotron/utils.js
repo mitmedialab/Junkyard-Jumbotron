@@ -108,14 +108,14 @@ module.exports = {
 
 	var i = 0, a, f = arguments[i++], o = [], m, p, c, x, s = '';
 	while (f) {
-	    if (m = /^[^\x25]+/.exec(f)) {
+	    if ((m = /^[^\x25]+/.exec(f))) {
 		o.push(m[0]);
 	    }
-	    else if (m = /^\x25{2}/.exec(f)) {
+	    else if ((m = /^\x25{2}/.exec(f))) {
 		o.push('%');
 	    }
-	    else if (m = /^\x25(?:(\d+)\$)?(\+)?(0|'[^$])?(-)?(\d+)?(?:\.(\d+))?([b-fosuxX])/.exec(f)) {
-                if (((a = arguments[m[1] || i++]) == null) || (a == undefined)) {
+	    else if ((m = /^\x25(?:(\d+)\$)?(\+)?(0|'[^$])?(-)?(\d+)?(?:\.(\d+))?([b-fosuxX])/.exec(f))) {
+                if (((a = arguments[m[1] || i++]) === null) || (a === undefined)) {
 		    throw('Too few arguments.');
 		}
 		if (/[^s]/.test(m[7]) && (typeof(a) != 'number')) {
@@ -148,7 +148,9 @@ module.exports = {
     },
 
     str_repeat: function (i, m) {
-        for (var o = []; m > 0; o[--m] = i);
+	var o = [];
+	while (--m >= 0)
+	    o[m] = i;
         return o.join('');
     }
     

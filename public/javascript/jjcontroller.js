@@ -10,7 +10,7 @@ function getValue(field) {
 // Localization
 // TODO: optionally include each language
 
-localizeTable = {
+var localizeTable = {
     'unknown error'	: "Can't {0}\n({1})",
     'localize error'	: "Can't localize {0}",
 
@@ -347,8 +347,8 @@ $.extend(Controller.prototype, {
 
 	$('.jjButton').button()
 	    .siblings('.ui-btn-inner')
-	    .css({ padding: "4px 0" });;
-    },
+	    .css({ padding: "4px 0" });
+    }
 
     // ----------------------------------------------------------------------
     // Communication 
@@ -364,5 +364,5 @@ $(document).bind("mobileinit", function() {
 
 $(function() {
     var controller = new Controller();
-    $('.jsOnly').css({ display: 'block' })
+    $('.jsOnly').css({ display: 'block' });
 });
