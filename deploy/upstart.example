@@ -17,6 +17,6 @@ start on runlevel [23]
 
 # Start the server using spark and redirect output to log files
 script
-  cd /home/jumbotron/jumbotron
+  cd $PATH
   node jjserver.js > /var/log/jumbotron.log 2>&1
 end script

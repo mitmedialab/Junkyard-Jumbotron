@@ -36,5 +36,5 @@ python-extension:
 
 # Convert jade templates html and copy needed files to phonegap
 phonegap-www:
-	$(NODE) jjapp.js private/index.jade $(WWW_DIR)/index.html
+	$(NODE) app/jjapp.js private/index.jade $(WWW_DIR)/index.html
 	$(CP) -r public/javascript/*.js public/css/*.css public/images $(WWW_DIR)
