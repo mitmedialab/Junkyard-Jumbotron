@@ -272,7 +272,7 @@ $.extend(Controller.prototype, {
 	var name = jumbotron.name;
 	$('.jjTitle').text(name);
 	$('.jjDisplayUrl').text(root + '/' + name);
-	$('.jjEmailUrl').text(name + '@' + jumbotron.imageReceiveServer);
+	$('.jjEmailUrl').text(name + jumbotron.imageReceiveServer);
     },
 
     initButton: function initButton(button, options) {
