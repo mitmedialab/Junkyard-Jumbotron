@@ -396,10 +396,15 @@ Server.prototype = {
 		if (! err && ! (msg && msg.filename))
 		    err =  'no attachments';
 		if (err) {
-		    if (msg && msg.sender)
+		    // Avoid infinite recursion if mail accidentally
+		    // arrives from the jumbotron server itself.
+		    if (msg && msg.sender &&
+			msg.sender.indexOf(params.imageReceiveServer) == -1) {
 			mail.sendMail(msg.sender, x(err));
-		    else
+		    }
+		    else {
 			error('MAIL', err);
+		    }
 		}
 		else {
 		    this.handleMailUpload(msg, function (status, message) {
