@@ -29,8 +29,10 @@ function Jumbotron(options) {
     // The server emails should be sent to
     this.imageReceiveServer = params.imageReceiveServer;
 
-    // Mode: calibrate, image, ...
+    // Mode: calibrate, image, slideshow ...
     this.mode = options.mode || "calibrate";
+    // how long to stay on each slide when in 'slideshow' mode
+    this.slideDuration = options.slideDuration || 5;
     // Aspect ratio
     this.aspectRatio = options.aspectRatio || 1;
 
@@ -55,6 +57,8 @@ function Jumbotron(options) {
 
     // Slide show timer
     this.playTimer = null;
+    if (this.mode == "slideshow")
+	this.play(this.slideDuration);
 
     // Commit timer
     this.commitTimer = null;
@@ -70,6 +74,7 @@ Jumbotron.prototype = utils.inherits(Base, {
 	ret.pwd = this.pwd;
 	ret.email = this.email;
 	ret.mode = this.mode;
+	ret.slideDuration = this.slideDuration;
 	ret.aspectRation = this.aspectRation;
 	ret.images = this.images;
 	ret.displays = this.displays;
@@ -268,9 +273,12 @@ Jumbotron.prototype = utils.inherits(Base, {
     // ----------------------------------------------------------------------
     // Slideshow
 
-    play: function play(ms) {
+    play: function play(duration) {
+	this.slideDuration = duration;
 	this.stop();
-	this.playTimer = setInterval(this.step.bind(this, 1), ms);
+	this.playTimer = setInterval(this.step.bind(this, 1), duration * 1000);
+	if (this.mode == 'image')
+	    this.mode = 'slideshow';
     },
 
     isPlaying: function isPlaying() {
@@ -281,6 +289,8 @@ Jumbotron.prototype = utils.inherits(Base, {
 	if (this.playTimer) {
 	    clearInterval(this.playTimer);
 	    this.playTimer = null;
+	    if (this.mode == 'slideshow')
+		this.mode = 'image';
 	}
     },
 

@@ -180,12 +180,10 @@ Server.prototype = {
 					      showStack: true }));
 	});
 
-	// Catch all exceptions in production mode
-	//if (server.set('env') == 'production') {
-	    process.on('uncaughtException', function (err) {
-		error('UNCAUGHT EXCEPTION', err);
-	    });
-	//}
+	// Catch all exceptions
+	process.on('uncaughtException', function (err) {
+	    error('UNCAUGHT EXCEPTION', err);
+	});
 
 	// Template options
 	server.set('views', params.viewsDir);
@@ -437,6 +435,7 @@ Server.prototype = {
 	    if (! controller)
 		return 'no jumbotron';
 	    var jumbotron = controller.jumbotron;
+	    var oldMode = jumbotron.mode;
 
 	    var control = req.body.control;
 	    switch (control) {
@@ -445,8 +444,8 @@ Server.prototype = {
 		    break;
 		// Fall through to play
 	    case 'play':
-		var interval = req.body.interval * 1000;
-		interval = utils.isNumber(interval) ? Math.round(interval) : 5000;
+		var interval = req.body.interval;
+		interval = utils.isNumber(interval) ? interval : 5;
 		jumbotron.play(interval);
 		break;
 	    case 'stop' :
@@ -471,6 +470,10 @@ Server.prototype = {
 	    default:
 		return 'bad command';
 	    }
+
+	    // If mode changes, commit
+	    if (oldMode != jumbotron.mode)
+		this.commitJumbotron(jumbotron);
 
 	    return 'ok';
 	},
