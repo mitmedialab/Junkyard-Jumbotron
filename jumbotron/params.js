@@ -73,7 +73,7 @@ module.exports = {
     // How long to delay between making a change to a jumbotorn and
     // committing that change to disk. All changes made in the ensuing
     // interval will be committed in one go.
-    commitDelay: 10 * 60, // 10 minutes
+    commitDelay: 1 * 60, // 1 minute
  
     // Handle log, warning, and error messages
     logging: {

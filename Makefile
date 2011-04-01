@@ -25,7 +25,7 @@ node-packages:
 	$(NPM) install log4js@0.2.3
 	$(NPM) install node-dev@0.0.5
 	$(NPM) install qs@0.0.5
-	$(NPM) install socket.io@0.6.16
+	$(NPM) install socket.io@0.6.17
 	$(NPM) install underscore@1.1.4
 	$(NPM) install mailparser@0.1.0
 	$(NPM) install email@0.2.2
@@ -36,5 +36,5 @@ python-extension:
 
 # Convert jade templates html and copy needed files to phonegap
 phonegap-www:
-	$(NODE) jjapp.js private/index.jade $(WWW_DIR)/index.html
+	$(NODE) app/jjapp.js private/index.jade $(WWW_DIR)/index.html
 	$(CP) -r public/javascript/*.js public/css/*.css public/images $(WWW_DIR)
