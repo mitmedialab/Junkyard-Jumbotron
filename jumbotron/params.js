@@ -100,7 +100,7 @@ module.exports = {
 
     // The server that will receive emails of the form 
     // [jumbotron-name]@thiserver.com.  Override this in paramLocal.js
-    imageReceiveServer: 'thisserver.com',
+    imageReceiveServer: '@thisserver.com',
 	
     // Debug flags
     debug: true
