@@ -173,7 +173,7 @@ Server.prototype = {
 		    return next();
 
 		var filename = path.join(params.resourceDir, url.pathname);
-		Image.getThumbnail(filename, 80, function(err, filename) {
+		Image.makeThumbnail(filename, 80, function(err, filename) {
 		    if (! err)
 			req.url = filename.slice(params.resourceDir.length);
 		    next(); // pass to static provider

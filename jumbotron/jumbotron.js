@@ -169,6 +169,7 @@ Jumbotron.prototype = utils.inherits(Base, {
 		    fs.unlink(dst);
 		    return cb && cb(err);
 		}
+		image.makeThumbnail(params.thumbnailImageSize);
 		calib.calibrate(this, dst, cb);
 	    }.bind(this));
 	}.bind(this));
@@ -241,6 +242,7 @@ Jumbotron.prototype = utils.inherits(Base, {
 		    fs.unlink(dst);
 		    return cb && cb(err);
 		}
+		image.makeThumbnail(params.thumbnailImageSize);
 		this.fitImage("maximize", image);
 		var frame = this.addImage(image);
 		cb && cb(null, image, frame);

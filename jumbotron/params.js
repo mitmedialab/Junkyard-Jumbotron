@@ -70,6 +70,9 @@ module.exports = {
 	height: 1000
     },
 
+    // Thumbnails for admin and controller views
+    thumbnailImageSize: 80,
+
     // How long to delay between making a change to a jumbotorn and
     // committing that change to disk. All changes made in the ensuing
     // interval will be committed in one go.

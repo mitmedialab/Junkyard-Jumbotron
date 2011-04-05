@@ -7,6 +7,7 @@ var url = require('url');
 var gm = require('gm');
 var params = require('./params');
 var utils = require('./utils');
+var Queue = require('./queue');
 var Base = require('./base');
 var Viewport = require('./viewport');
 
@@ -90,6 +91,10 @@ Image.prototype = utils.inherits(Base, {
 	    }
 	    cb && cb(err);
 	}.bind(this));
+    },
+
+    makeThumbnail: function makeThumbnail(size, cb) {
+	Image.makeThumbnail(this.source, size, cb);
     }
 });
 
@@ -128,7 +133,7 @@ Image.getSampleImageFiles = function getSampleImageFiles(cb) {
     });
 };
 
-Image.makeThumbnail = function makeThumbnail(src, dst, width, height, cb) {
+Image._makeThumbnail = function _makeThumbnail(src, dst, width, height, cb) {
     gm(src).arg(null, ['-gravity', 'center'])
          // gm 1.3.5 doesn't support ^ postfix for resize
 	 //.resize(width, height + '^')
@@ -138,18 +143,18 @@ Image.makeThumbnail = function makeThumbnail(src, dst, width, height, cb) {
 	.write(dst, cb);
 };
 
-Image.getThumbnail = function getThumbnail(fileName, size, cb) {
+Image.makeThumbnail = function makeThumbnail(fileName, size, cb) {
     var dirName = path.dirname(fileName);
     var thumbnailDirName = path.join(dirName, 'tn');
     var thumbnailFileName = path.join(thumbnailDirName, path.basename(fileName));
 
     path.exists(thumbnailFileName, function(exists) {
 	if (exists)
-	    return cb(null, thumbnailFileName);
+	    return cb && cb(null, thumbnailFileName);
 	fs.mkdir(thumbnailDirName, 0755, function(err) {
 	    // Ignore directory-already-exists error
-	    Image.makeThumbnail(fileName, thumbnailFileName, size, size, function(err) {
-		cb(err, thumbnailFileName);
+	    Image._makeThumbnail(fileName, thumbnailFileName, size, size, function(err) {
+		cb && cb(err, thumbnailFileName);
 	    });
 	});
     });
@@ -161,6 +166,8 @@ Image.getThumbnail = function getThumbnail(fileName, size, cb) {
 module.exports = Image;
 
 // ----------------------------------------------------------------------
+
+
 // gm doesn't escape file names properly
 gm.prototype.cmd = function(){
     var src = utils.escapeForShell(this.source);
