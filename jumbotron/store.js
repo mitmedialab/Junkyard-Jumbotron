@@ -49,16 +49,56 @@ Store.prototype = {
 	return new Jumbotron(JSON.parse(string));
     },
 
+    getAllJumbotrons: function getAllJumbotrons(cb) {
+	fs.readdir(params.databaseDir, function(err, files) {
+	    if (err)
+		return cb(err);
+	    var jumbotrons = [];
+	    
+	    var done = 0;
+	    for (var f in files) {
+		if (files[f][0] == '.') { // ignore . files
+		    done++
+		    continue;
+		}
+		this.getJumbotron(files[f], function(err, jumbotron) {
+		    if (! err && jumbotron)
+			jumbotrons.push(jumbotron);
+		    if (++done == files.length)
+			cb(null, jumbotrons);
+		}, true);
+	    }
+
+	    /*
+	    function getNext(which) {
+		this.getJumbotron(files[which], function(err, jumbotron) {
+		    if (! err && jumbotron)
+			jumbotrons.push(jumbotron);
+		    if (++which < files.length)
+			setTimeout(getNext.bind(this, which), 0);
+		    else
+			cb(null, jumbotrons);
+		}.bind(this), true);
+	    }
+	    getNext(0);
+	    */
+
+	}.bind(this));
+    },
+
     // Return the named jumbotron
-    getJumbotron: function getJumbotron(name, cb) {
+    // If 'stealth' is true, this access is not recorded.
+    // Stealth is used for introspection (admin page)
+    getJumbotron: function getJumbotron(name, cb, stealth) {
 	// Look in memory store
 	var jumbotron = this._memStore.get(name);
 	if (jumbotron) {
-	    // Update access time and callback
-	    jumbotron.touch();
+	    if (! stealth) {
+		// Update access time and callback
+		jumbotron.touch();
+	    }
 	    return cb(null, jumbotron);
 	}
-
 	// Look in persistent store
 	this._diskStore.get(name, function(err, data) {
 	    // err from diskStore means not found
@@ -68,7 +108,8 @@ Store.prototype = {
 	    try {
 		// Parse and add to memstore
 		jumbotron = this._jumbotronFromString(data);
-		this._memStore.set(name, jumbotron);
+		if (! stealth) 
+		    this._memStore.set(name, jumbotron);
 	    }
 	    catch (exception) {
 		// Ignore badly formatted jumbotron file
@@ -76,8 +117,10 @@ Store.prototype = {
 		return cb(null, null);
 	    }
 
-	    // Update access time and callback
-	    jumbotron.touch();
+	    if (! stealth) {
+		// Update access time and callback
+		jumbotron.touch();
+	    }
 	    cb(null, jumbotron);
 	}.bind(this));
     },
