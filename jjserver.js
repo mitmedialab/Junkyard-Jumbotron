@@ -9,7 +9,7 @@ TODO: From the express web page:
 var http = require('http');
 var assert = require('assert');
 var path = require('path');
-var url = require('url');
+var urlParse = require('url').parse;
 var fs = require('fs');
 var exec = require('child_process').exec;
 
@@ -163,8 +163,25 @@ Server.prototype = {
 	    // Decode forms and body
 	    express.bodyDecoder(),
 
+	    // Intercept thumbnail requests.
+	    function(req, res, next) {
+		if (! req.query.tn)
+		    return next();
+
+		var url = urlParse(req.url);
+		if (url.pathname.indexOf('..') != -1)
+		    return next();
+
+		var filename = path.join(params.resourceDir, url.pathname);
+		Image.getThumbnail(filename, 80, function(err, filename) {
+		    if (! err)
+			req.url = filename.slice(params.resourceDir.length);
+		    next(); // pass to static provider
+		});
+	    },
+
 	    // Intercept requests for static files
-	    staticProvider(__dirname + '/public')
+	    staticProvider(path.join(__dirname, params.resourceDir))
 	);
 
 	// Add middleware for dev mode
@@ -194,8 +211,9 @@ Server.prototype = {
 	server.get('/', function(req, res) {
 	    res.render('index');
 	});
-	server.get('/:jumbotron', this.handleJoin.bind(this));
-	server.post('/:cmd' , this.handlePostMessage.bind(this));
+	server.get('/admin'     , this.handleAdmin      .bind(this));
+	server.get('/:jumbotron', this.handleJoin       .bind(this));
+	server.post('/:cmd'     , this.handlePostMessage.bind(this));
     },
 
     // ----------------------------------------------------------------------
@@ -225,6 +243,80 @@ Server.prototype = {
 	    }
 	    res.render('display');
 	}.bind(this));
+    },
+
+    handleAdmin: function handleAdmin(req, res) {
+	var filter = req.query.filter || 'tried';
+	var sort   = req.query.sort   || 'name';
+	var reverse = req.query.reverse && req.query.reverse == 'true';
+
+	this._manager.getAllJumbotrons(function(err, jumbotrons) {
+	    // Filter em
+	    var filterFn;
+	    switch (filter) {
+	    case 'all':
+		break;
+	    case 'tried':
+		filterFn = function(jumbotron) {
+		    return (jumbotron.calibImages &&
+			    jumbotron.calibImages.length);
+		};
+		break;
+	    case 'failed':
+		filterFn = function(jumbotron) {
+		    return (jumbotron.calibImages &&
+			    jumbotron.calibImages.length &&
+			    ! jumbotron.isCalibrated());
+		};
+		break;
+	    case 'calibrated':
+		filterFn = function(jumbotron) {
+		    return jumbotron.isCalibrated();
+		};
+		break;
+	    case 'uploaded':
+		filterFn = function(jumbotron) {
+		    return jumbotron.numFrames() > 0;
+		};
+		break;
+	    }
+	    if (filterFn)
+		jumbotrons = utils.filter(jumbotrons, filterFn);
+	    // Sort em
+	    jumbotrons = jumbotrons.sort(function(a, b) {
+		return a>b ? 1 : a<b ? -1 : 0;
+	    });
+	    if (reverse)
+		jumbotrons = jumbotrons.reverse();
+
+	    // Display em
+	    function timeToString(ms) {
+		var date = new Date(ms);
+		return [date.getMonth(), date.getDate()].join('/');
+	    }
+	    function vpToString(vp) {
+		if (vp.isEmpty()) return 'not-found';
+		var x = vp.x.toFixed(1);
+		var y = vp.y.toFixed(1);
+		var w = vp.width.toFixed(1);
+		var h = vp.height.toFixed(1);
+		var r = ['',' <',' >',' V'][vp.rotation];
+		return x + ',' + y + ' ' + w + 'x' + h + r;
+	    }
+	    function nameToString(name, limit) {
+		limit = limit || 8;
+		if (! name)
+		    name = '[error]';
+		else if (name.length > limit)
+		    name = name.substring(0, limit) + "&hellip;";
+		return name
+	    }
+
+	    res.render('admin', { locals: { jumbotrons: jumbotrons,
+					    timeToString: timeToString,
+					    vpToString: vpToString,
+					    nameToString: nameToString } } );
+	});
     },
 
 
