@@ -128,7 +128,7 @@ Image.getSampleImageFiles = function getSampleImageFiles(cb) {
     });
 };
 
-Image.makeIcon = function makeIcon(src, dst, width, height, cb) {
+Image.makeThumbnail = function makeThumbnail(src, dst, width, height, cb) {
     gm(src).arg(null, ['-gravity', 'center'])
          // gm 1.3.5 doesn't support ^ postfix for resize
 	 //.resize(width, height + '^')
@@ -138,18 +138,18 @@ Image.makeIcon = function makeIcon(src, dst, width, height, cb) {
 	.write(dst, cb);
 };
 
-Image.getIconImageFile = function getIconImageFile(fileName, cb) {
+Image.getThumbnail = function getThumbnail(fileName, size, cb) {
     var dirName = path.dirname(fileName);
-    var iconDirName = path.join(dirName, 'icons');
-    var iconFileName = path.join(iconDirName, path.basename(fileName));
+    var thumbnailDirName = path.join(dirName, 'tn');
+    var thumbnailFileName = path.join(thumbnailDirName, path.basename(fileName));
 
-    path.exists(iconFileName, function(exists) {
+    path.exists(thumbnailFileName, function(exists) {
 	if (exists)
-	    return cb(null, iconFileName);
-	fs.mkdir(iconDirName, 0755, function(err) {
+	    return cb(null, thumbnailFileName);
+	fs.mkdir(thumbnailDirName, 0755, function(err) {
 	    // Ignore directory-already-exists error
-	    Image.makeIcon(fileName, iconFileName, 80, 80, function(err) {
-		cb(err, iconFileName);
+	    Image.makeThumbnail(fileName, thumbnailFileName, size, size, function(err) {
+		cb(err, thumbnailFileName);
 	    });
 	});
     });
