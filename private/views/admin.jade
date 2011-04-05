@@ -71,5 +71,8 @@ html(lang="en")
               td images
               - each image in jumbotron.images
                 td.jjImage
-                  a(href=image.source.replace('public/',''))
-                    img(src=image.source.replace('public/', '') + '?tn=1')
+                  -if (! image.source)
+                    b BAD
+                  -else
+                    a(href=image.source.replace('public/',''))
+                      img(src=image.source.replace('public/', '') + '?tn=1')

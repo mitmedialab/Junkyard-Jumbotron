@@ -284,6 +284,8 @@ Server.prototype = {
 		jumbotrons = utils.filter(jumbotrons, filterFn);
 	    // Sort em
 	    jumbotrons = jumbotrons.sort(function(a, b) {
+		a = a[sort];
+		b = b[sort];
 		return a>b ? 1 : a<b ? -1 : 0;
 	    });
 	    if (reverse)
