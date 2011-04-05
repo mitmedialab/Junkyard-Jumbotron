@@ -92,7 +92,7 @@ Jumbotron.prototype = utils.inherits(Base, {
     },
     
     numActiveDisplays: function numActiveDisplays() {
-	return utils.filter(this.displays, function(display) {
+	return utils.select(this.displays, function(display) {
 	    return display.isActive();
 	}).length;
     },
@@ -172,6 +172,25 @@ Jumbotron.prototype = utils.inherits(Base, {
 		calib.calibrate(this, dst, cb);
 	    }.bind(this));
 	}.bind(this));
+    },
+
+    getCalibrationImages: function getCalibrationImages(cb) {
+	var dir = this.getDirectory();
+	fs.readdir(dir, function(err, files) {
+	    files = utils.select(files, function(file) {
+		return file.indexOf('calibrate') != -1;
+	    });
+	    files = utils.map(files, function(files) {
+		return path.join(dir, files);
+	    });
+	    cb(err, files);
+	});
+    },
+
+    isCalibrated: function isCalibrated() {
+	return utils.any(this.displays, function(display) {
+	    return display.isCalibrated();
+	});
     },
 
     // ----------------------------------------------------------------------
