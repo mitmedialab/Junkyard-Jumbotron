@@ -33,6 +33,10 @@ Display.prototype = utils.inherits(Client, {
 	return ret;
     },
 
+    isCalibrated: function isCalibrated() {
+	return ! this.viewport.isEmpty();
+    },
+
     sendId: function sendId() {
 	this.sendMsg('id', { id: this.idx,
 			     name: this.jumbotron.name });
