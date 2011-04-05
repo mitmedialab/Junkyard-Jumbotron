@@ -47,7 +47,6 @@ Manager.prototype = utils.inherits(Store, {
 	    function getCalibrationImages(jumbotron) {
 		jumbotron.getCalibrationImages(function(err, images) {
 		    // Ignore errors
-		    utils.log(jumbotron.name, images);
 		    jumbotron.calibImages = images;
 		    if (--todo == 0)
 			cb(null, jumbotrons);
