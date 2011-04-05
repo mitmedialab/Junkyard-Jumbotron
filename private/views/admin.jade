@@ -1,0 +1,75 @@
+!!!
+
+html(lang="en")
+  head
+    title Junkyard Jumbotron Admin
+
+    link(rel="stylesheet", href="css/jjadmin.css", type="text/css")
+    script(type="text/javascript", src="http://code.jquery.com/jquery-1.4.4.min.js")
+    script(type="text/javascript", src="javascript/jquery.cookie.min.js")
+    script(type="text/javascript", src="javascript/jquery.parsequery.min.js")
+    script(type="text/javascript", src="javascript/json2.min.js")
+
+    script(type="text/javascript", src="javascript/jjclient.js")
+    script(type="text/javascript", src="javascript/jjadmin.js")
+  body
+    noscript 
+      div#noscript
+        p The Junkyard Jumbotron requires javascript.
+        p Please enable javascript in your browser preferences.
+    h1 Junkyard Jumbotrons
+    div 
+    div
+      table
+        th
+          a#jjSortName(href='#') Name
+        th
+        th
+          a#jjSortAccess(href='#') Accessed
+        th
+          a#jjSortCreate(href='#') Created
+        th
+          a Mode
+        th(colspan=2)
+          | Filter
+          select#jjFilter
+            option(value='all') All
+            option(value='tried', selected='true') Calibration Tried
+            option(value='failed') Calibration Failed
+            option(value='calibrated') Calibrated
+            option(value='uploaded') Images Uploaded
+        div#jjTable
+          - each jumbotron in jumbotrons
+            tr.jjJumbotron
+              td(title=jumbotron.name)= nameToString(jumbotron.name)
+              td
+              td= jumbotron.isActive() ? 'active' : timeToString(jumbotron.accessTime)
+              td= timeToString(jumbotron.createTime)
+              td= jumbotron.mode
+            - each display in jumbotron.displays
+              tr.jjDisplay
+                td
+                td(title=display.clientId)= 'display ' + display.idx
+                td= display.isActive() ? 'active' : timeToString(display.accessTime)
+                td(title=display.viewport.toString())= vpToString(display.viewport)
+            - each controller in jumbotron.controllers
+              tr.jjController
+                td
+                td(title=controller.clientId)= 'controller ' + controller.idx
+                td= controller.isActive() ? 'active' : timeToString(controller.accessTime)
+            tr
+              td.jjCalibImage
+              td calib
+                br
+                | images
+              - each calibImage in (jumbotron.calibImages || [])
+                td.jjCalibImage
+                  a(href=calibImage.replace('public/',''))
+                    img(src=calibImage.replace('public/','') + '?tn=1')
+            tr
+              td
+              td images
+              - each image in jumbotron.images
+                td.jjImage
+                  a(href=image.source.replace('public/',''))
+                    img(src=image.source.replace('public/', '') + '?tn=1')

@@ -1,0 +1,12 @@
+body {
+    font-family: Helvetica, Arial, sans-serif;
+    background: #F0F0F0;
+}
+th {
+    font-weight:normal;
+    text-align: left;
+}
+.jjJumbotron {
+    font-weight:bold;
+}
+
