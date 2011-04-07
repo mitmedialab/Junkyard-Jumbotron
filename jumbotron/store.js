@@ -49,26 +49,72 @@ Store.prototype = {
 	return new Jumbotron(JSON.parse(string));
     },
 
-    getAllJumbotrons: function getAllJumbotrons(cb) {
+    _filterJumbotrons: function _filterJumbotrons(jumbotrons, filter) {
+	var filterFn;
+	switch (filter) {
+	case 'all':
+	    break;
+	case 'tried':
+	    filterFn = function(jumbotron) {
+		return (jumbotron.calibImages &&
+			jumbotron.calibImages.length);
+	    };
+	    break;
+	case 'failed':
+	    filterFn = function(jumbotron) {
+		return (jumbotron.calibImages &&
+			jumbotron.calibImages.length &&
+			! jumbotron.isCalibrated());
+	    };
+	    break;
+	case 'calibrated':
+	    filterFn = function(jumbotron) {
+		return jumbotron.isCalibrated();
+	    };
+	    break;
+	case 'uploaded':
+	    filterFn = function(jumbotron) {
+		return jumbotron.numFrames() > 0;
+	    };
+	    break;
+	}
+	if (filterFn)
+	    jumbotrons = utils.filter(jumbotrons, filterFn);
+	return jumbotrons;
+    },
+
+    _sortJumbotrons: function _sortJumbotrons(jumbotrons, key, reverse) {
+	jumbotrons = jumbotrons.sort(function(a, b) {
+	    a = a[key];
+	    b = b[key];
+	    return a>b ? 1 : a<b ? -1 : 0;
+	});
+	if (reverse)
+	    jumbotrons = jumbotrons.reverse();
+	return jumbotrons;
+    },
+
+    _getAllJumbotrons: function _getAllJumbotrons(cb) {
 	fs.readdir(params.databaseDir, function(err, files) {
 	    if (err)
-		return cb(err);
+		return cb && cb(err);
 	    var jumbotrons = [];
-	    
-	    var done = 0;
+	    var todo = files.length;
 	    for (var f in files) {
 		if (files[f][0] == '.') { // ignore . files
-		    done++
-		    continue;
+		    --todo;
 		}
-		this.getJumbotron(files[f], function(err, jumbotron) {
-		    if (! err && jumbotron)
-			jumbotrons.push(jumbotron);
-		    if (++done == files.length)
-			cb(null, jumbotrons);
-		}, true);
+		else {
+		    this.getJumbotron(files[f], function(err, jumbotron) {
+			--todo;
+			if (! err && jumbotron) {
+			    jumbotrons.push(jumbotron);
+			    if (todo === 0)
+				cb && cb(null, jumbotrons);
+			}
+		    }, true);
+		}
 	    }
-
 	    /*
 	    function getNext(which) {
 		this.getJumbotron(files[which], function(err, jumbotron) {
@@ -86,6 +132,27 @@ Store.prototype = {
 	}.bind(this));
     },
 
+    getAllJumbotrons: function getAllJumbotrons(options, cb) {
+	this._getAllJumbotrons(function(err, jumbotrons) {
+	    if (err)
+		return cb && cb(err);
+	    if (options.filter)
+		jumbotrons = this._filterJumbotrons(jumbotrons,
+						    options.filter);
+	    var fullLength =jumbotrons.length;
+	    if (options.sortKey)
+		jumbotrons = this._sortJumbotrons(jumbotrons,
+						  options.sortKey,
+						  options.reverse);
+	    if (options.start || options.num) {
+		var start = options.start || 0;
+		var end   = start + (options.num || 100);
+		jumbotrons = jumbotrons.slice(start, end);
+	    }
+	    cb && cb(null, jumbotrons, fullLength);
+	}.bind(this));
+    },
+
     // Return the named jumbotron
     // If 'stealth' is true, this access is not recorded.
     // Stealth is used for introspection (admin page)
@@ -94,7 +161,7 @@ Store.prototype = {
 	var jumbotron = this._memStore.get(name);
 	if (jumbotron) {
 	    if (! stealth) {
-		// Update access time and callback
+		// Update access time
 		jumbotron.touch();
 	    }
 	    return cb(null, jumbotron);
@@ -102,26 +169,35 @@ Store.prototype = {
 	// Look in persistent store
 	this._diskStore.get(name, function(err, data) {
 	    // err from diskStore means not found
-	    if (err || ! data)
+	    if (err || ! data) {
+		// Callback error
 		return cb(null, null);
+	    }
 
 	    try {
 		// Parse and add to memstore
 		jumbotron = this._jumbotronFromString(data);
-		if (! stealth) 
-		    this._memStore.set(name, jumbotron);
+		this._memStore.set(name, jumbotron);
 	    }
 	    catch (exception) {
 		// Ignore badly formatted jumbotron file
 		utils.error(exception);
+		// Callback error
 		return cb(null, null);
 	    }
 
-	    if (! stealth) {
-		// Update access time and callback
-		jumbotron.touch();
-	    }
-	    cb(null, jumbotron);
+	    // Get list of calibration images
+	    // TODO: save these in the store
+	    jumbotron.getCalibrationImages(function(err, images) {
+		// Ignore errors
+		jumbotron.calibImages = images;
+		// Update access time
+		if (! stealth)
+		    jumbotron.touch();
+		// Callback ok
+		cb(null, jumbotron);
+	    });
+
 	}.bind(this));
     },
 

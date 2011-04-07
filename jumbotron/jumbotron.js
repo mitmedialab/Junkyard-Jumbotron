@@ -43,6 +43,9 @@ function Jumbotron(options) {
     // All attached images, keyed by index
     this.images = [];
 
+    // Simple list of calibration images, for introspection
+    this.calibImages = options.calibImages || [];
+
     // options.controllers|displays|images are generic Objects from
     // JSON.parse that need to be converted and added.
     for (var c in options.controllers)
@@ -77,6 +80,7 @@ Jumbotron.prototype = utils.inherits(Base, {
 	ret.slideDuration = this.slideDuration;
 	ret.aspectRation = this.aspectRation;
 	ret.images = this.images;
+	//ret.calibImages = this.calibImages; // For now, recreate this on load
 	ret.displays = this.displays;
 	ret.controllers = this.controllers;
 
@@ -158,7 +162,7 @@ Jumbotron.prototype = utils.inherits(Base, {
     
     calibrate: function calibrate(src, cb) {
 	var dst = path.join(this.getDirectory(),
-			    '_calibrate_' + path.extname(src));
+			    '_calibrate_' + utils.uniqueFileName() + path.extname(src));
 	fs.rename(src, dst, function(err) {
 	    if (err)
 		return cb && cb(err);
@@ -170,6 +174,10 @@ Jumbotron.prototype = utils.inherits(Base, {
 		    return cb && cb(err);
 		}
 		image.makeThumbnail(params.thumbnailImageSize);
+
+		// Add to the list of calibration images
+		this.calibImages.push(dst);
+
 		calib.calibrate(this, dst, cb);
 	    }.bind(this));
 	}.bind(this));
@@ -178,13 +186,15 @@ Jumbotron.prototype = utils.inherits(Base, {
     getCalibrationImages: function getCalibrationImages(cb) {
 	var dir = this.getDirectory();
 	fs.readdir(dir, function(err, files) {
-	    files = utils.select(files, function(file) {
-		return file.indexOf('calibrate') != -1;
-	    });
-	    files = utils.map(files, function(files) {
-		return path.join(dir, files);
-	    });
-	    cb(err, files);
+	    if (err)
+		return cb && cb(err);
+	    var images = [];
+	    for (var f in files) {
+		var file = files[f];
+		if (file.indexOf('calibrate') != -1)
+		    images.push(path.join(dir, file));
+	    }
+	    cb && cb(null, images);
 	});
     },
 

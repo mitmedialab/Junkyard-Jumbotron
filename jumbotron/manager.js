@@ -38,24 +38,8 @@ Manager.prototype = utils.inherits(Store, {
     },
 
     // Get all jumbotrons plus get their calibration images
-    getAllJumbotrons: function getAllJumbotrons(cb) {
-	this._store.getAllJumbotrons(function(err, jumbotrons) {
-	    if (err)
-		return cb(err);
-
-	    var todo = jumbotrons.length;
-	    function getCalibrationImages(jumbotron) {
-		jumbotron.getCalibrationImages(function(err, images) {
-		    // Ignore errors
-		    jumbotron.calibImages = images;
-		    if (--todo == 0)
-			cb(null, jumbotrons);
-		});
-	    }
-
-	    utils.each(jumbotrons, getCalibrationImages);
-	});
-
+    getAllJumbotrons: function getAllJumbotrons(options, cb) {
+	this._store.getAllJumbotrons(options, cb);
     },
 
     // ----------------------------------------------------------------------

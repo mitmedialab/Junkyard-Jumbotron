@@ -21,6 +21,7 @@ module.exports = {
 			 noreply: 1,
 			 admin	: 1, 
 			 jumbotron : 1,
+			 'undefined' : 1,
 			 'mailer-daemon': 1 },
 
     // File size and type limits

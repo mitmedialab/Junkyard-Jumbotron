@@ -18,8 +18,21 @@ html(lang="en")
         p The Junkyard Jumbotron requires javascript.
         p Please enable javascript in your browser preferences.
     h1 Junkyard Jumbotrons
-    div 
-    div
+    div#jjControls
+      div#jjPageControl
+        a#jjPagePrev(href='#') &lt;Prev
+        span#jjPageCur 0 of 0
+        span#jjTotal= fullLength
+        a#jjPageNext(href='#') &nbsp;Next&gt;
+      div#jjFilterControl
+        | Filter
+        select#jjFilter
+          option(value='all') All
+          option(value='tried', selected='true') Calibration Tried
+          option(value='failed') Calibration Failed
+          option(value='calibrated') Calibrated
+          option(value='uploaded') Images Uploaded
+    div#jjMain
       table
         th
           a#jjSortName(href='#') Name
@@ -30,15 +43,8 @@ html(lang="en")
           a#jjSortCreate(href='#') Created
         th
           a Mode
-        th(colspan=2)
-          | Filter
-          select#jjFilter
-            option(value='all') All
-            option(value='tried', selected='true') Calibration Tried
-            option(value='failed') Calibration Failed
-            option(value='calibrated') Calibrated
-            option(value='uploaded') Images Uploaded
         div#jjTable
+
           - each jumbotron in jumbotrons
             tr.jjJumbotron
               td(title=jumbotron.name)= nameToString(jumbotron.name)
@@ -46,33 +52,37 @@ html(lang="en")
               td= jumbotron.isActive() ? 'active' : timeToString(jumbotron.accessTime)
               td= timeToString(jumbotron.createTime)
               td= jumbotron.mode
+
+            - var gotDisplay = false
             - each display in jumbotron.displays
+              - gotDisplay = true
               tr.jjDisplay
                 td
-                td(title=display.clientId)= 'display ' + display.idx
+                td(title=display.clientId)= 'disp ' + display.idx
                 td= display.isActive() ? 'active' : timeToString(display.accessTime)
-                td(title=display.viewport.toString())= vpToString(display.viewport)
-            - each controller in jumbotron.controllers
-              tr.jjController
+                td(colspan=2, title=display.viewport.toString())= vpToString(display.viewport)
+            - if (! gotDisplay)
+              tr.jjDisplay
                 td
-                td(title=controller.clientId)= 'controller ' + controller.idx
-                td= controller.isActive() ? 'active' : timeToString(controller.accessTime)
+                td(colspan=2) no displays
+
             tr
-              td.jjCalibImage
+              td
               td calib
                 br
                 | images
               - each calibImage in (jumbotron.calibImages || [])
-                td.jjCalibImage
+                td
                   a(href=calibImage.replace('public/',''))
-                    img(src=calibImage.replace('public/','') + '?tn=1')
+                    img.jjCalibImage(src=calibImage.replace('public/','') + '?tn=1')
+
             tr
               td
               td images
               - each image in jumbotron.images
-                td.jjImage
+                td
                   -if (! image.source)
                     b BAD
                   -else
                     a(href=image.source.replace('public/',''))
-                      img(src=image.source.replace('public/', '') + '?tn=1')
+                      img.jjImage(src=image.source.replace('public/', '') + '?tn=1')

@@ -1,3 +1,9 @@
+a {
+  text-decoration:  none;
+} 
+a:hover   {
+  text-decoration:  underline;
+} 
 body {
     font-family: Helvetica, Arial, sans-serif;
     background: #F0F0F0;
@@ -5,8 +11,24 @@ body {
 th {
     font-weight:normal;
     text-align: left;
+    text-decoration: underline;
 }
 .jjJumbotron {
     font-weight:bold;
 }
+.jjCalibImage, .jjImage {
+    width: 80px;
+    height: 80px;
+}
 
+#jjPageControl {
+    float: left;
+    margin: 10px;
+}
+#jjFilterControl {
+    float: left;
+    margin: 10px;
+}
+#jjMain {
+    clear: both;
+}

@@ -174,9 +174,13 @@ Server.prototype = {
 
 		var filename = path.join(params.resourceDir, url.pathname);
 		Image.makeThumbnail(filename, 80, function(err, filename) {
-		    if (! err)
+		    if (err) {
+			res.send(err, 404);
+		    }
+		    else {
 			req.url = filename.slice(params.resourceDir.length);
-		    next(); // pass to static provider
+			next(); // pass to static provider
+		    }
 		});
 	    },
 
@@ -246,51 +250,13 @@ Server.prototype = {
     },
 
     handleAdmin: function handleAdmin(req, res) {
-	var filter = req.query.filter || 'tried';
-	var sort   = req.query.sort   || 'name';
-	var reverse = req.query.reverse && req.query.reverse == 'true';
-
-	this._manager.getAllJumbotrons(function(err, jumbotrons) {
-	    // Filter em
-	    var filterFn;
-	    switch (filter) {
-	    case 'all':
-		break;
-	    case 'tried':
-		filterFn = function(jumbotron) {
-		    return (jumbotron.calibImages &&
-			    jumbotron.calibImages.length);
-		};
-		break;
-	    case 'failed':
-		filterFn = function(jumbotron) {
-		    return (jumbotron.calibImages &&
-			    jumbotron.calibImages.length &&
-			    ! jumbotron.isCalibrated());
-		};
-		break;
-	    case 'calibrated':
-		filterFn = function(jumbotron) {
-		    return jumbotron.isCalibrated();
-		};
-		break;
-	    case 'uploaded':
-		filterFn = function(jumbotron) {
-		    return jumbotron.numFrames() > 0;
-		};
-		break;
-	    }
-	    if (filterFn)
-		jumbotrons = utils.filter(jumbotrons, filterFn);
-	    // Sort em
-	    jumbotrons = jumbotrons.sort(function(a, b) {
-		a = a[sort];
-		b = b[sort];
-		return a>b ? 1 : a<b ? -1 : 0;
-	    });
-	    if (reverse)
-		jumbotrons = jumbotrons.reverse();
-
+	var options = { filter : req.query.filter || 'tried',
+			sortKey: req.query.sort   || 'name',
+			reverse: req.query.reverse && req.query.reverse == 'true',
+			start  : parseInt(req.query.start  || 0),
+			num    : parseInt(req.query.num    || 100)
+		      };
+	this._manager.getAllJumbotrons(options, function(err, jumbotrons, fullLength) {
 	    // Display em
 	    function timeToString(ms) {
 		var date = new Date(ms);
@@ -311,10 +277,11 @@ Server.prototype = {
 		    name = '[error]';
 		else if (name.length > limit)
 		    name = name.substring(0, limit) + "&hellip;";
-		return name
+		return name;
 	    }
 
 	    res.render('admin', { locals: { jumbotrons: jumbotrons,
+					    fullLength: fullLength,
 					    timeToString: timeToString,
 					    vpToString: vpToString,
 					    nameToString: nameToString } } );
@@ -634,8 +601,11 @@ Server.prototype = {
 	    jumbotron.calibrate(filename, function(err, numFound) {
 		if (err) 
 		    return cb(err, x(err, jumbotron.name));
-		if (! numFound)
+		if (! numFound) {
+		    // Save the calibration image (jumbotron.calibImages)
+		    this.commitJumbotron(jumbotron, true);
 		    return cb('no displays', x('no displays', jumbotron.name));
+		}
 
 		// We don't know the number of legitimate, connected
 		// displays, so messages about 'too-many' or 'too-few'
