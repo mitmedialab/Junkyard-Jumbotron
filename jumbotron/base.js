@@ -16,7 +16,7 @@ Base.prototype = {
     // Serialize
     toJSON: function toJSON() {
 	return  { createTime : this.createTime,
-		  accessTime : this.createTime };
+		  accessTime : this.accessTime };
     },
 
     // Update access time

@@ -21,11 +21,7 @@ th {
     height: 80px;
 }
 
-#jjPageControl {
-    float: left;
-    margin: 10px;
-}
-#jjFilterControl {
+#jjPageControl, #jjFilterControl, #jjPeriodControl {
     float: left;
     margin: 10px;
 }

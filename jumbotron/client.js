@@ -23,6 +23,10 @@ function Client(options) {
 
     // Socket
     this.socket = options.socket;
+
+    // Time of last communication.
+    // If not messages, use last access time (for old db)
+    this.msgTime = options.msgTime || options.accessTime;
 }
 
 // Subclass and Members
@@ -33,6 +37,7 @@ Client.prototype = utils.inherits(Base, {
 	var ret = Base.prototype.toJSON.call(this);
 	ret.idx = this.idx;
 	ret.clientId = this.clientId;
+	ret.msgTime = this.msgTime;
 	return ret;
     },
 
@@ -45,6 +50,7 @@ Client.prototype = utils.inherits(Base, {
     sendMsg: function sendMsg(cmd, args) {
 	var jName = this.jumbotron ? this.jumbotron.name : "UNATTACHED";
 	debug('>', jName, this.type, this.idx, cmd, args);
+	this.msgTime = Date.now();
 	this.socket.sendMsg(cmd, args);
     },
 
@@ -52,6 +58,7 @@ Client.prototype = utils.inherits(Base, {
     sendError: function sendError(err) {
 	var jName = this.jumbotron ? this.jumbotron.name : "UNATTACHED";
 	error('>', jName, this.idx, err);
+	this.msgTime = Date.now();
 	this.socket.sendError(err);
     }
 

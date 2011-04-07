@@ -100,6 +100,19 @@ Jumbotron.prototype = utils.inherits(Base, {
 	    return display.isActive();
 	}).length;
     },
+    
+    lastMessageTime: function lastMessageTime() {
+	var time;
+	this.forEachDisplay(function(display) {
+	    if (! time || display.msgTime > time)
+		time = display.msgTime;
+	});
+	this.forEachController(function(controller) {
+	    if (! time || controller.msgTime > time)
+		time = controller.msgTime;
+	});
+	return time;
+    },
 
     getDirectory: function getDirectory() {
 	return path.join(params.jumbotronsDir, this.name);
@@ -109,8 +122,10 @@ Jumbotron.prototype = utils.inherits(Base, {
 
     getController: function getController(id) {
 	var controller = this.controllers[id];
-	if (controller)
+	if (controller) {
+	    this.touch();
 	    controller.touch();
+	}
 	return controller;
     },
 
@@ -131,12 +146,18 @@ Jumbotron.prototype = utils.inherits(Base, {
 	cont.jumbotron = null;
     },
 
+    numControllers: function numControllers() {
+	return utils.size(this.controllers);
+    },
+
     // ----------------------------------------------------------------------
 
     getDisplay: function getDisplay(id) {
 	var display = this.displays[id];
-	if (display)
+	if (display) {
+	    this.touch();
 	    display.touch();
+	}
 	return display;
     },
 
@@ -156,6 +177,16 @@ Jumbotron.prototype = utils.inherits(Base, {
 	delete this[display.clientId];
 	display.idx = -666;
 	display.jumbotron = null;
+    },
+
+    numDisplays: function numDisplays() {
+	return utils.size(this.displays);
+    },
+
+    numCalibratedDisplays: function numCalibratedDisplays() {
+	return utils.size(utils.select(this.displays, function(display) {
+	    return display.isCalibrated();
+	}));
     },
 
     // ----------------------------------------------------------------------
@@ -219,13 +250,17 @@ Jumbotron.prototype = utils.inherits(Base, {
 
     getCurrentImage: function getCurrentImage() {
 	var image = this.curImage;
+	this.touch();
 	image.touch();
 	return image;
     },
 
     getImage: function getImage(which) {
 	var image = this.image[which];
-	image.touch();
+	if (image) {
+	    this.touch();
+	    image.touch();
+	}
 	return image;
     },
 

@@ -44,9 +44,11 @@ Display.prototype = utils.inherits(Client, {
 
     sendLoad: function sendLoad() {
 	var jumbotron = this.jumbotron;
-	var src       = jumbotron.getDisplayImage(this).source;
+	var image     = jumbotron.getDisplayImage(this);
+	var src       = imagejumbotron.getDisplayImage(this).source;
 	var viewport  = jumbotron.getDisplayViewport(this);
 	var frozen    = jumbotron.getDisplayFrozen(this);
+	image.touch();
 	if (utils.isStartsWith(src, params.resourceDir))
 	    src = src.substring(params.resourceDir.length + 1); // +1 for '/'
 	this.sendMsg('load', { src: src,

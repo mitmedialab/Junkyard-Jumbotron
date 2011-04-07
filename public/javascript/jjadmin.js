@@ -4,6 +4,7 @@ function parseQuery() {
     var options = { reverse : 'false',
 		    sort    : 'name',
 		    filter  : 'tried',
+		    period  : 'all',
 		    start   : 0,
 		    num     : 100 };
     var query = $.parseQuery();
@@ -48,25 +49,38 @@ $(function() {
     $('#jjPageCur').text(' ' + curOptions.start + ' - ' + curOptions.last + ' of ');
 
     $('#jjPagePrev').click(function() {
-	reload({ start: Math.max(curOptions.start - curOptions.num, 0) });
+	if (curOptions.start > 0)
+	    reload({ start: Math.max(curOptions.start - curOptions.num, 0) });
     });
     $('#jjPageNext').click(function() {
-	reload({ start: Math.min(curOptions.start + curOptions.num, curOptions.total) });
+	var newStart = curOptions.start + curOptions.num;
+	if (newStart < curOptions.total)
+	    reload({ start: newStart });
     });
 
-    $('#jjFilter').val(curOptions.filter || 'tried');
-    
+    $('#jjFilter').val(curOptions.filter);
     $('#jjFilter').change(function(event) {
-	reload({ filter: $("#jjFilter option:selected").val() });
+	reload({ filter: $("#jjFilter option:selected").val(),
+		 start: 0 });
     });
+
+    $('#jjPeriod').val(curOptions.period);
+    $('#jjPeriod').change(function(event) {
+	reload({ period: $("#jjPeriod option:selected").val(),
+		 start: 0 });
+    });
+
     $('#jjSortName'  ).click(function() {
 	resort('name');
     });
-    $('#jjSortAccess').click(function() {
-	resort('accessTime');
-    });
     $('#jjSortCreate').click(function() {
 	resort('createTime');
+    });
+    $('#jjSortAccess').click(function() {
+	resort('msgTime');
+    });
+    $('#jjSortNumFound').click(function() {
+	resort('numFound');
     });
 });
 

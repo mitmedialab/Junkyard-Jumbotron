@@ -25,22 +25,29 @@ html(lang="en")
         span#jjTotal= fullLength
         a#jjPageNext(href='#') &nbsp;Next&gt;
       div#jjFilterControl
-        | Filter
+        | Show
         select#jjFilter
           option(value='all') All
           option(value='tried', selected='true') Calibration Tried
           option(value='failed') Calibration Failed
           option(value='calibrated') Calibrated
           option(value='uploaded') Images Uploaded
+          option(value='active') Active
+      div#jjPeriodControl
+        | From
+        select#jjPeriod
+          option(value='all', selected='true') All Time
+          option(value='today') Last 24 hours
     div#jjMain
       table
         th
           a#jjSortName(href='#') Name
         th
-        th
-          a#jjSortAccess(href='#') Accessed
-        th
           a#jjSortCreate(href='#') Created
+        th
+          a#jjSortAccess(href='#') Last Msg
+        th
+          a#jjSortNumFound(href='#') Displays
         th
           a Mode
         div#jjTable
@@ -48,37 +55,18 @@ html(lang="en")
           - each jumbotron in jumbotrons
             tr.jjJumbotron
               td(title=jumbotron.name)= nameToString(jumbotron.name)
-              td
-              td= jumbotron.isActive() ? 'active' : timeToString(jumbotron.accessTime)
               td= timeToString(jumbotron.createTime)
+              td= timeToString(jumbotron.lastMessageTime())
+              td= jumbotron.numCalibratedDisplays()
               td= jumbotron.mode
-
-            - var gotDisplay = false
-            - each display in jumbotron.displays
-              - gotDisplay = true
-              tr.jjDisplay
-                td
-                td(title=display.clientId)= 'disp ' + display.idx
-                td= display.isActive() ? 'active' : timeToString(display.accessTime)
-                td(colspan=2, title=display.viewport.toString())= vpToString(display.viewport)
-            - if (! gotDisplay)
-              tr.jjDisplay
-                td
-                td(colspan=2) no displays
 
             tr
               td
-              td calib
-                br
-                | images
               - each calibImage in (jumbotron.calibImages || [])
                 td
                   a(href=calibImage.replace('public/',''))
                     img.jjCalibImage(src=calibImage.replace('public/','') + '?tn=1')
-
-            tr
-              td
-              td images
+              td 
               - each image in jumbotron.images
                 td
                   -if (! image.source)

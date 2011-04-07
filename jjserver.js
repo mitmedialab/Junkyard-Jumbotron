@@ -251,6 +251,7 @@ Server.prototype = {
 
     handleAdmin: function handleAdmin(req, res) {
 	var options = { filter : req.query.filter || 'tried',
+			period : req.query.period || 'all',
 			sortKey: req.query.sort   || 'name',
 			reverse: req.query.reverse && req.query.reverse == 'true',
 			start  : parseInt(req.query.start  || 0),

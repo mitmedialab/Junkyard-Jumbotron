@@ -49,7 +49,7 @@ Store.prototype = {
 	return new Jumbotron(JSON.parse(string));
     },
 
-    _filterJumbotrons: function _filterJumbotrons(jumbotrons, filter) {
+    _filterJumbotronsByState: function _filterJumbotronsByState(jumbotrons, filter) {
 	var filterFn;
 	switch (filter) {
 	case 'all':
@@ -74,7 +74,31 @@ Store.prototype = {
 	    break;
 	case 'uploaded':
 	    filterFn = function(jumbotron) {
-		return jumbotron.numFrames() > 0;
+		return (jumbotron.isCalibrated() &&
+			jumbotron.numFrames() > 0);
+	    };
+	    break;
+	case 'active':
+	    filterFn = function(jumbotron) {
+		return (jumbotron.isActive());
+	    };
+	    break;
+	}
+	if (filterFn)
+	    jumbotrons = utils.filter(jumbotrons, filterFn);
+	return jumbotrons;
+    },
+
+    _filterJumbotronsByDate: function _filterJumbotrons(jumbotrons, filter) {
+	var date = Date.now();
+	var filterFn;
+	switch (filter) {
+	case 'all':
+	    break;
+	case 'today':
+	    date -= (24 * 60 * 60 * 1000); // 24 hours in milliseconds
+	    filterFn = function(jumbotron) {
+		return (jumbotron.createTime > date);
 	    };
 	    break;
 	}
@@ -84,11 +108,31 @@ Store.prototype = {
     },
 
     _sortJumbotrons: function _sortJumbotrons(jumbotrons, key, reverse) {
-	jumbotrons = jumbotrons.sort(function(a, b) {
-	    a = a[key];
-	    b = b[key];
-	    return a>b ? 1 : a<b ? -1 : 0;
-	});
+	var sortFn;
+	switch (key) {
+	case 'msgTime':
+	    sortFn = function(a, b) {
+		a = a.lastMessageTime();
+		b = b.lastMessageTime();
+		return a>b ? 1 : a<b ? -1 : 0;
+	    }
+	    break;
+	case 'numFound':
+	    sortFn = function(a, b) {
+		a = a.numCalibratedDisplays();
+		b = b.numCalibratedDisplays();
+		return a>b ? 1 : a<b ? -1 : 0;
+	    }
+	    break;
+	default:
+	    sortFn = function(a, b) {
+		a = a[key];
+		b = b[key];
+		return a>b ? 1 : a<b ? -1 : 0;
+	    }
+	    break;
+	}
+	jumbotrons = jumbotrons.sort(sortFn);
 	if (reverse)
 	    jumbotrons = jumbotrons.reverse();
 	return jumbotrons;
@@ -101,7 +145,10 @@ Store.prototype = {
 	    var jumbotrons = [];
 	    var todo = files.length;
 	    for (var f in files) {
-		if (files[f][0] == '.') { // ignore . files
+		// ignore . files and 'undefined'
+		// TODO: bug, why is there an undefined/
+		if (files[f][0] == '.' ||
+		    files[f] == 'undefined') {
 		    --todo;
 		}
 		else {
@@ -137,8 +184,11 @@ Store.prototype = {
 	    if (err)
 		return cb && cb(err);
 	    if (options.filter)
-		jumbotrons = this._filterJumbotrons(jumbotrons,
-						    options.filter);
+		jumbotrons = this._filterJumbotronsByState(jumbotrons,
+							   options.filter);
+	    if (options.period)
+		jumbotrons = this._filterJumbotronsByDate(jumbotrons,
+							  options.period);
 	    var fullLength =jumbotrons.length;
 	    if (options.sortKey)
 		jumbotrons = this._sortJumbotrons(jumbotrons,
