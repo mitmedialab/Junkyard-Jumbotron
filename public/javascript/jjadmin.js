@@ -70,17 +70,15 @@ $(function() {
 		 start: 0 });
     });
 
-    $('#jjSortName'  ).click(function() {
-	resort('name');
-    });
-    $('#jjSortCreate').click(function() {
-	resort('createTime');
-    });
-    $('#jjSortAccess').click(function() {
-	resort('msgTime');
-    });
-    $('#jjSortNumFound').click(function() {
-	resort('numFound');
-    });
+    var sortButtonKeys = { Name  : 'name',
+			   Create: 'createTime',
+			   Active: 'lastActiveTime',
+			   Alive : 'aliveTime',
+			   Found : 'numCalibratedDisplays' };
+    for (button in sortButtonKeys) {
+	$('#jjSort' + button).click(function(button) {
+	    resort(sortButtonKeys[button]);
+	}.bind(null, button));
+    }
 });
 

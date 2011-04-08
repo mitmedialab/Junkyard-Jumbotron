@@ -34,7 +34,7 @@ html(lang="en")
           option(value='uploaded') Images Uploaded
           option(value='active') Active
       div#jjPeriodControl
-        | From
+        | Created
         select#jjPeriod
           option(value='all', selected='true') All Time
           option(value='today') Last 24 hours
@@ -45,9 +45,11 @@ html(lang="en")
         th
           a#jjSortCreate(href='#') Created
         th
-          a#jjSortAccess(href='#') Last Msg
+          a#jjSortActive(href='#') Active
         th
-          a#jjSortNumFound(href='#') Displays
+          a#jjSortAlive(href='#') Alive
+        th
+          a#jjSortFound(href='#') Displays
         th
           a Mode
         div#jjTable
@@ -56,7 +58,8 @@ html(lang="en")
             tr.jjJumbotron
               td(title=jumbotron.name)= nameToString(jumbotron.name)
               td= timeToString(jumbotron.createTime)
-              td= timeToString(jumbotron.lastMessageTime())
+              td= timeToString(jumbotron.lastActiveTime())
+              td= spanToString(jumbotron.aliveTime())
               td= jumbotron.numCalibratedDisplays()
               td= jumbotron.mode
 

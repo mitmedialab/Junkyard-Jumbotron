@@ -101,17 +101,14 @@ Jumbotron.prototype = utils.inherits(Base, {
 	}).length;
     },
     
-    lastMessageTime: function lastMessageTime() {
-	var time;
-	this.forEachDisplay(function(display) {
-	    if (! time || display.msgTime > time)
-		time = display.msgTime;
-	});
-	this.forEachController(function(controller) {
-	    if (! time || controller.msgTime > time)
-		time = controller.msgTime;
-	});
-	return time;
+    lastActiveTime: function lastActiveTime() {
+	return utils.reduce(this.displays, function(time, display) {
+	    return Math.max(display.msgTime, time);
+	}, 0);
+    },
+
+    aliveTime: function aliveTime() {
+	return Math.max(0, this.lastActiveTime() - this.createTime);
     },
 
     getDirectory: function getDirectory() {

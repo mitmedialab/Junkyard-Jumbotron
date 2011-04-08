@@ -110,17 +110,12 @@ Store.prototype = {
     _sortJumbotrons: function _sortJumbotrons(jumbotrons, key, reverse) {
 	var sortFn;
 	switch (key) {
-	case 'msgTime':
+	case 'numCalibratedDisplays':
+	case 'lastActiveTime':
+	case 'aliveTime':
 	    sortFn = function(a, b) {
-		a = a.lastMessageTime();
-		b = b.lastMessageTime();
-		return a>b ? 1 : a<b ? -1 : 0;
-	    }
-	    break;
-	case 'numFound':
-	    sortFn = function(a, b) {
-		a = a.numCalibratedDisplays();
-		b = b.numCalibratedDisplays();
+		a = a[key]();
+		b = b[key]();
 		return a>b ? 1 : a<b ? -1 : 0;
 	    }
 	    break;

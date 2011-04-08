@@ -260,8 +260,23 @@ Server.prototype = {
 	this._manager.getAllJumbotrons(options, function(err, jumbotrons, fullLength) {
 	    // Display em
 	    function timeToString(ms) {
+		if (ms <= 0)
+		    return "never";
 		var date = new Date(ms);
 		return [date.getMonth(), date.getDate()].join('/');
+	    }
+	    function spanToString(ms) {
+		if (ms <= 0)
+		    return "never";
+		var d = Math.floor(ms / (1000 * 60 * 60 * 24));
+		if (d) return d + ' days';
+		var h = Math.floor(ms / (1000 * 60 * 60));
+		if (h) return h + ' hrs';
+		var m = Math.floor(ms / (1000 * 60));
+		if (m) return m + ' mins';
+		var s = Math.floor(ms / 1000);
+		if (s) return s + ' secs';
+		return ms + ' ms';
 	    }
 	    function vpToString(vp) {
 		if (vp.isEmpty()) return 'not-found';
@@ -284,6 +299,7 @@ Server.prototype = {
 	    res.render('admin', { locals: { jumbotrons: jumbotrons,
 					    fullLength: fullLength,
 					    timeToString: timeToString,
+					    spanToString: spanToString,
 					    vpToString: vpToString,
 					    nameToString: nameToString } } );
 	});
