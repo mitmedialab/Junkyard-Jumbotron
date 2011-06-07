@@ -96,7 +96,7 @@ Client.prototype = {
     initSocket: function initSocket() {
 	var socket = this.socket = new io.Socket(null, {
 	    port: location.port,
-	    transports: ['xhr-polling'],
+	    //transports: ['xhr-polling'],
 	    rememberTransport: false
 	});
 
