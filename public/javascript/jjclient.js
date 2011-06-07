@@ -9,8 +9,26 @@ function isFunction(obj) {
     return !! (obj && obj.constructor && obj.call && obj.apply);
 }
 
+function isArguments(obj) {
+    return !!(obj && hasOwnProperty.call(obj, 'callee'));
+}
+
+function isString(obj) {
+    return !!(obj === '' || (obj && obj.charCodeAt && obj.substr));
+}
+
 function isUndefined(obj) {
     return obj === void 0;
+}
+
+function parseQuery(options) {
+    options = options || [];
+    var query = $.parseQuery();
+    for (var q in query) {
+	if (q)  // bug in parseQuery returns '' in the query string
+	    options[q] = query[q];
+    }
+    return options;
 }
 
 // Return string version of an object
@@ -19,8 +37,19 @@ function stringify(obj) {
 	return "null";
     if (isUndefined(obj))
 	return "undefined";
-    if (obj && obj.charCodeAt && obj.substr)
+    if (isString(obj))
 	return obj;  // string
+    if (isArguments(obj)) {
+	var msg = '';
+	var numArgs = obj.length;
+	for (var a = 0; a < numArgs; a++) {
+	    msg += stringify(obj[a]);
+	    msg += ' ';
+	}
+	return msg;
+    }
+    if (obj.transport)
+	return obj.toString(); // socket
     return JSON.stringify(obj);
 }
 
@@ -32,20 +61,21 @@ function format(str) {
     return parts.join('');
 }
 
-if (isUndefined(console)) {
-    var console = { debug: function() {},
-		    log: function() {} };
+var console;
+if (! console) {
+    console = { debug: function() {},
+		log: function() {} };
 }
 
-// Might be a really old browser without 'join' or 'var a in arguments'
-function log() {
-    var msg = '';
-    var numArgs = arguments.length;
-    for (var a = 0; a < numArgs; a++) {
-	msg += arguments[a];
-	msg += ' ';
-    }
-    console.log(msg);
+var io;
+if (io) {
+    io.Socket.prototype.toString = function() {
+	var type = this.transport ? this.transport.type : "no-transport";
+	return (type + ' ('
+		+ (this.connected ? "connected" : "disconnected")
+		+ (this.connecting ? ", connecting" : "")
+		+ ')');
+    };
 }
 
 // ======================================================================
@@ -53,7 +83,12 @@ function log() {
 
 function Client() {
     this.connectTimeout = null;
-    this.debug = true;
+    this.pingTimer = null;
+
+    this.query = parseQuery({ debug: 'false',
+			      trace: 'false' });
+    this.doDebug = this.query.debug == 'undefined' || this.query.debug == 'true';
+    this.doTrace = this.query.trace == 'undefined' || this.query.trace == 'true';
 }
 
 Client.prototype = {
@@ -61,24 +96,30 @@ Client.prototype = {
     initSocket: function initSocket() {
 	var socket = this.socket = new io.Socket(null, {
 	    port: location.port,
-	    rememberTransport: false});
+	    transports: ['xhr-polling'],
+	    rememberTransport: false
+	});
 
 	// socket.90 v0.6.8: timeout doesn't work very well
 	socket.on('connect', bind(this, function() {
-	    var socket = this.socket;
-	    log('Connected', socket.transport.type);
+	    this.info('Connected with', this.socket);
 	    // Stop any pending connect
 	    this.unscheduleConnect(); 
 	    this.sendInitMsg();
+
+	    var browser = navigator.appVersion || navigator.userAgent || "None";
+	    if (! navigator.cookieEnabled) 
+		browser += " NO COOKIES";
+	    this.info("Browser", browser);
 	}));
 	socket.on('message', bind(this, this.handleMsg));
 	socket.on('connect_failed', bind(this, function() {
-	    log("Connection failed", this.socket);
+	    this.info("Connection failed", this.socket);
 	    // Wait a bit and then create a new socket
 	    setTimeout(bind(this, this.initSocket), 1000);
 	}));
 	socket.on('disconnect', bind(this, function() {
-	    log("Disconnected", this.socket);
+	    this.info("Disconnected", this.socket);
 	    // Try to reconnect
 	    this.scheduleConnect(0);
 	}));
@@ -87,57 +128,87 @@ Client.prototype = {
 
     connectSocket: function connectSocket() {
 	var socket = this.socket;
-	log('Connecting...', socket.host, socket.options.port);
+	socket.disconnect();
+	this.info('Connecting to', socket.host, socket.options.port);
 	socket.connect();
 
-	// Try again in 10 seconds if no connection was made (server down?)
-	this.scheduleConnect(10 * 1000);
+	// Try again in 20 seconds if no connection was made (server down?)
+	this.scheduleConnect(20 * 1000);
     },
 
     scheduleConnect: function scheduleConnect(delay) {
+	//this.info("Scheduling reconnecting in", delay);
         this.unscheduleConnect();
 	this.connectTimeout = setTimeout(bind(this, this.connectSocket), delay);
     },
 
     unscheduleConnect: function unscheduleConnect() {
 	if (this.connectTimeout) {
+	    //this.info("Unscheduling reconnect", this.connectTimeout);
 	    clearTimeout(this.connectTimeout);
 	    this.connectTimeout = null;
+	}
+    },
+
+    startTracing: function startTracing() {
+	this.doTrace = true;
+	if (! this.pingTimer)
+	    this.pingTimer = setInterval(bind(this, this.ping), 60000);
+    },
+
+    stopTracing: function stopTracing() {
+	this.doTrace = false;
+	if (this.pingTimer) {
+	    clearInterval(this.pingTimer);
+	    this.pingTimer = null;
 	}
     },
 
     // ----------------------------------------------------------------------
     // Communication 
 
+    trace: function trace() {
+	if (this.doTrace) {
+	    var msg = stringify(arguments);
+	    console.log(msg);
+	}
+    },
+
+    debug: function debug() {
+	if (this.doDebug) {
+	    var msg = stringify(arguments);
+	    console.log(msg);
+	    this.sendMsg('log', { level: 'debug', msg: msg});
+	}
+    },
+
+    info: function info() {
+	var msg = stringify(arguments);
+	console.log(msg);
+	if (this.doDebug)
+	    this.sendMsg('log', { level: 'info', msg: msg});
+    },
+
+    error: function error() {
+	var msg = stringify(arguments);
+	console.log('ERROR: ' + msg);
+	this.sendMsg('log', { level: 'error', msg: msg});
+    },
+
+    ping: function ping() {
+	this.info("Alive");
+    },
+	
     sendMsg: function sendMsg(cmd, args) {
-	if (this.debug)
-	    log(">", cmd, JSON.stringify(args));
-	this.socket.send(JSON.stringify({cmd: cmd, args: args}));
+	this.trace(">", cmd, JSON.stringify(args));
+	if (this.socket)
+	    this.socket.send(JSON.stringify({cmd: cmd, args: args}));
     },
 
     sendInitMsg: function sendInitMsg(msg) {
 	// Subclasses should override this
     },
 
-    sendErrorMsg: function sendErrorMsg(msg) {
-	msg = stringify(msg);
-	log("ERROR", msg);
-	this.sendMsg('log', { level: 'error', msg: msg});
-    },
-
-    sendInfoMsg: function sendInfoMsg(msg) {
-	msg = stringify(msg);
-	log(msg);
-	this.sendMsg('log', { level: 'info', msg: msg});
-    },
-
-    sendDebugMsg: function sendDebugMsg(msg) {
-	if (this.debug) {
-	    msg = stringify(msg);
-	    log(msg);
-	    this.sendMsg('log', { level: 'debug', msg: msg});
-	}
-    },
 
     // Subclass must create msgHandlers
     handleMsg: function handleMsg(msg) {
@@ -145,21 +216,20 @@ Client.prototype = {
 	    var data = JSON.parse(msg);
 	}
 	catch (SyntaxError) {
-	    this.sendErrorMsg('Invalid JSON: ' + msg);
+	    this.error('Invalid JSON:', msg);
 	    return;
 	}
 
 	try {
-	    if (this.debug)
-		log("<", data.cmd, JSON.stringify(data.args));
+	    this.trace("<", data.cmd, JSON.stringify(data.args));
 	    var handler = this.msgHandlers[data.cmd];
 	    if (! handler)
-		return this.sendErrorMsg("Unknown command: " + data.cmd);
+		return this.error("Unknown command:", data.cmd);
 	    handler.call(this, data.args);
 	}
 	catch (exception) {
-	    this.sendErrorMsg(exception.message + "(" + msg + ")");
-	    log(exception.stack);
+	    this.error(exception.message + " (" + msg + ")");
+	    this.error(exception.stack);
 	}
     }
 };

@@ -117,14 +117,14 @@ Store.prototype = {
 		a = a[key]();
 		b = b[key]();
 		return a>b ? 1 : a<b ? -1 : 0;
-	    }
+	    };
 	    break;
 	default:
 	    sortFn = function(a, b) {
 		a = a[key];
 		b = b[key];
 		return a>b ? 1 : a<b ? -1 : 0;
-	    }
+	    };
 	    break;
 	}
 	jumbotrons = jumbotrons.sort(sortFn);
@@ -140,36 +140,20 @@ Store.prototype = {
 	    var jumbotrons = [];
 	    var todo = files.length;
 	    for (var f in files) {
-		// ignore . files and 'undefined'
-		// TODO: bug, why is there an undefined/
-		if (files[f][0] == '.' ||
-		    files[f] == 'undefined') {
-		    --todo;
+		// Ignore . files and 'undefined' // TODO/BUG, why undefined?
+		if (files[f][0] == '.' || files[f] == 'undefined') {
+		    if (--todo === 0)
+			cb && cb(null, jumbotrons);
 		}
 		else {
 		    this.getJumbotron(files[f], function(err, jumbotron) {
-			--todo;
-			if (! err && jumbotron) {
+			if (! err && jumbotron)
 			    jumbotrons.push(jumbotron);
-			    if (todo === 0)
-				cb && cb(null, jumbotrons);
-			}
+			if (--todo === 0)
+			    cb && cb(null, jumbotrons);
 		    }, true);
 		}
 	    }
-	    /*
-	    function getNext(which) {
-		this.getJumbotron(files[which], function(err, jumbotron) {
-		    if (! err && jumbotron)
-			jumbotrons.push(jumbotron);
-		    if (++which < files.length)
-			setTimeout(getNext.bind(this, which), 0);
-		    else
-			cb(null, jumbotrons);
-		}.bind(this), true);
-	    }
-	    getNext(0);
-	    */
 
 	}.bind(this));
     },

@@ -1,7 +1,9 @@
 // ----------------------------------------------------------------------
 // Utilities, some mirrored from node.js, connect, underscore, and string
 
+var os = require('os');
 var path = require('path');
+var exec = require('child_process').exec;
 var log4js = require('log4js')();
 var logger = log4js.getLogger();
 var nutils = require('util');
@@ -18,6 +20,32 @@ function stringify(obj) {
     if (_.isArguments(obj))
 	return _.toArray(obj).map(stringify).join(" ");
     return nutils.inspect(obj, false, 0, false).replace(/\n|( ) */g, '$1');
+}
+
+function timeToString(ms) {
+    if (ms <= 0)
+	return "never";
+    var date = new Date(ms);
+    return [date.getMonth() + 1, date.getDate()].join('/');
+}
+
+function spanToString(ms) {
+    if (ms <= 0)
+	return "never";
+    var d = Math.floor(ms / (1000 * 60 * 60 * 24));
+    if (d) return d + ' days';
+    var h = Math.floor(ms / (1000 * 60 * 60));
+    if (h) return h + ' hrs';
+    var m = Math.floor(ms / (1000 * 60));
+    if (m) return m + ' mins';
+    var s = Math.floor(ms / 1000);
+    if (s) return s + ' secs';
+    return ms + ' ms';
+}
+
+function osStatsToString(stats) {
+    return ('Uptime: {0}, Disk: {1}%, Memory: {2}%, Load: {3}%'.format
+	    (stats.uptime, stats.diskUsage, stats.memUsage, stats.loadAvg));
 }
 
 var _lastLevel;
@@ -68,13 +96,43 @@ module.exports = {
 	}
     },
 
-    log: function log() {
+    info: function info() {
 	_log(log4js.levels.INFO, stringify(arguments));
     },
 
     debug: function debug() {
 	if (logger.isLevelEnabled(log4js.levels.DEBUG))
 	    _log(log4js.levels.DEBUG, stringify(arguments));
+    },
+
+    trace: function trace() {
+	if (logger.isLevelEnabled(log4js.levels.TRACE))
+	    _log(log4js.levels.TRACE, stringify(arguments));
+    },
+
+    timeToString: timeToString,
+    spanToString: spanToString,
+    osStatsToString: osStatsToString,
+
+    osStats: function osStats(cb) {
+	exec("df -h ~", function(err, stdout, stderr) {
+	    var diskUsage = ! err && stdout && stdout.match(/([0-9]+)%/);
+
+	    var stats = {
+		uptime:
+		  spanToString(os.uptime() * 1000),
+
+		loadAvg: 
+		  Math.round(100 * os.loadavg()[1]),
+
+		memUsage: 
+		  Math.round(100 * os.freemem() / os.totalmem()),
+
+		diskUsage:
+		  diskUsage ? diskUsage[1] : stderr
+	    };
+	    cb(stats);
+	});
     },
 
     inherits: function inherits(superCtor, props) { 

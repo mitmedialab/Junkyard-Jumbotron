@@ -6,6 +6,8 @@ var params = require('./params');
 var Client = require('./client');
 var Viewport = require('./viewport');
 
+var debug = utils.debug;
+
 // Constructor
 function Display(options) {
     Client.call(this, options);

@@ -1,19 +1,9 @@
-var curOptions;
-
-function parseQuery() {
-    var options = { reverse : 'false',
-		    sort    : 'name',
-		    filter  : 'tried',
-		    period  : 'all',
-		    start   : 0,
-		    num     : 100 };
-    var query = $.parseQuery();
-    for (var q in query) {
-	if (q)  // bug in parseQuery returns '' in the query string
-	    options[q] = query[q];
-    }
-    return options;
-}
+var curOptions = { reverse : 'false',
+		   sort    : 'name',
+		   filter  : 'tried',
+		   period  : 'all',
+		   start   : 0,
+		   num     : 100 };
 
 function resort(sort) {
     var reverse = (sort == curOptions.sort &&
@@ -33,13 +23,12 @@ function reload(options) {
 	queryString += co + '=' + curOptions[co];
     }
     var url = "admin" + queryString;
-    log(url);
+    console.log(url);
     location = url;
 }
 
 $(function() {
-
-    curOptions = parseQuery();
+    curOptions = parseQuery(curOptions);
     curOptions.start = parseInt(curOptions.start);
     curOptions.num   = parseInt(curOptions.num);
     curOptions.total = parseInt($('#jjTotal').text());
@@ -75,10 +64,11 @@ $(function() {
 			   Active: 'lastActiveTime',
 			   Alive : 'aliveTime',
 			   Found : 'numCalibratedDisplays' };
-    for (button in sortButtonKeys) {
-	$('#jjSort' + button).click(function(button) {
-	    resort(sortButtonKeys[button]);
-	}.bind(null, button));
+    function makeClickHandler(button) {
+	return function() { resort(sortButtonKeys[button]); };
+    }
+    for (var button in sortButtonKeys) {
+	$('#jjSort' + button).click(makeClickHandler(button));
     }
 });
 

@@ -74,6 +74,10 @@ function Display() {
 
     this.viewportMsgScheduled = null;
 
+    // Start tracing if there is a '?trace' or similar in the url
+    if (this.doTrace)
+	this.startTracing();
+
     this.initDom();
     this.initSocket();
 }
@@ -83,6 +87,8 @@ Display.prototype = new Client();
 $.extend(Display.prototype, {
 
     initDom: function initDom() {
+	// This ony works on IE, Firefox and Chrome, not Safari
+	window.onerror = bind(this, this.handleError);
 	$(window)
 	    .resize   (bind(this, this.handleResize));
 	$(document)
@@ -277,13 +283,19 @@ $.extend(Display.prototype, {
 	this.sendSizeMsg();
     },
 
+    handleError: function handleError(msg, url, line) {
+	url = url.replace(/^.*(\\|\/|\:)/, ''); // path -> filename
+	this.error(msg + ' (' +  url + ":" + line + ')');
+	return true;
+    },
+
     // ----------------------------------------------------------------------
     // Key events
 
     handleKeyup: function handleKeyup(event) {
 	switch (event.which) {
 	  case 68: // d(ebug)
-	    this.debug = ! this.debug;
+	    this.doDebug = ! this.doDebug;
 	    break;
 	  case 73: // i(nfo))
 	    this.showLabel(! this.isShowingLabel());
@@ -438,7 +450,7 @@ $.extend(Display.prototype, {
     },
 
     onImageError: function onImageError() {
-	this.sendErrorMsg("Can't load image", this.image.src);
+	this.error("Can't load image", this.image.src);
 	this.mode = 'idle';
     },
 
@@ -478,11 +490,8 @@ $.extend(Display.prototype, {
 	show: function show(args) {
 	    if (! isUndefined(args.id))
 		this.showLabel(args.id);
-	},
-
-	errorMsg: function error(args) {
-	    log('ERROR from server:', args);
 	}
+
     }
 });
 

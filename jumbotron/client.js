@@ -3,8 +3,9 @@
 
 var utils = require('./utils');
 var Base = require('./base');
-var debug = utils.debug;
 var error = utils.error;
+var debug = utils.debug;
+var trace = utils.trace;
 
 // Constructor
 function Client(options) {
@@ -49,19 +50,10 @@ Client.prototype = utils.inherits(Base, {
     // Send a command with arguments through the socket
     sendMsg: function sendMsg(cmd, args) {
 	var jName = this.jumbotron ? this.jumbotron.name : "UNATTACHED";
-	debug('>', jName, this.type, this.idx, cmd, args);
+	debug(jName, this.type, this.idx, '>', cmd, args);
 	this.msgTime = Date.now();
 	this.socket.sendMsg(cmd, args);
-    },
-
-    // Send an error message through the socket
-    sendError: function sendError(err) {
-	var jName = this.jumbotron ? this.jumbotron.name : "UNATTACHED";
-	error('>', jName, this.idx, err);
-	this.msgTime = Date.now();
-	this.socket.sendError(err);
     }
-
 });
 
 // Export

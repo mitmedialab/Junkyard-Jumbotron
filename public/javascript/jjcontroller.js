@@ -264,7 +264,7 @@ $.extend(Controller.prototype, {
 	if (jumbotron.mode == 'calibrate')
 	    this.setMode('calibrate');
 	else {
-	    console.log(jumbotron);
+	    this.debug(jumbotron);
 	    this.setMode('control');
 	}
 

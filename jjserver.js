@@ -6,6 +6,7 @@ TODO: From the express web page:
 */
 
 // Node.js core libs
+var os = require('os');
 var http = require('http');
 var assert = require('assert');
 var path = require('path');
@@ -37,33 +38,10 @@ var Jumbotron = jumbotron.Jumbotron;
 var Manager = jumbotron.Manager;
 var x = jumbotron.messages.translate;
 
-var log = utils.log;
-var debug = utils.debug;
 var error = utils.error;
-
-// ======================================================================
-// Augment the http and socket classes
-
-http.ServerResponse.prototype.sendStatus = function(status, args) {
-    status = status || 'ok';
-    if (status != 'ok') {
-	// If 'status' is an exception, print the stack trace
-	if (status.stack) {
-            error('#>', status.stack);
-            status = status.message;
-	}
-
-	// Otherwise just print it
-	else if (! utils.isUndefined(args))
-	    error('#>', status, args);
-	else
-	    error('#>', status);
-    }
-    else if (args)
-	debug('#>', status, args);
-    this.send({ status: status, args: args },
-	      { 'Content-Type': 'text/plain' });
-};
+var info  = utils.info;
+var debug = utils.debug;
+var trace = utils.trace;
 
 // ======================================================================
 // Server
@@ -75,8 +53,15 @@ function Server() {
 Server.prototype = {
 
     init: function init() {
-	// Initialize
+	// Initialize logging
 	this.initLogging();
+	info('\n----------------------------------------------------------------------');
+	this.logEnvironment();
+	this.logOsStats();
+	if (params.debug)
+	    setInterval(this.logOsStats, 10 * 60 * 1000); // Every 10 minutes
+
+	// Initialize server and socket
 	this._manager = new Manager();
 	this.initServer();
 	this.initSocket();
@@ -134,26 +119,37 @@ Server.prototype = {
 	    debug = utils.debug = function() {};
     },
 
+    logEnvironment: function logEnvironment() {
+	exec("ulimit -a", function(err, stdout, stderr) {
+		if (err)
+		    error("Can't run ulimit:", stderr);
+	    else {
+		info('Limits:');
+		info(stdout.replace(/^/mg, '\t').replace(/\n\s$/g, ''));
+	    }
+	});
+	if (params.localParams) {
+	    info("WARNING: Using local parameters from 'paramsLocal.js'");
+	    for (var param in params.localParams)
+		info('\t', param, '\t', params.localParams[param]);
+	}
+	info('Environment:');
+	for (var env in process.env)
+	    info('\t', env, '\t', process.env[env]);
+	info('Host: {0} ({1}:{2})'.format(os.hostname(), os.type(), os.release()));
+    },
+
+    logOsStats: function logOsStats() {
+	utils.osStats(function(stats) {
+	    info(utils.osStatsToString(stats));
+	});
+    },
+
     // ----------------------------------------------------------------------
     // HTML Server
 	
     initServer: function initServer() {
-	log('\n----------------------------------------------------------------------');
-	log('Starting Junkyard Jumbotron Server');
-	exec("ulimit -n", function(err, stdout, stderr) {
-		if (err)
-		    error("Can't run ulimit:", stderr);
-		else
-		    log("Number of allowed opened files", stdout);
-	    });
-	if (params.localParams) {
-	    log("WARNING: Using local parameters from 'paramsLocal.js'");
-	    for (var param in params.localParams)
-		log('\t', param, '\t', params.localParams[param]);
-	}
-	log('Environment:');
-	for (var env in process.env)
-	    log('\t', env, '\t', process.env[env]);
+	info('Starting Junkyard Jumbotron Server');
 
 	// Create server with the given middleware
 	var server = this._server = express.createServer(
@@ -229,10 +225,12 @@ Server.prototype = {
 	var jjid = req.cookies.jjid;
 	if (! jjid) {
 	    jjid = req.cookies.jjid = utils.uid(24);
-	    res.cookie('jjid', jjid);
+	    var expires = new Date();
+	    expires.setFullYear(expires.getFullYear() + 1);
+	    res.cookie('jjid', jjid, { expires: expires });
 	}
 	return jjid;
-    },
+		      },
 	
     handleJoin: function handleJoin(req, res) {
 	var name = req.params.jumbotron;
@@ -242,7 +240,7 @@ Server.prototype = {
 	    if (! err && ! jumbotron)
 		err = "no jumbotron";
 	    if (err) {
-		error(err, name);
+		error(req.cookies.jjid, err, name);
 		return res.redirect('/#join');
 	    }
 	    res.render('display');
@@ -250,6 +248,25 @@ Server.prototype = {
     },
 
     handleAdmin: function handleAdmin(req, res) {
+	// Util methods
+	function vpToString(vp) {
+	    if (vp.isEmpty()) return 'not-found';
+	    var x = vp.x.toFixed(1);
+	    var y = vp.y.toFixed(1);
+	    var w = vp.width.toFixed(1);
+	    var h = vp.height.toFixed(1);
+	    var r = ['',' <',' >',' V'][vp.rotation];
+	    return x + ',' + y + ' ' + w + 'x' + h + r;
+	}
+	function nameToString(name, limit) {
+	    limit = limit || 8;
+	    if (! name)
+		name = '[error]';
+	    else if (name.length > limit)
+		name = name.substring(0, limit) + "&hellip;";
+	    return name;
+	}
+
 	var options = { filter : req.query.filter || 'tried',
 			period : req.query.period || 'all',
 			sortKey: req.query.sort   || 'name',
@@ -257,51 +274,19 @@ Server.prototype = {
 			start  : parseInt(req.query.start  || 0),
 			num    : parseInt(req.query.num    || 100)
 		      };
+
 	this._manager.getAllJumbotrons(options, function(err, jumbotrons, fullLength) {
 	    // Display em
-	    function timeToString(ms) {
-		if (ms <= 0)
-		    return "never";
-		var date = new Date(ms);
-		return [date.getMonth(), date.getDate()].join('/');
-	    }
-	    function spanToString(ms) {
-		if (ms <= 0)
-		    return "never";
-		var d = Math.floor(ms / (1000 * 60 * 60 * 24));
-		if (d) return d + ' days';
-		var h = Math.floor(ms / (1000 * 60 * 60));
-		if (h) return h + ' hrs';
-		var m = Math.floor(ms / (1000 * 60));
-		if (m) return m + ' mins';
-		var s = Math.floor(ms / 1000);
-		if (s) return s + ' secs';
-		return ms + ' ms';
-	    }
-	    function vpToString(vp) {
-		if (vp.isEmpty()) return 'not-found';
-		var x = vp.x.toFixed(1);
-		var y = vp.y.toFixed(1);
-		var w = vp.width.toFixed(1);
-		var h = vp.height.toFixed(1);
-		var r = ['',' <',' >',' V'][vp.rotation];
-		return x + ',' + y + ' ' + w + 'x' + h + r;
-	    }
-	    function nameToString(name, limit) {
-		limit = limit || 8;
-		if (! name)
-		    name = '[error]';
-		else if (name.length > limit)
-		    name = name.substring(0, limit) + "&hellip;";
-		return name;
-	    }
-
-	    res.render('admin', { locals: { jumbotrons: jumbotrons,
-					    fullLength: fullLength,
-					    timeToString: timeToString,
-					    spanToString: spanToString,
-					    vpToString: vpToString,
-					    nameToString: nameToString } } );
+	    utils.osStats(function(stats) {
+		res.render('admin', {
+		    locals: { jumbotrons: jumbotrons,
+			      fullLength: fullLength,
+			      timeToString: utils.timeToString,
+			      spanToString: utils.spanToString,
+			      vpToString: vpToString,
+			      nameToString: nameToString,
+			      osStatsString : utils.osStatsToString(stats) } } );
+	    });
 	});
     },
 
@@ -357,23 +342,52 @@ Server.prototype = {
 	// Make sure every client has a jjid cookie
 	this.ensureJJID(req, res);
 
-	// Get command handler
-	var cmd = req.params.cmd;
-	if (req.body)
-	    debug('#<', cmd, req.body);
-	else
-	    debug('#<', cmd);
-	var handler = this.postMsgHandlers[cmd];
-	if (! handler)
-	    return res.sendStatus('bad command', x('bad command', cmd));
 
 	// Get connected jumbotron, if any, and call handler
 	this.getConnectedController(req, res, function(err, controller) {
+	    
+	    // Get command handler
+	    var cmd = req.params.cmd;
+	    var handler = this.postMsgHandlers[cmd];
+	    if (controller)
+		debug(controller.jumbotron.name, controller.type, controller.idx,
+		      '<', cmd, req.body);
+	    else
+		debug(req.cookies.jjid, '<', cmd, req.body);
+	    if (! handler)
+		return this.sendPostResponse(res, controller,
+					     'bad command', x('bad command', cmd));
+
 	    // Ignore errors and missing controller
 	    var status = handler.call(this, req, res, controller);
             if (! utils.isUndefined(status))
-		res.sendStatus(status);
+		this.sendPostResponse(res, controller, status);
 	}.bind(this));
+    },
+
+    sendPostResponse: function sendPostResponse(res, controller, status, args) {
+	status = status || 'ok';
+	var controllerStr = controller
+	    ? [controller.jumbotron.name, controller.type, controller.idx].join(' ')
+	    : 'Unknown controller';
+	if (status != 'ok') {
+	    // If 'status' is an exception, print the stack trace
+	    if (status.stack) {
+		error(controllerStr, '>', status.stack);
+		status = status.message;
+	    }
+
+	    // Otherwise just print it
+	    else if (! utils.isUndefined(args))
+		error(controllerStr, '>', status, args);
+	    else
+		error(controllerStr, '>', status);
+	}
+	else if (args)
+	    debug(controllerStr, '>', args);
+
+	res.send({ status: status, args: args },
+		 { 'Content-Type': 'text/plain' });
     },
 
     postMsgHandlers: {
@@ -386,7 +400,7 @@ Server.prototype = {
 		var status = err || 'ok';
 		if (! err)
 		    this.createController(req, res, jumbotron);
-		res.sendStatus(status, jumbotron);
+		this.sendPostResponse(res, controller, status, jumbotron);
 	    }.bind(this));
 	},
 
@@ -403,7 +417,7 @@ Server.prototype = {
 		    status = 'bad password';
 		else 
 		    this.createController(req, res, jumbotron);
-		res.sendStatus(status, jumbotron);
+		this.sendPostResponse(res, controller, status, jumbotron);
 	    }.bind(this));
 	},
 
@@ -433,16 +447,17 @@ Server.prototype = {
 	    if (req.body && req.body.data) {
 		// Limit size. (1.4 for base64 inflation)
 		if (req.header("content-length") > maxSize * 1.4)
-		    return res.sendStatus('too big', x('too big'));
+		    return this.sendPostResponse(res, controller,
+						 'too big', x('too big'));
 
 		// Save to a temporary file
 		var type = req.body.type;
 		var file = utils.tmpFileName() + '.jpg';
 		fs.writeFile(file, req.body.data, "base64", function(err) {
 		    if (err)
-			return res.sendStatus(err);
+			return this.sendPostResponse(res, controller, err);
 		    this.handleUpload(jumbotron, type, file,
-				      res.sendStatus.bind(res));
+				      this.sendPostResponse.bind(this, res, controller));
 		}.bind(this));
 	    }
 
@@ -450,20 +465,21 @@ Server.prototype = {
 	    else {
 		// Limit size.
 		if (req.header("content-length") > maxSize)
-		    return res.sendStatus('too big', x('too big'));
+		    return this.sendPostResponse(res, controller,
+						 'too big', x('too big'));
 
 		// Let formidable parse and save the data
 		var form = new formidable.IncomingForm();
 		form.keepExtensions = true;
 		form.parse(req, function(err, fields, files) {
 		    if (err)
- 			return res.sendStatus(err);
+ 			return this.sendPostResponse(res, controller, err);
 		    var type = fields['type'];
 		    var file = files['file'];
 		    if (! file)
- 			return res.sendStatus('no file');
+ 			return this.sendPostResponse(res, controller, 'no file');
 		    this.handleUpload(jumbotron, type, file.path, 
-				      res.sendStatus.bind(res));
+				      this.sendPostResponse.bind(this, res, controller));
 		}.bind(this));
 	    }
 	},
@@ -489,7 +505,7 @@ Server.prototype = {
 			mail.sendMail(msg.sender, message);
 		    });
 		}
-		res.sendStatus('ok');
+		this.sendPostResponse(res, controller, 'ok');
 	    }.bind(this));
 
 	},
@@ -655,31 +671,19 @@ Server.prototype = {
 
 	// Listen and handle new connections
 	this._socketio = io.listen(this._server, {
-	    log: utils.log,
+	    log: utils.debug,
 	    transportOptions: {
 		'flashsocket': { 
-		    closeTimeout: 8000, 
-		    timeout: 8000 
 		},
 		'websocket': { 
-		    closeTimeout: 8000, 
-		    timeout: 8000 
 		},
 		'htmlfile': { 
-		    closeTimeout: 8000, 
-		    timeout: 8000 
 		},
 		'xhr-multipart': { 
-		    closeTimeout: 8000, 
-		    timeout: 8000 
 		},
 		'xhr-polling': { 
-		    closeTimeout: 8000, 
-		    timeout: 8000 
 		},
 		'jsonp-polling': { 
-		    closeTimeout: 8000, 
-		    timeout: 8000 
 		} 
 	    }
 	});
@@ -692,9 +696,7 @@ Server.prototype = {
 	socket.sendMsg = function sendMsg(cmd, args) {
 	    this.send(JSON.stringify({ cmd: cmd, args: args }));
 	};
-	socket.sendError = function sendError(err) {
-	    this.sendMsg('error', err);
-	};
+
 
 	// Setup socket handlers
 	socket.on('message',
@@ -713,13 +715,15 @@ Server.prototype = {
 	    // Get client mapped to this socket, if any
 	    this.getSocketClient(socket, function(err, client) {
 
-		// Log
-		if (client)
-		    debug('<', client.jumbotron.name, client.type, client.idx,
-			  data.cmd, data.args);
-		else
-		    debug('<', socket.sessionId,
-			  data.cmd, data.args);
+		// Log (not 'log' commands since the handler will display them)
+		if (data.cmd != 'log')  {
+		    if (client)
+			trace(client.jumbotron.name, client.type, client.idx,
+			      '<', data.cmd, data.args);
+		    else
+			trace(socket.sessionId,
+			      '<', data.cmd, data.args);
+		}
 
 		// Get generic command handler
 		var handler = this.socketMsgHandlers[cmd];
@@ -735,11 +739,7 @@ Server.prototype = {
 		    return error('bad command', cmd);
 
 		// Handle
-		var status = handler.call(this, socket, client, data.args);
-
-		// Handler returns an error message on error
-		if (! utils.isUndefined(status))
-		    client.sendError(status);
+		handler.call(this, socket, client, data.args);
 
 	    }.bind(this));
 	}
@@ -756,7 +756,7 @@ Server.prototype = {
     // Map sockets to clients
     
     setSocketClient: function setSocketClient(socket, client) {
-	debug("Connecting", client.type, client.jumbotron.name, client.idx,
+	debug("Connecting", client.jumbotron.name, client.type, client.idx,
 	      "with socket", socket.sessionId);
 	this._socketMap[socket.sessionId] = { jName: client.jumbotron.name,
 					      idx: client.idx,
@@ -785,7 +785,7 @@ Server.prototype = {
     clearSocketClient: function clearSocketClient(socket) {
 	var item = this._socketMap[socket.sessionId];
 	if (item) {
-	    debug("Disconnecting", item.type, item.jName, item.idx,
+	    debug("Disconnecting", item.jName, item.type, item.idx,
 		  "from", socket.sessionId);
  	    delete this._socketMap[socket.sessionId];
 	    var getter = (item.type == "display")
@@ -861,15 +861,15 @@ Server.prototype = {
 	},
 
 	// Log a message from the display
-	log: function log(socket, client, args) {
-	    var logger = { 'error': error,
-			   'debug': debug,
-			   'info' : log }[args.level] || log;
+	log: function info(socket, client, args) {
+	    var logger = { 'error': utils.error,
+			   'debug': utils.debug,
+			   'info' : utils.info }[args.level] || utils.info;
 	    if (client)
-		logger(client.type, client.jumbotron.name,
-		       client.idx, args.msg);
+		logger(client.jumbotron.name, client.type,
+		       client.idx, ':', args.msg);
 	    else
-		logger(socket.sessionId, args.msg);
+		logger(socket.sessionId, ':', args.msg);
 	}
     },
 
@@ -881,10 +881,10 @@ Server.prototype = {
 	    var type = args.type;
 
 	    this._manager.getJumbotron(jName, function(err, jumbotron) {
+		if (! err && ! jumbotron)
+		    err = 'no jumbotron';
 		if (err)
-		    return socket.sendError(err);
-		if (! jumbotron)
-		    return socket.sendError('no jumbotron');
+		    return error('In display connect:', err, jName);
 
 		// Create client
 		this.createDisplay(socket, args, jumbotron);
@@ -903,8 +903,10 @@ Server.prototype = {
 
 	// Display viewport changed. Propagate to jumbotron and other displays.
 	vp: function vp(socket, display, args) {
-	    if (! display.viewport)
-		return 'no display viewport';
+	    if (! display.viewport) {
+		error('no display viewport');
+		return;
+	    }
 
 	    var vp = new Viewport(args);
 	    vp = vp.uncropped(display.viewport);
