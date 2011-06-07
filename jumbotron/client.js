@@ -50,7 +50,7 @@ Client.prototype = utils.inherits(Base, {
     // Send a command with arguments through the socket
     sendMsg: function sendMsg(cmd, args) {
 	var jName = this.jumbotron ? this.jumbotron.name : "UNATTACHED";
-	debug(jName, this.type, this.idx, '>', cmd, args);
+	trace(jName, this.type, this.idx, '>', cmd, args);
 	this.msgTime = Date.now();
 	this.socket.sendMsg(cmd, args);
     }
