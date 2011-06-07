@@ -56,10 +56,11 @@ Server.prototype = {
 	// Initialize logging
 	this.initLogging();
 	info('\n----------------------------------------------------------------------');
-	this.logEnvironment();
-	this.logOsStats();
-	if (params.debug)
+	if (params.debug) {
+	    this.logEnvironment();
+	    this.logOsStats();
 	    setInterval(this.logOsStats, 10 * 60 * 1000); // Every 10 minutes
+	}
 
 	// Initialize server and socket
 	this._manager = new Manager();
@@ -88,7 +89,8 @@ Server.prototype = {
 	}
 	// Format with timestamp, for log file
 	function layout (loggingEvent) {
-	    var timestamp = loggingEvent.startTime.toFormattedString("MM-dd hh:mm:ss.SSS: ");
+	    var timestamp = loggingEvent.startTime
+		.toFormattedString("MM-dd hh:mm:ss.SSS: ");
 	    var output = timestamp + loggingEvent.message;
 	    if (loggingEvent.exception)
 		output += '\n' + timestamp + layoutException(loggingEvent);
@@ -303,10 +305,13 @@ Server.prototype = {
 	    cont = new Controller({ clientId: req.cookies.jjid });
 	    jumbotron.addController(cont);
 	    this.commitJumbotron(jumbotron, true);
+	    debug(jumbotron.name, cont.type, cont.idx,
+		  'created with id', cont.clientId);
 	}
 
 	// Connect client to controller
 	this.connectController(req, res, cont);
+	return cont;
     },
 
     connectController: function connectController(req, res, controller) {
@@ -416,7 +421,7 @@ Server.prototype = {
 		else if (jumbotron.pwd != req.body.pwd)
 		    status = 'bad password';
 		else 
-		    this.createController(req, res, jumbotron);
+		    controller = this.createController(req, res, jumbotron);
 		this.sendPostResponse(res, controller, status, jumbotron);
 	    }.bind(this));
 	},
@@ -756,8 +761,8 @@ Server.prototype = {
     // Map sockets to clients
     
     setSocketClient: function setSocketClient(socket, client) {
-	debug("Connecting", client.jumbotron.name, client.type, client.idx,
-	      "with socket", socket.sessionId);
+	debug(client.jumbotron.name, client.type, client.idx,
+	      "connected to socket", socket.sessionId);
 	this._socketMap[socket.sessionId] = { jName: client.jumbotron.name,
 					      idx: client.idx,
 					      clientId: client.clientId,
@@ -785,8 +790,8 @@ Server.prototype = {
     clearSocketClient: function clearSocketClient(socket) {
 	var item = this._socketMap[socket.sessionId];
 	if (item) {
-	    debug("Disconnecting", item.jName, item.type, item.idx,
-		  "from", socket.sessionId);
+	    debug(item.jName, item.type, item.idx,
+		  "disconnected from", socket.sessionId);
  	    delete this._socketMap[socket.sessionId];
 	    var getter = (item.type == "display")
 		? 'getDisplay' : 'getController';
@@ -812,6 +817,8 @@ Server.prototype = {
 	    display.aspectRatio = aspectRatio;
 	    jumbotron.addDisplay(display);
 	    this.commitJumbotron(jumbotron);
+	    debug(jumbotron.name, display.type, display.idx,
+		  'created with id', display.clientId);
 	}
 
 	// Update aspect ratio on existing display, if necessary
@@ -826,6 +833,8 @@ Server.prototype = {
 	// Send id and load image onto display
 	display.sendId();
 	display.sendLoad();
+
+	return display;
     },
 
 /*

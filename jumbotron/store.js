@@ -288,7 +288,7 @@ Store.prototype = {
     commitJumbotron: function commitJumbotron(jumbotron, force, cb) {
 	// If no commit delay, commit immediately
 	if (force || params.commitDelay <= 0) {
-	    utils.debug('Committing', jumbotron.name);
+	    utils.trace('Committing', jumbotron.name);
 	    if (jumbotron.commitTimer) {
 		clearTimeout(jumbotron.commitTimer);
 		jumbotron.commitTimer = null;
@@ -300,7 +300,7 @@ Store.prototype = {
 
 	// Otherwise schedule a commit if not already scheduled
 	else if (! jumbotron.commitTimer) {
-	    utils.debug('Scheduling commit for', jumbotron.name);
+	    utils.trace('Scheduling commit for', jumbotron.name);
 	    jumbotron.commitTimer = setTimeout(
 		this.commitJumbotron.bind(this, jumbotron, true, cb),
 		params.commitDelay * 1000);
