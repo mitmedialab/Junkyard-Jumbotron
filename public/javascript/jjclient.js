@@ -150,14 +150,12 @@ Client.prototype = {
 	}
     },
 
-    startTracing: function startTracing() {
-	this.doTrace = true;
+    startPinging: function startPinging() {
 	if (! this.pingTimer)
 	    this.pingTimer = setInterval(bind(this, this.ping), 60000);
     },
 
-    stopTracing: function stopTracing() {
-	this.doTrace = false;
+    stopPinging: function stopPinging() {
 	if (this.pingTimer) {
 	    clearInterval(this.pingTimer);
 	    this.pingTimer = null;

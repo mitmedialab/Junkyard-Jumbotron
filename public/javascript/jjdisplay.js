@@ -74,12 +74,11 @@ function Display() {
 
     this.viewportMsgScheduled = null;
 
-    // Start tracing if there is a '?trace' or similar in the url
-    if (this.doTrace)
-	this.startTracing();
-
     this.initDom();
     this.initSocket();
+
+    if (this.doDebug)
+	this.startPinging();
 }
 
 Display.prototype = new Client();
