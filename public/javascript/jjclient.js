@@ -89,6 +89,7 @@ function Client() {
 			      trace: 'false' });
     this.doDebug = this.query.debug == 'undefined' || this.query.debug == 'true';
     this.doTrace = this.query.trace == 'undefined' || this.query.trace == 'true';
+    this.socket = null;
 }
 
 Client.prototype = {
@@ -128,7 +129,8 @@ Client.prototype = {
 
     connectSocket: function connectSocket() {
 	var socket = this.socket;
-	socket.disconnect();
+	if (socket.connected)
+	    socket.disconnect();
 	this.info('Connecting to', socket.host, socket.options.port);
 	socket.connect();
 

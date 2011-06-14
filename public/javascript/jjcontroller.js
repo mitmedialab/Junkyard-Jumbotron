@@ -40,9 +40,7 @@ function x(status) {
 
 function Controller() {
     Client.call(this);
-    //this.initSocket();
     this.initControls();
-    this.initSocket();
     this.jumbotron = null;
 }
 
@@ -260,6 +258,9 @@ $.extend(Controller.prototype, {
     },
 
     controlJumbotron: function controlJumbotron(jumbotron) {
+	//if (! this.socket)
+	//this.initSocket();
+
 	this.jumbotron = jumbotron;
 	if (jumbotron.mode == 'calibrate')
 	    this.setMode('calibrate');

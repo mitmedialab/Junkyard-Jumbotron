@@ -404,7 +404,7 @@ Server.prototype = {
 	    this.createJumbotron(options, function(err, jumbotron) {
 		var status = err || 'ok';
 		if (! err)
-		    this.createController(req, res, jumbotron);
+		    controller = this.createController(req, res, jumbotron);
 		this.sendPostResponse(res, controller, status, jumbotron);
 	    }.bind(this));
 	},
