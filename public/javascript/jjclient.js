@@ -93,7 +93,6 @@ Client.prototype = {
 
     initSocket: function initSocket() {
 	var socket = this.socket = new io.Socket(null, {
-	    port: location.port,
 	    // Everything but flashsocket, as per comments in google groups
 	    //   (flashsocket are not working well in Android)
 	    transports: ['websocket', 'htmlfile', 'xhr-multipart',
