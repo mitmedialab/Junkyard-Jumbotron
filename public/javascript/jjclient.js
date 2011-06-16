@@ -9,11 +9,11 @@ function isFunction(obj) {
 }
 
 function isArguments(obj) {
-    return !!(obj && hasOwnProperty.call(obj, 'callee'));
+    return !! (obj && Object.prototype.hasOwnProperty.call(obj, 'callee'));
 }
 
 function isString(obj) {
-    return !!(obj === '' || (obj && obj.charCodeAt && obj.substr));
+    return !! (obj === '' || (obj && obj.charCodeAt && obj.substr));
 }
 
 function isUndefined(obj) {
@@ -81,14 +81,12 @@ if (io) {
 // Base class for Display and Controller.
 
 function Client() {
-    this.connectTimeout = null;
-    this.pingTimer = null;
-
     this.query = parseQuery({ debug: 'false',
 			      trace: 'false' });
     this.doDebug = this.query.debug == 'undefined' || this.query.debug == 'true';
     this.doTrace = this.query.trace == 'undefined' || this.query.trace == 'true';
     this.socket = null;
+    this.pingTimer = null;
 }
 
 Client.prototype = {
@@ -96,16 +94,19 @@ Client.prototype = {
     initSocket: function initSocket() {
 	var socket = this.socket = new io.Socket(null, {
 	    port: location.port,
-	    // Everything but flashsocket, as per comments in google groups (not working well in Android)
-	    transports: ['websocket', 'htmlfile', 'xhr-multipart', 'xhr-polling', 'jsonp-polling'],
-	    rememberTransport: false
+	    // Everything but flashsocket, as per comments in google groups
+	    //   (flashsocket are not working well in Android)
+	    transports: ['websocket', 'htmlfile', 'xhr-multipart',
+			 'xhr-polling', 'jsonp-polling'],
+	    connectTimeout: 5000,
+	    tryTransportsOnConnectTimeout: true,
+	    rememberTransport: true
 	});
 
 	// socket.90 v0.6.8: timeout doesn't work very well
 	socket.on('connect', bind(this, function() {
 	    this.info('Connected with', this.socket);
 	    // Stop any pending connect
-	    this.unscheduleConnect(); 
 	    this.sendInitMsg();
 
 	    var browser = navigator.appVersion || navigator.userAgent || "None";
@@ -115,40 +116,25 @@ Client.prototype = {
 	}));
 	socket.on('message', bind(this, this.handleMsg));
 	socket.on('connect_failed', bind(this, function() {
-	    this.info("Connection failed", this.socket);
-	    // Wait a bit and then create a new socket
-	    setTimeout(bind(this, this.initSocket), 1000);
+	    // Wait a bit and then try to reconnect
+	    var delay = 5;
+	    this.info("Connection failed, trying again in", delay, "second(s)");
+	    setTimeout(bind(this, this.connectSocket), delay * 1000);
 	}));
 	socket.on('disconnect', bind(this, function() {
-	    this.info("Disconnected", this.socket);
-	    // Try to reconnect
-	    this.scheduleConnect(0);
+	    // Wait a bit and then try to reconnect
+	    var delay = 1;
+	    this.info("Disconnected, trying again in", delay, "second(s)");
+	    setTimeout(bind(this, this.connectSocket), delay * 1000);
 	}));
 	this.connectSocket();
     },
 
     connectSocket: function connectSocket() {
 	var socket = this.socket;
-	if (socket.connected)
-	    socket.disconnect();
-	this.info('Connecting to', socket.host, socket.options.port);
-	socket.connect();
-
-	// Try again in 20 seconds if no connection was made (server down?)
-	this.scheduleConnect(20 * 1000);
-    },
-
-    scheduleConnect: function scheduleConnect(delay) {
-	//this.info("Scheduling reconnecting in", delay);
-        this.unscheduleConnect();
-	this.connectTimeout = setTimeout(bind(this, this.connectSocket), delay);
-    },
-
-    unscheduleConnect: function unscheduleConnect() {
-	if (this.connectTimeout) {
-	    //this.info("Unscheduling reconnect", this.connectTimeout);
-	    clearTimeout(this.connectTimeout);
-	    this.connectTimeout = null;
+	if (! socket.connected && ! socket.connecting) {
+	    this.info('Connecting to', socket.host, socket.options.port);
+	    socket.connect();
 	}
     },
 
