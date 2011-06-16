@@ -86,8 +86,8 @@ Display.prototype = new Client();
 $.extend(Display.prototype, {
 
     initDom: function initDom() {
-	// This ony works on IE, Firefox and Chrome, not Safari or Android
-	//window.onerror = bind(this, this.handleError);
+	// This ony works on IE, Firefox and Chrome, not Safari (or Android?)
+	window.onerror = bind(this, this.handleError);
 	$(window)
 	    .resize   (bind(this, this.handleResize));
 	$(document)
