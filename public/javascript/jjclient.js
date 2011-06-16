@@ -1,6 +1,5 @@
 // ======================================================================
 // Utilities
-
 function bind(instance, method) {
     return function() { return method.apply(instance, arguments); };
 }
@@ -97,7 +96,8 @@ Client.prototype = {
     initSocket: function initSocket() {
 	var socket = this.socket = new io.Socket(null, {
 	    port: location.port,
-	    //transports: ['xhr-polling'],
+	    // Everything but flashsocket, as per comments in google groups (not working well in Android)
+	    transports: ['websocket', 'htmlfile', 'xhr-multipart', 'xhr-polling', 'jsonp-polling'],
 	    rememberTransport: false
 	});
 
