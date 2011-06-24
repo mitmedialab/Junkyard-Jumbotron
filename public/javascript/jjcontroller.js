@@ -16,10 +16,11 @@ var localizeTable = {
 
     'need name'	: "Please enter a name for the Jumbotron",
     'bad name'	: "Jumbotron names must begin with a letter or number"
-	+ " and may only contain letters, numbers, dashes, and underscores",
+	+ " and may contain only letters, numbers, dashes, and underscores",
     'duplicate'	: "A Jumbotron named {0} already exists, would you like to control it?",
+    'no jumbotron': "No Jumbotron named {0} exists, would you like to create one?",
 
-    'need file' : "Please browse for an image file", 
+    'need file' : "Please choose an image file to upload", 
     'bad image'	: "Can't understand that image, please try another",
 
     'delete'	: "Delete the current image?",
@@ -54,6 +55,17 @@ $.extend(Controller.prototype, {
     isValidJumbotronName: function isValidJumbotronName(name) {
 	var regExp = /^[a-zA-Z0-9][a-zA-Z0-9_-]*$/;
 	return regExp.test(name);
+    },
+
+    checkJumbotronName: function checkJumbotronName(name) {
+	var ok = false;
+	if (! name) 
+	    alert(x('need name'));
+	else if (! this.isValidJumbotronName(name)) 
+	    alert(x('bad name'));
+	else
+	    ok = true;
+	return ok;
     },
 
     checkStatus: function checkStatus(response) {
@@ -94,26 +106,14 @@ $.extend(Controller.prototype, {
     },
 
     setMode: function setMode(mode) {
-	// Can't disable jquery pages, so turn off jquery-mobilen navigation 
-	$('.jjNavBar').undelegate('a', 'click');
-
-	switch(mode) {
-	  case 'create':
-	    this.changePage('create');
-	    break;
-	  case 'calibrate':
-	    if (! this.jumbotron)
-		return;// this.setMode('create');
-	    this.postMsg('setMode', { mode: 'calibrate' });
-	    this.changePage('calibrate');
-	    break;
-	  case 'control':
-	    if (! this.jumbotron)
-		return;// this.setMode('create');
-	    this.postMsg('setMode', { mode: 'image' });
-	    this.changePage('control');
-	    break;
-	}
+	//console.log("Setting mode to " + mode);
+	this.postMsg('setMode', { mode: mode });
+    },
+    setCalibrateMode: function setCalibrateMode(mode) {
+	this.setMode('calibrate');
+    },
+    setImageMode: function setImageMode(mode) {
+	this.setMode('image');
     },
     
     // ----------------------------------------------------------------------
@@ -124,13 +124,8 @@ $.extend(Controller.prototype, {
 	jjJoinForm: {
 
 	    beforeSubmit: function validate(data, form, options) { 
-		var ok = false;
 		var name = getValue("jjJoinName");
-		if (! name)
-		    alert(x('need name'));
-		else if (! this.isValidJumbotronName(name))
-		    alert(x('bad name'));
-		else
+		if (this.checkJumbotronName(name))
 		    window.location = name;
 		return false;
 	    }
@@ -140,15 +135,7 @@ $.extend(Controller.prototype, {
 	jjCreateForm: {
 
 	    beforeSubmit: function validate(data, form, options) { 
-		var ok = false;
-		var name = getValue("jjCreateName");
-		if (! name)
-		    alert(x('need name'));
-		else if (! this.isValidJumbotronName(name))
-		    alert(x('bad name'));
-		else
-		    ok = true;
-		return ok;
+		return this.checkJumbotronName(getValue("jjCreateName"));
 	    },
 
 	    success: function(response) {
@@ -158,16 +145,42 @@ $.extend(Controller.prototype, {
 		    this.controlJumbotron(response.args);
 		    break;
 		  case 'duplicate':
-		    name = getValue("jjCreateName");
+		    var name = getValue("jjCreateName");
 		    if (confirm(x('duplicate', name))) {
 			this.postMsg('control', { name: name  },
+				     bind(this, function(response) {
+					 this.controlJumbotron(response.args);
+				     }));
+		    }
+		    break;
+		  default:
+		    alert(x('unknown error', 'create', status));
+		    break;
+		}
+	    }
+	},
+
+	jjControlForm: {
+	    beforeSubmit: function validate(data, form, options) { 
+		return this.checkJumbotronName(getValue("jjControlName"));
+	    },
+	    success: function(response) {
+		var status = response.status;
+		switch (status) {
+		  case 'ok':
+		    this.controlJumbotron(response.args);
+		    break;
+		  case 'no jumbotron':
+		    var name = getValue("jjControlName");
+		    if (confirm(x('no jumbotron', name))) {
+			this.postMsg('create', { name: name  },
 				     bind(this, function(response) {
 			    this.controlJumbotron(response.args);
 			}));
 		    }
 		    break;
 		  default:
-		    alert(x('unknown error', 'create', status));
+		    alert(x('unknown error', 'control', status));
 		    break;
 		}
 	    }
@@ -178,19 +191,19 @@ $.extend(Controller.prototype, {
 		var ok = true;
 		data = this.convertFormData(data);
 		var file = data.file;
-		if (! file) {
-		    // TODO: check if jumbotron has been calibrated yet
-		    this.setMode('control');
+		if (! file)  {
+		    alert(x('need file'));
 		    ok = false;
 		}
 		return ok;
 	    },
 	    success: function success(response) {
 		var status = response.status;
-		var feedback = response.args || status;
-		alert(feedback);
+		console.log(response);
 		if (status == 'ok')
-		    this.setMode('control');
+		    this.changePage('success');
+		else
+		    this.changePage('failure');
 	    }
 	},
 
@@ -217,7 +230,6 @@ $.extend(Controller.prototype, {
 	jjSlideshowPrev : { action: 'slideshow', args: { control: 'prev'  } },
 	jjSlideshowNext : { action: 'slideshow', args: { control: 'next'  } },
 	jjSlideshowStop : { action: 'slideshow', args: { control: 'stop'  } },
-
 	jjSlideshowPlay: {
 	    action: 'slideshow',
 	    args: function() {
@@ -258,15 +270,16 @@ $.extend(Controller.prototype, {
     },
 
     controlJumbotron: function controlJumbotron(jumbotron) {
-	//if (! this.socket)
-	//this.initSocket();
+	if (! this.socket)
+	    this.initSocket();
 
 	this.jumbotron = jumbotron;
-	if (jumbotron.mode == 'calibrate')
-	    this.setMode('calibrate');
+	
+	if (jumbotron.mode == 'calibrate') {
+	    this.changePage('setup');
+	}
 	else {
-	    this.debug(jumbotron);
-	    this.setMode('control');
+	    this.changePage('control');
 	}
 
 	var root = window.location.host;
@@ -333,28 +346,33 @@ $.extend(Controller.prototype, {
 	}
 
 	var name = $.cookie('jjname');
-	if (name)
+	if (name) {
 	    $('#jjCreateName').val(name);
+	    $('#jjControlName').val(name);
+	}
 
-	$('.jjNavCreate').click(bind(this, function(event) {
-	    this.setMode('create');
-	}));
-	$('.jjNavCalibrate').click(bind(this, function(event) {
-	    this.setMode('calibrate');
-	}));
-	$('.jjNavControl').click(bind(this, function(event) {
-	    this.setMode('control');
-	}));
+	$('#setup').bind('pageshow', bind(this, this.setCalibrateMode));
+	$('#calibrate').bind('pageshow', bind(this, this.setCalibrateMode));
+	$('#success').bind('pageshow', bind(this, this.setImageMode));
+	$('#failure').bind('pageshow', bind(this, this.setCalibrateMode));
+	$('#control').bind('pageshow', bind(this, this.setImageMode));
 
 	$('.jjButton').button()
 	    .siblings('.ui-btn-inner')
 	    .css({ padding: "4px 0" });
-    }
+    },
 
     // ----------------------------------------------------------------------
     // Communication 
 
+    sendInitMsg: function sendInitMsg() {
+	var id = $.cookie('jjid');
+	var name = this.getJumbotronName();
+	this.sendMsg('connect', { jjid: id, jjname: name, type: 'controller' });
+    },
 
+    msgHandlers : {
+    }
 });
 
 // ----------------------------------------------------------------------
@@ -366,4 +384,5 @@ $(document).bind("mobileinit", function() {
 $(function() {
     var controller = new Controller();
     $('.jsOnly').css({ display: 'block' });
+
 });

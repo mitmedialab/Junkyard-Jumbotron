@@ -32,14 +32,12 @@ html(lang="en")
       })();
 
   body
-
+    //----------------------------------------------------------------------
     //- Home
     div(data-role="page", id="home")
-
       div.jsOnly(data-role="header", data-position="fixed", data-backbtn="false")
         a.jjNavHome(href="#home", data-icon="home") Home
         h1 Junkyard Jumbotron
-        a.jjNavHelp(href="#help", data-icon="info") Help
 
       div(data-role="content")
         div.jjMainTop
@@ -48,10 +46,11 @@ html(lang="en")
               | The Junkyard Jumbotron requires javascript.
               br
               | Please enable javascript in your browser preferences.
-          img#jjExampleImage(src="images/example.jpg")
+          img#jjExampleImg(src="images/example.jpg")
         div.jjSidebar
           p
-            a.jjButton(href="#create") Create One
+            a.jjButton(href="#create", title="Create a new Jumbotron") Create
+            a.jjButton(href="#connect", title="Control an existing Jumbotron") Connect
             hr
             | Questions, comments or success stories? Let us know on
             a(href="http://www.facebook.com/junkyardjumbotron")
@@ -84,6 +83,8 @@ html(lang="en")
             | Media.
           p
             | The software is BETA.
+
+    //----------------------------------------------------------------------
     //- Help
     div.jsOnlyPage(data-role="page", id="help")
 
@@ -95,132 +96,196 @@ html(lang="en")
       div(data-role="content")
         p Sorry, no help yet. Stay tuned!
 
+    //----------------------------------------------------------------------
     //- Create
     div.jsOnlyPage(data-role="page", id="create")
-
       div(data-role="header", data-position="fixed", data-backbtn="false")
         a.jjNavHome(href="#home", data-icon="home") Home
         h1.jjTitle Junkyard Jumbotron
-        a.jjNavHelp(href="#help", data-icon="info") Help
-        div.jjNavBar(data-role="navbar")
-          ul
-            li
-              a.jjNavCreate.ui-btn-active(href="#") 1. Create
-            li
-              a.jjNavCalibrate(href="#") 2. Calibrate
-            li
-              a.jjNavControl(href="#") 3. Control
-
       div(data-role="content")
-        div
-          div.jjStepNumber 1
-          div.jjStepHeader What is the name of your jumbotron?
-          div.jjStepBody
-            form#jjCreateForm(action="create", method="POST", data-ajax="false")
-              input#jjCreateName(name="name", type="text")
-              input#jjCreateSubmit(name="create", type="submit", value="Create") Next
-            p Tip: you can also connect to an existing jumbotron
+        div.jjStepNumber 1
+        div.jjStepTitle Create
+        div.jjStepBody
+          p We need a name for your new jumbotron.
+          form#jjCreateForm(action="create", method="POST", data-ajax="false")
+            input#jjCreateName(name="name", type="text")
+            p.jjStepHeader Tips
+            ul
+              li Names must begin with a letter or number and may contain only letters, numbers, dashes, and underscores.
+              li At any time you can connect to this jumbotron from the home page.
+            input#jjCreateSubmit(name="create", type="submit", value="Next") Next
 
 
+    //----------------------------------------------------------------------
+    //- Connect
+    div.jsOnlyPage(data-role="page", id="connect")
+      div(data-role="header", data-position="fixed", data-backbtn="false")
+        a.jjNavHome(href="#home", data-icon="home") Home
+        h1.jjTitle Junkyard Jumbotron
+      div(data-role="content")
+        div.jjStepNumber 1
+        div.jjStepTitle Connect
+        div.jjStepBody
+          p What is the name of your jumbotron?
+          form#jjControlForm(action="control", method="POST", data-ajax="false")
+            input#jjControlName(name="name", type="text")
+            input#jjControlSubmit(name="control", type="submit", value="Next") Next
+
+    //----------------------------------------------------------------------
+    //- Setup
+    div.jsOnlyPage(data-role="page", id="setup")
+      div(data-role="header", data-position="fixed", data-backbtn="false")
+        a.jjNavHome(href="#home", data-icon="home") Home
+        h1.jjTitle Junkyard Jumbotron
+      div(data-role="content")
+        div.jjStepNumber 2
+        div.jjStepTitle Setup
+        div.jjStepBody
+          p Arrange your displays, open a web browser on each, and navigate to
+            span.jjDisplayUrl jj.brownbag.me/none
+          p They should look something like this:
+          img.jjImgBig(src="images/instr/setup.png")
+          div.jjStepHeader Tips
+          ul
+            li Make sure the symbol on each display isn't hidden by another display.
+          div.jjStepHeader Problems?
+          ul
+            li 
+              | If some displays are black, you may be using a browser
+              | we don't support. We support most modern browsers other than
+              | Internet Explorer. Try Chrome, Firefox or Safari instead.
+          a(href="#calibrate", data-role="button") Next
+
+    //----------------------------------------------------------------------
     //- Calibrate
     div.jsOnlyPage(data-role="page", id="calibrate")
-
       div(data-role="header", data-position="fixed", data-backbtn="false")
         a.jjNavHome(href="#home", data-icon="home") Home
         h1.jjTitle Junkyard Jumbotron
-        a.jjNavHelp(href="#help", data-icon="info") Help
-        div.jjNavBar(data-role="navbar")
-          ul
-            li
-              a.jjNavCreate(href="#") 1. Create
-            li
-              a.jjNavCalibrate.ui-btn-active(href="#") 2. Calibrate
-            li
-              a.jjNavControl(href="#") 3. Control
-
       div(data-role="content")
-
-        div
-          div.jjStepNumber 2
-          div.jjStepHeader Open
-            span.jjDisplayUrl jj.brownbag.me/none
-            span on each of the devices.
-            br
-            span Take a calibration picture and upload it below or email it to 
+        div.jjStepNumber 3
+        div.jjStepTitle Calibrate
+        div.jjStepBody
+          p Take a picture of the displays.
+          img.jjImgBig(src="images/instr/photo.png")
+          p Email the picture to
             span.jjEmailUrl none@jj.brownbag.me
-          div.jjStepBody
-            form#jjCalibrateForm(action="upload", enctype="multipart/form-data", method="POST", data-ajax="false")
-              input#jjCalibrateType(name="type", type="hidden", value="calibrate")
-              input#jjCalibrateFile(name="file", type="file")
-              p 
-                | If emailing the image, please wait until the
-                | "Jumbotron" image comes up before clicking Next or
-                | Control above. (We're working on a fix!) 
-                | If the calibration doesn't work, check your email for feedback.
-              input#jjCalibrateSubmit(name="calibrate", type="submit", value="Next")
-            p Tip: Make sure each marker can be seen completely and avoid glare.
+            span or upload it below.
+          div.jjStepHeader Tips
+          ul
+            li Make sure each symbol can be seen completely in the picture.
+            li Avoid glare and other reflections that might hide the symbols.
+            li Try to take the picture from directly in front of the displays.
+            li If you've already calibrated your jumbotron, you may 
+              a(href="#control") skip this step
+          form#jjCalibrateForm(action="upload", enctype="multipart/form-data", method="POST", data-ajax="false")
+            input#jjCalibrateType(name="type", type="hidden", value="calibrate")
+            input#jjCalibrateFile(name="file", type="file")
+            input#jjCalibrateSubmit(name="calibrate", type="submit", value="Upload")
 
+    //----------------------------------------------------------------------
+    //- Success
+    div.jsOnlyPage(data-role="page", id="success")
+      div(data-role="header", data-position="fixed", data-backbtn="false")
+        a.jjNavHome(href="#home", data-icon="home") Home
+        h1.jjTitle Junkyard Jumbotron
+      div(data-role="content")
+        div.jjStepNumber 4
+        div.jjStepTitle Success!
+        div.jjStepBody
+          p We received your picture and created a jumbotron out of the displays we found.
+          p Your displays should now look something like this:
+          img.jjImgBig(src="images/instr/success.png")
+          p.jjStepHeader Problems?
+          ul
+            li 
+              img.jjImgSmall(src="images/error.png")
+              | If you see a warning sign on one of the displays,
+              | it means we coudn't find that display.
+              a(href="#setup") Try again
+              | , and make sure to follow the tips.
+          div(style="clear:both;")
+            a(href="#control", data-role="button") Next
+
+    //----------------------------------------------------------------------
+    //- Failure
+    div.jsOnlyPage(data-role="page", id="failure")
+      div(data-role="header", data-position="fixed", data-backbtn="false")
+        a.jjNavHome(href="#home", data-icon="home") Home
+        h1.jjTitle Junkyard Jumbotron
+      div(data-role="content")
+        div.jjStepNumber !
+        div.jjStepTitle Whoops!
+        div.jjStepBody
+          p We received your picture but didn't find any displays.
+          p
+            a(href="#setup") Try again
+            | , and make sure to follow the tips.
+          a(href="#setup", data-role="button") Try again
+
+    //----------------------------------------------------------------------
     //- Control
     div.jsOnlyPage(data-role="page", id="control")
-
       div(data-role="header", data-position="fixed", data-backbtn="false")
         a.jjNavHome(href="#home", data-icon="home") Home
         h1.jjTitle Junkyard Jumbotron
-        a.jjNavHelp(href="#help", data-icon="info") Help
-        div.jjNavBar(data-role="navbar")
-          ul
-            li
-              a.jjNavCreate(href="#") 1. Create
-            li
-              a.jjNavCalibrate(href="#") 2. Calibrate
-            li
-              a.jjNavControl.ui-btn-active(href="#") 3. Control
-
       div(data-role="content")
+        div.jjStepNumber 5
+        div.jjStepTitle Control
+        div.jjStepBody
+          p
+            |  Here you can add and remove images,
+            | step through them individually, play them in a slideshow,
+            | or resize them.
+            | You can also recalibrate if you'd like to rearrange,
+            | add, or remove displays.
 
-        div
-          div.jjStepNumber 3
-          div.jjStepHeader Upload pictures below or email them to 
+          div.jjStepHeader Add
+          p Email pictures to
             span.jjEmailUrl none@jj.brownbag.me
+            span or upload them below.
+          form#jjUploadForm(action="upload", enctype="multipart/form-data", method="POST", data-ajax="false")
+            input#jjUploadType(name="type", type="hidden", value="image")
+            input#jjUploadFile(name="file", type="file")
+            input#jjUploadSubmit(name="upload", type="submit", value="Upload")
+          
+          div.jjStepHeader Remove
+          div#jjDeleteButtons(data-role="controlgroup", data-type="horizontal")  
+            a#jjDeleteOne(data-role="button", href="#") Delete Current
+            a#jjDeleteAll(data-role="button", href="#") Delete All
 
-          div.jjStepBody
-            form#jjUploadForm(action="upload", enctype="multipart/form-data", method="POST", data-ajax="false")
-              input#jjUploadType(name="type", type="hidden", value="image")
-              input#jjUploadFile(name="file", type="file")
-              input#jjUploadSubmit(name="upload", type="submit", value="Upload")
+          div.jjStepHeader Slideshow
+          div#jjSlideshowButtons(data-role="controlgroup", data-type="horizontal")
+            a#jjSlideshowFirst(data-role="button", href="#") 
+            a#jjSlideshowPrev(data-role="button", href="#")  
+            a#jjSlideshowPlay(data-role="button", href="#")  
+            a#jjSlideshowStop(data-role="button", href="#")  
+            a#jjSlideshowNext(data-role="button", href="#")  
+            a#jjSlideshowLast(data-role="button", href="#")  
+            input#jjSlideshowInterval(name="interval", type="hidden", value="5")
 
-            div#jjControls(data-role="fieldcontain")
-              //- Slideshow
-              div#jjSlideshowButtons(data-role="controlgroup", data-type="horizontal")
-                a#jjSlideshowFirst(data-role="button", href="#") 
-                a#jjSlideshowPrev(data-role="button", href="#")  
-                a#jjSlideshowPlay(data-role="button", href="#")  
-                a#jjSlideshowStop(data-role="button", href="#")  
-                a#jjSlideshowNext(data-role="button", href="#")  
-                a#jjSlideshowLast(data-role="button", href="#")  
-                input#jjSlideshowInterval(name="interval", type="hidden", value="5")
-              //- Fit
-              div#jjFitButtons(data-role="controlgroup", data-type="horizontal")  
-                a#jjFitMaximize(data-role="button", href="#") Max
-                a#jjFitMinimize(data-role="button", href="#") Min
-                a#jjFitStretch(data-role="button", href="#") Stretch
-              //- Delete
-              div#jjDeleteButtons(data-role="controlgroup", data-type="horizontal")  
-                a#jjDeleteOne(data-role="button", href="#") Delete
-                a#jjDeleteAll(data-role="button", href="#") Delete All
-              //- Debug
-              div#jjShowButtons(data-role="controlgroup", data-type="horizontal")  
-                a#jjShowIdOn(data-role="button", href="#") Ids On
-                a#jjShowIdOff(data-role="button", href="#") Ids Off
+          div.jjStepHeader Resize
+          div#jjFitButtons(data-role="controlgroup", data-type="horizontal")  
+            a#jjFitMaximize(data-role="button", href="#") Max
+            a#jjFitMinimize(data-role="button", href="#") Min
+            a#jjFitStretch(data-role="button", href="#") Stretch
 
+          div.jjStepHeader Recalibrate
+          div#jjRecalibrateButtons(data-role="controlgroup", data-type="horizontal")  
+            a#jjRecalibrate(data-role="button", href="#setup") Recalibrate
+
+          div.jjStepHeader Debug
+          div#jjShowButtons(data-role="controlgroup", data-type="horizontal")  
+            a#jjShowIdOn(data-role="button", href="#") Ids On
+            a#jjShowIdOff(data-role="button", href="#") Ids Off
+
+    // ----------------------------------------------------------------------
     //- Join
     div.jsOnlyPage(data-role="page", id="join")
 
       div(data-role="header", data-position="fixed", data-backbtn="false")
         a.jjNavHome(href="#home", data-icon="home") Home
         h1 Junkyard Jumbotron
-        a.jjNavHelp(href="#help", data-icon="info") Help
-
       div(data-role="content")
         div
           p There's no jumbotron with that name, please try again.

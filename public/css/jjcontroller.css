@@ -1,128 +1,150 @@
 a {
-  text-decoration:  none;
+    text-decoration:none;
 } 
 a:hover   {
-  text-decoration:  underline;
+    text-decoration:underline;
 } 
+
+#jjExampleImg {
+    width:280px;
+    display:block;
+    margin-left:auto;
+    margin-right:auto;
+}
+
+#jjExampleVideo {
+    display:block;
+    margin-left:auto;
+    margin-right:auto;
+}
+
+.jjImgBig {
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+    width: 400px;
+}
+
+.jjImgSmall {
+    display: block;
+    vertical-align:middle;
+    margin: 0px 40px 20px 0px;
+    float:right;
+    width: 200px;
+}
 
 /* Paragraph style for no-javascript warning */
 .jsNone {
-    border-style: solid;
-    border-width: 1px;
-    margin: 10px;
-    padding: 5px;
-    text-align: center;
+    border-style:solid;
+    border-width:1px;
+    margin:10px;
+    padding:5px;
+    text-align:center;
 }
 
 /* Only show these if javascript is enabled. Need to separate out
 pages (.jsOnlyPage), which jquery mobile handles, from other elements
 (.jsOnly).  */
 .jsOnly, .jsOnlyPage {
-    display: none;
+    display:none;
 }
 
 .jjMainTop {
-    float: left;
-    padding: 15px 0px;
-    width: 75%;
+    float:left;
+    padding:15px 0px;
+    width:75%;
 }
 
 .jjSidebar {
-    font-size: smaller;
-    float: right;
-    width: 22%;
-    padding: 0 0 20px 4px;
+    font-size:smaller;
+    float:right;
+    width:22%;
+    padding:0 0 20px 4px;
     background:#F0F0F0;
 }
 
 .jjMainBottom {
-    clear: both;
+    clear:both;
 }
 
 .jjCaption {
-    font-size: smaller;
-    text-align: center;
-    margin: 0;
-    padding: 0;
+    font-size:smaller;
+    text-align:center;
+    margin:0;
+    padding:0;
 }
 
 .jjStepNumber {
-    font-size: xx-large;
-    font-weight: bolder;
-    border-style: solid;
-    border-width: 3px;
-    margin: 5px;
-    padding: 0px 5px;
-    float: left;
-}
-
-.jjStepHeader {
-    width: 75%;
-    margin: 15px 10px;
+    font-size:xx-large;
+    font-weight:bolder;
+    border-style:solid;
+    border-width:3px;
+    margin:5px;
+    padding:0px 5px;
     float:left;
 }
 
+.jjStepTitle {
+    font-size:x-large;
+    font-weight:bolder;
+    width:75%;
+    margin:15px 10px;
+    float:left;
+}
+
+.jjStepHeader {
+    font-size:large;
+    font-weight:bolder;
+}
+
 .jjStepBody {
-    clear: both;
-}
-
-#jjExampleImage {
-    width:280px;
-    display:block;
-    margin-left: auto;
-    margin-right: auto;
-}
-
-#jjExampleVideo {
-    display:block;
-    margin-left: auto;
-    margin-right: auto;
+    clear:both;
 }
 
 .jjDisplayUrl, .jjEmailUrl {
-    font-size: large;
-    font-weight: bold;
-    margin: 7px;
+    font-size:large;
+    font-weight:bolder;
+    margin:7px;
 }
 
 #jjSlideshowPlay, #jjSlideshowStop, #jjSlideshowPrev,
 #jjSlideshowNext, #jjSlideshowFirst, #jjSlideshowLast {
-    background-image: url(../images/jj-play-icons-36-black.png);
+    background-image:url(../images/jj-play-icons-36-black.png);
     background-repeat:no-repeat;
-    width: 36px;
+    width:36px;
     height:36px;
-    padding: 6px;
+    padding:6px;
 }
  
-#jjSlideshowPlay  { background-position:    6px 4px; }
-#jjSlideshowStop  { background-position:  -66px 4px; }
-#jjSlideshowPrev  { background-position: -138px 4px; }
-#jjSlideshowNext  { background-position: -210px 4px; }
-#jjSlideshowFirst { background-position: -282px 4px; }
-#jjSlideshowLast  { background-position: -354px 4px; }
+#jjSlideshowPlay  { background-position:   6px 4px; }
+#jjSlideshowStop  { background-position: -66px 4px; }
+#jjSlideshowPrev  { background-position:-138px 4px; }
+#jjSlideshowNext  { background-position:-210px 4px; }
+#jjSlideshowFirst { background-position:-282px 4px; }
+#jjSlideshowLast  { background-position:-354px 4px; }
 
-#jjControls {
-    text-align: center;
+#jjSlideshowButtons, #jjDeleteButtons, #jjFitButtons, #jjShowButtons, #jjRecalibrateButtons {
+    text-align:center;
 }
 
 #jjCreateName, #jjCalibrateFile, #jjUploadFile {
-    width: 95%;
+    width:95%;
 }
 
 /* ---------------------------------------------------------------------- */
 
 body {
-    max-width: 600px;
+    max-width:600px;
 }
 
 .ui-mobile-viewport {
-    max-width: 600px;
-    min-height: 100%;
-    margin: 0 auto;
+    max-width:600px;
+    min-height:100%;
+    margin:0 auto;
     position:relative;
 }
 
 .ui-content {
-    background: #F0F0F0;
-    padding: 0 15px;
+    background:#F0F0F0;
+    padding:0 15px;
 }
