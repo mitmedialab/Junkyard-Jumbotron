@@ -2,6 +2,7 @@
 
 # OS-X cruft
 .DS_Store?
+.DS_Store
 Icon?
 
 # Emacs backups
