@@ -11,14 +11,14 @@ function getValue(field) {
 // TODO: optionally include each language
 
 var localizeTable = {
-    'unknown error'	: "Can't {0}\n({1})",
+    'unknown error'	: "Unknown error in {0}: {1}",
     'localize error'	: "Can't localize {0}",
 
     'need name'	: "Please enter a name for the Jumbotron",
     'bad name'	: "Jumbotron names must begin with a letter or number"
 	+ " and may contain only letters, numbers, dashes, and underscores",
     'duplicate'	: "A Jumbotron named {0} already exists, would you like to control it?",
-    'no jumbotron': "No Jumbotron named {0} exists, would you like to create one?",
+    'no jumbotron': "No Jumbotron named {0} exists.",
 
     'need file' : "Please choose an image file to upload", 
     'bad image'	: "Can't understand that image, please try another",
@@ -44,7 +44,7 @@ function Controller() {
     this.initControls();
     this.jumbotron = null;
     this.doDebug = true;
-    this.doTrace = true;
+    this.doTrace = false;
 }
 
 Controller.prototype = new Client();
@@ -71,8 +71,12 @@ $.extend(Controller.prototype, {
     },
 
     checkStatus: function checkStatus(response) {
-	if (response.status != 'ok')
-	    alert(x('unknown error', 'complete', response.status));
+	status = response.status;
+	if (status != 'ok') {
+	    if (response.args)
+		status = JSON.stringify(response.args);
+	    alert(x('unknown error', 'checkStatus', status));
+	}
     },
 
     convertFormData: function convertFormData(data) {
@@ -103,6 +107,11 @@ $.extend(Controller.prototype, {
 	$.post(cmd, args, success || this.checkStatus, dataType || 'json');
     },
 
+    setJumbotronMode: function setJumbotronMode(mode) {
+	this.debug("Setting mode to", mode);
+	this.postMsg('setMode', { mode: mode });
+    },
+
     changePage: function changePage(which) {
 	$.mobile.changePage("#" + which);
     },
@@ -111,45 +120,38 @@ $.extend(Controller.prototype, {
 	return $.mobile.activePage.attr('id');
     },
 
-    setMode: function setMode(mode) {
-	console.log("Setting mode to " + mode);
-	this.postMsg('setMode', { mode: mode });
-    },
-
     handlePageChange: function handlePageChange(event) {
 	var which = $(event.target).attr('id');
-	var doConnect = true;
+	var mode = false;
 
+	// Change jumbotron mode if necessary
 	// TODO: slideshow?
 	switch (which) {
 	  case 'home':
-	    doConnect = false;
-	    break;
 	  case 'create':
-	    break;
 	  case 'connect':
 	    break;
 	  case 'setup':
-	    this.setMode('calibrate');
+	    mode = 'calibrate';
 	    break;
 	  case 'calibrate':
-	    this.setMode('calibrate');
+	    mode = 'calibrate';
 	    break;
 	  case 'success':
-	    this.setMode('image');
+	    mode = 'image';
 	    break;
 	  case 'failure':
-	    this.setMode('calibrate');
+	    mode = 'calibrate';
 	    break;
 	  case 'control':
-	    this.setMode('image');
+	    mode = 'image';
 	    break;
 	}
 
-	if (doConnect) {
+	if (mode) {
 	    if (! this.socket)
 		this.initSocket();
-	    this.sendInitMsg();
+	    this.setJumbotronMode(mode);
 	}
     },
 
@@ -209,12 +211,7 @@ $.extend(Controller.prototype, {
 		    break;
 		  case 'no jumbotron':
 		    var name = getValue("jjControlName");
-		    if (confirm(x('no jumbotron', name))) {
-			this.postMsg('create', { name: name  },
-				     bind(this, function(response) {
-			    this.controlJumbotron(response.args);
-			}));
-		    }
+		    alert(x('no jumbotron', name));
 		    break;
 		  default:
 		    alert(x('unknown error', 'control', status));
@@ -306,9 +303,6 @@ $.extend(Controller.prototype, {
     },
 
     controlJumbotron: function controlJumbotron(jumbotron) {
-	if (! this.socket)
-	    this.initSocket();
-
 	this.jumbotron = jumbotron;
 	
 	if (jumbotron.mode == 'calibrate') {
@@ -406,7 +400,7 @@ $.extend(Controller.prototype, {
     // Communication 
 
     sendInitMsg: function sendInitMsg() {
-	var id = $.cookie('jjid');
+	var id   = $.cookie('jjid');
 	var name = $.cookie('jjname');
 	if (id && name)
 	    this.sendMsg('connect', { jjid: id, jjname: name, type: 'controller' });
@@ -429,6 +423,7 @@ $.extend(Controller.prototype, {
 	    this.jumbotron = args;
 	    var mode = this.jumbotron.mode;
 
+	    // If the jumbotron mode has changed, switch pages
 	    switch (this.activePage()) {
 	      case 'home':
 	      case 'create':

@@ -56,7 +56,7 @@ Server.prototype = {
 	// Initialize logging
 	this.initLogging();
 	info('\n----------------------------------------------------------------------');
-	if (params.debug) {
+	if (params.debug != 'INFO') {
 	    this.logEnvironment();
 	    this.logOsStats();
 	    setInterval(this.logOsStats, 10 * 60 * 1000); // Every 10 minutes
@@ -116,10 +116,14 @@ Server.prototype = {
 
 	// Set logging level, and clear out debug function for speed
 	var logger = log4js.getLogger();
-	logger.setLevel(params.debug ? 'DEBUG' : 'INFO');
-	logger.setLevel('TRACE')
-	if (! params.debug)
+	logger.setLevel(params.debug || 'INFO');
+	if (params.debug == 'INFO') {
 	    debug = utils.debug = function() {};
+	    trace = utils.trace = function() {};
+	}
+	else if (params.debug == 'DEBUG') {
+	    trace = utils.trace = function() {};
+	}
     },
 
     logEnvironment: function logEnvironment() {
