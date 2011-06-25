@@ -106,8 +106,8 @@ module.exports = {
     // [jumbotron-name]@thiserver.com.  Override this in paramLocal.js
     imageReceiveServer: '@thisserver.com',
 	
-    // Debug flags
-    debug: true
+    // Debug level 'INFO', 'DEBUG', 'TRACE'
+    debug: 'DEBUG'
 };
 
 // Merge in local changes, if any
