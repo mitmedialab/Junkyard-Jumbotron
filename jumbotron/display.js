@@ -39,11 +39,6 @@ Display.prototype = utils.inherits(Client, {
 	return ! this.viewport.isEmpty();
     },
 
-    sendId: function sendId() {
-	this.sendMsg('id', { id: this.idx,
-			     name: this.jumbotron.name });
-    },
-
     sendLoad: function sendLoad() {
 	var jumbotron = this.jumbotron;
 	var src       = jumbotron.getDisplayImage(this).source;

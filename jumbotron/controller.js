@@ -13,7 +13,11 @@ function Controller(options) {
 Controller.prototype = utils.inherits(Client, {
     
     // Client type
-    type: "controller"
+    type: "controller",
+
+    sendJumbotron: function sendJumbotron() {
+	this.sendMsg('jumbotron', this.jumbotron);
+    }
 
 });
 

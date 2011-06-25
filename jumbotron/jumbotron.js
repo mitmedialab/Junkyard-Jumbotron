@@ -430,6 +430,18 @@ Jumbotron.prototype = utils.inherits(Base, {
     // ----------------------------------------------------------------------
     // Broadcast messages to clients
 
+    broadcastUpload: function broadcastUpload(what, status) {
+	this.forEachController(function(controller) {
+	    controller.sendMsg('upload', { what: what, status: status });
+	}, null, true);
+    },
+
+    broadcastJumbotron: function broadcastJumbotron() {
+	this.forEachController(function(controller) {
+	    controller.sendJumbotron();
+	}, null, true);
+    },
+
     broadcastLoad: function broadcastLoad() {
 	this.forEachDisplay(function(display) {
 	    display.sendLoad();

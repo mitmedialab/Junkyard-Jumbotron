@@ -43,6 +43,8 @@ function Controller() {
     Client.call(this);
     this.initControls();
     this.jumbotron = null;
+    this.doDebug = true;
+    this.doTrace = true;
 }
 
 Controller.prototype = new Client();
@@ -105,17 +107,52 @@ $.extend(Controller.prototype, {
 	$.mobile.changePage("#" + which);
     },
 
+    activePage: function activePage() {
+	return $.mobile.activePage.attr('id');
+    },
+
     setMode: function setMode(mode) {
-	//console.log("Setting mode to " + mode);
+	console.log("Setting mode to " + mode);
 	this.postMsg('setMode', { mode: mode });
     },
-    setCalibrateMode: function setCalibrateMode(mode) {
-	this.setMode('calibrate');
+
+    handlePageChange: function handlePageChange(event) {
+	var which = $(event.target).attr('id');
+	var doConnect = true;
+
+	// TODO: slideshow?
+	switch (which) {
+	  case 'home':
+	    doConnect = false;
+	    break;
+	  case 'create':
+	    break;
+	  case 'connect':
+	    break;
+	  case 'setup':
+	    this.setMode('calibrate');
+	    break;
+	  case 'calibrate':
+	    this.setMode('calibrate');
+	    break;
+	  case 'success':
+	    this.setMode('image');
+	    break;
+	  case 'failure':
+	    this.setMode('calibrate');
+	    break;
+	  case 'control':
+	    this.setMode('image');
+	    break;
+	}
+
+	if (doConnect) {
+	    if (! this.socket)
+		this.initSocket();
+	    this.sendInitMsg();
+	}
     },
-    setImageMode: function setImageMode(mode) {
-	this.setMode('image');
-    },
-    
+
     // ----------------------------------------------------------------------
     // Buttons, forms and other controls
 
@@ -199,7 +236,6 @@ $.extend(Controller.prototype, {
 	    },
 	    success: function success(response) {
 		var status = response.status;
-		console.log(response);
 		if (status == 'ok')
 		    this.changePage('success');
 		else
@@ -325,6 +361,7 @@ $.extend(Controller.prototype, {
     },
 
     initControls: function initControls() {
+	// Handle control events
 	for (var controlId in this.controlOptions) {
 	    // Massage arguments
 	    var options = this.controlOptions[controlId];
@@ -345,18 +382,21 @@ $.extend(Controller.prototype, {
 		this.initControl(control, options);
 	}
 
+	// Set default jumbotron names from last use 
 	var name = $.cookie('jjname');
 	if (name) {
 	    $('#jjCreateName').val(name);
 	    $('#jjControlName').val(name);
 	}
 
-	$('#setup').bind('pageshow', bind(this, this.setCalibrateMode));
-	$('#calibrate').bind('pageshow', bind(this, this.setCalibrateMode));
-	$('#success').bind('pageshow', bind(this, this.setImageMode));
-	$('#failure').bind('pageshow', bind(this, this.setCalibrateMode));
-	$('#control').bind('pageshow', bind(this, this.setImageMode));
+	// Handle page changes TODO: get a list of all pages
+	var pages = {home:1, create:1, connect:1, setup:1, calibrate:1,
+		     success:1, failure:1, control:1};
+	for (var page in pages) {
+	    $('#' + page).bind('pageshow', bind(this, this.handlePageChange));
+	}
 
+	// Fix button margins
 	$('.jjButton').button()
 	    .siblings('.ui-btn-inner')
 	    .css({ padding: "4px 0" });
@@ -367,11 +407,48 @@ $.extend(Controller.prototype, {
 
     sendInitMsg: function sendInitMsg() {
 	var id = $.cookie('jjid');
-	var name = this.getJumbotronName();
-	this.sendMsg('connect', { jjid: id, jjname: name, type: 'controller' });
+	var name = $.cookie('jjname');
+	if (id && name)
+	    this.sendMsg('connect', { jjid: id, jjname: name, type: 'controller' });
     },
 
     msgHandlers : {
+
+	upload: function upload(args) {
+	    var what = args.what;
+	    var status = args.status;
+	    if (what == 'calibration') {
+		if (args.status == 'ok')
+		    this.changePage('success');
+		else
+		    this.changePage('failure');
+	    }
+	},
+
+	jumbotron: function jumbotron(args) {
+	    this.jumbotron = args;
+	    var mode = this.jumbotron.mode;
+
+	    switch (this.activePage()) {
+	      case 'home':
+	      case 'create':
+	      case 'connect':
+		break;
+
+	      case 'setup':
+	      case 'calibrate':
+	      case 'failure':
+		if (mode == 'image')
+		    this.changePage('control');
+		break;
+
+	      case 'success':
+	      case 'control':
+		if (mode == 'calibrate')
+		    this.changePage('setup');
+		break;
+	    }
+	}
     }
 });
 
