@@ -36,36 +36,36 @@ html(lang="en")
     //- Home
     div(data-role="page", id="home")
       div.jsOnly(data-role="header", data-position="fixed", data-backbtn="false")
-        a.jjNavHome(href="#home", data-icon="home") Home
         h1 Junkyard Jumbotron
 
       div(data-role="content")
+        div.jjSidebar
+            a.jjButton(href="#create", title="Create a new Jumbotron") Create
+            a.jjButton(href="#connect", title="Control an existing Jumbotron") Connect
+            hr
+            a.jjLink(href="http://player.vimeo.com/video/20962561") Watch video
+            hr
+            a.jjLink(href="https://github.com/c4fcm/Junkyard-Jumbotron") Get code
+            hr
+            a.jjLink(href="mailto:jumbotron@media.mit.edu") Contact us
+            hr
+            | Questions, comments, or success stories?
+            | Let us know at
+            a(href="http://www.facebook.com/junkyardjumbotron")
+              img#facebookLink(src="images/facebook_logo.jpg", height="21", alt="Facebook")
+            hr
+            iframe#facebookLike(src="http://www.facebook.com/plugins/like.php?href=http%3A%2F%2Fjumbotron.media.mit.edu&amp;layout=button_count&amp;show_faces=true&amp;action=like&amp;font&amp;colorscheme=light&amp;height=21", scrolling="no", frameborder="0", allowTransparency="true")
+            a(href="http://twitter.com/share", class="twitter-share-button", data-url="http://jumbotron.media.mit.edu", data-text="Junkyard Jumbotron", data-count="none") Tweet
+            script(type="text/javascript", src="http://platform.twitter.com/widgets.js")
+
         div.jjMainTop
           noscript
             p.jsNone
               | The Junkyard Jumbotron requires javascript.
               br
               | Please enable javascript in your browser preferences.
-          img#jjExampleImg(src="images/example.jpg")
-        div.jjSidebar
-          p
-            a.jjButton(href="#create", title="Create a new Jumbotron") Create
-            a.jjButton(href="#connect", title="Control an existing Jumbotron") Connect
-            hr
-            | Questions, comments or success stories? Let us know on
-            a(href="http://www.facebook.com/junkyardjumbotron")
-              img(src="images/facebook_logo.jpg", height="21", alt="Facebook", , style="margin:4px 0px 0px 0px;")
-            hr
-            a.jjLink(href="http://player.vimeo.com/video/20962561") Watch the video
-            hr
-            a.jjLink(href="https://github.com/c4fcm/Junkyard-Jumbotron") Get the code
-            hr
-            iframe(src="http://www.facebook.com/plugins/like.php?href=http%3A%2F%2Fjumbotron.media.mit.edu&amp;layout=button_count&amp;show_faces=true&amp;action=like&amp;font&amp;colorscheme=light&amp;height=21", scrolling="no", frameborder="0", style="border:none; overflow:hidden; height:21px;", allowTransparency="true")
-            hr
-            a(href="http://twitter.com/share", class="twitter-share-button", data-url="http://jumbotron.media.mit.edu", data-text="Junkyard Jumbotron", data-count="none") Tweet
-            script(type="text/javascript", src="http://platform.twitter.com/widgets.js")
-            hr
-            a.jjLink(href="mailto:jumbotron@media.mit.edu") Contact us
+          img.jjImgMed(src="images/instr/setup.png")
+
         div.jjMainBottom
           p
             | The
@@ -198,13 +198,13 @@ html(lang="en")
           img.jjImgBig(src="images/instr/success.png")
           p.jjStepHeader Problems?
           ul
-            li 
+            li.clearafter
               img.jjImgSmall(src="images/error.png")
               | If you see a warning sign on one of the displays,
               | it means we coudn't find that display.
               a(href="#setup") Try again
               | , and make sure to follow the tips.
-          div(style="clear:both;")
+          div
             a(href="#control", data-role="button") Next
 
     //----------------------------------------------------------------------
