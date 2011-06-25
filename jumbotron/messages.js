@@ -11,7 +11,7 @@ var messages = {
     'upload error'      : ("Can't upload file to '{0}'\n" +
                            "{1}"),
 
-    'bad command'       : ("Unknown POST command '{1}'"),
+    'bad command'       : ("Unknown POST command '{0}'"),
 
     'bad email'         : ("Badly formatted message\n" +
                            "Sorry, we can't understand your email message."),
