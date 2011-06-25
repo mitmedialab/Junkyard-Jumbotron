@@ -43,7 +43,7 @@ function Controller() {
     Client.call(this);
     this.initControls();
     this.jumbotron = null;
-    this.doDebug = true;
+    this.doDebug = false;
     this.doTrace = false;
 }
 
