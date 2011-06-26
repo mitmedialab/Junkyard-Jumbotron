@@ -124,8 +124,8 @@ $.extend(Controller.prototype, {
 	var which = $(event.target).attr('id');
 	var mode = false;
 
+
 	// Change jumbotron mode if necessary
-	// TODO: slideshow?
 	switch (which) {
 	  case 'home':
 	  case 'create':
@@ -138,17 +138,26 @@ $.extend(Controller.prototype, {
 	    mode = 'calibrate';
 	    break;
 	  case 'success':
-	    mode = 'image';
+	    if (this.jumbotron && this.jumbotron.mode == 'calibrate')
+		mode = 'image';
 	    break;
 	  case 'failure':
 	    mode = 'calibrate';
 	    break;
 	  case 'control':
-	    mode = 'image';
+	    if (this.jumbotron && this.jumbotron.mode == 'calibrate')
+		mode = 'image';
 	    break;
 	}
 
 	if (mode) {
+	    // This only happens when someone clears their cookies
+	    var id   = $.cookie('jjid');
+	    var name = $.cookie('jjname');
+	    if (! id || ! name) {
+		this.changePage('home');
+		return;
+	    }
 	    if (! this.socket)
 		this.initSocket();
 	    this.setJumbotronMode(mode);
@@ -304,19 +313,21 @@ $.extend(Controller.prototype, {
 
     controlJumbotron: function controlJumbotron(jumbotron) {
 	this.jumbotron = jumbotron;
-	
 	if (jumbotron.mode == 'calibrate') {
 	    this.changePage('setup');
 	}
 	else {
 	    this.changePage('control');
 	}
+	this.updateLabels();
+    },
 
+    updateLabels: function updateLabels() {
 	var root = window.location.host;
-	var name = jumbotron.name;
+	var name = this.jumbotron.name;
 	$('.jjTitle').text(name);
 	$('.jjDisplayUrl').text(root + '/' + name);
-	$('.jjEmailUrl').text(name + jumbotron.imageReceiveServer);
+	$('.jjEmailUrl').text(name + this.jumbotron.imageReceiveServer);
     },
 
     initButton: function initButton(button, options) {
@@ -419,7 +430,7 @@ $.extend(Controller.prototype, {
 	    }
 	},
 
-	jumbotron: function jumbotron(args) {
+	setJumbotron: function setJumbotron(args) {
 	    this.jumbotron = args;
 	    var mode = this.jumbotron.mode;
 
@@ -443,6 +454,8 @@ $.extend(Controller.prototype, {
 		    this.changePage('setup');
 		break;
 	    }
+
+	    this.updateLabels();
 	}
     }
 });

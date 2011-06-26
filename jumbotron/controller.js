@@ -16,7 +16,7 @@ Controller.prototype = utils.inherits(Client, {
     type: "controller",
 
     sendJumbotron: function sendJumbotron() {
-	this.sendMsg('jumbotron', this.jumbotron);
+	this.sendMsg('setJumbotron', this.jumbotron);
     }
 
 });
