@@ -43,8 +43,6 @@ function Controller() {
     Client.call(this);
     this.initControls();
     this.jumbotron = null;
-    this.doDebug = false;
-    this.doTrace = false;
 }
 
 Controller.prototype = new Client();
@@ -71,7 +69,7 @@ $.extend(Controller.prototype, {
     },
 
     checkStatus: function checkStatus(response) {
-	status = response.status;
+	var status = response.status;
 	if (status != 'ok') {
 	    if (response.args)
 		status = JSON.stringify(response.args);
