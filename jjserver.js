@@ -56,7 +56,7 @@ Server.prototype = {
 	// Initialize logging
 	this.initLogging();
 	info('\n----------------------------------------------------------------------');
-	if (params.debug) {
+	if (params.debug != 'INFO') {
 	    this.logEnvironment();
 	    this.logOsStats();
 	    setInterval(this.logOsStats, 10 * 60 * 1000); // Every 10 minutes
@@ -116,9 +116,14 @@ Server.prototype = {
 
 	// Set logging level, and clear out debug function for speed
 	var logger = log4js.getLogger();
-	logger.setLevel(params.debug ? 'DEBUG' : 'INFO');
-	if (! params.debug)
+	logger.setLevel(params.debug || 'INFO');
+	if (params.debug == 'INFO') {
 	    debug = utils.debug = function() {};
+	    trace = utils.trace = function() {};
+	}
+	else if (params.debug == 'DEBUG') {
+	    trace = utils.trace = function() {};
+	}
     },
 
     logEnvironment: function logEnvironment() {
@@ -436,9 +441,12 @@ Server.prototype = {
 	    if (! (mode in { image:1, calibrate:1 }))
 		return 'bad mode';
 
-	    jumbotron.mode = mode;
-	    this.commitJumbotron(jumbotron);
-	    jumbotron.broadcastLoad();
+	    if (jumbotron.mode != mode) {
+		jumbotron.mode = mode;
+		this.commitJumbotron(jumbotron);
+		jumbotron.broadcastJumbotron();
+		jumbotron.broadcastLoad();
+	    }
 	    return 'ok';
 	},
 
@@ -641,6 +649,7 @@ Server.prototype = {
 		    return cb(err, x(err, jumbotron.name));
 		if (! numFound) {
 		    // Save the calibration image (jumbotron.calibImages)
+		    jumbotron.broadcastUpload('calibration', 'bad');
 		    this.commitJumbotron(jumbotron, true);
 		    return cb('no displays', x('no displays', jumbotron.name));
 		}
@@ -652,6 +661,8 @@ Server.prototype = {
 		jumbotron.mode = "image";
 		jumbotron.fitImage("maximize");
 		this.commitJumbotron(jumbotron, true);
+		jumbotron.broadcastUpload('calibration', 'ok');
+		jumbotron.broadcastJumbotron();
 		jumbotron.broadcastLoad();
 		cb(null, x('calibrated', jumbotron.name, numFound));
 	    }.bind(this));
@@ -761,13 +772,19 @@ Server.prototype = {
     // Map sockets to clients
     
     setSocketClient: function setSocketClient(socket, client) {
-	debug(client.jumbotron.name, client.type, client.idx,
-	      "connected to socket", socket.sessionId);
-	this._socketMap[socket.sessionId] = { jName: client.jumbotron.name,
-					      idx: client.idx,
-					      clientId: client.clientId,
-					      type: client.type };
-	client.socket = socket;
+	if (client.socket != socket) {
+	    debug(client.jumbotron.name, client.type, client.idx,
+		  "connected to socket", socket.sessionId);
+	    this._socketMap[socket.sessionId] = { jName: client.jumbotron.name,
+						  idx: client.idx,
+						  clientId: client.clientId,
+						  type: client.type };
+	    client.socket = socket;
+	}
+	else {
+	    trace(client.jumbotron.name, client.type, client.idx,
+		  "already connected to socket", socket.sessionId);
+	}
     },
 
     getSocketClient: function getSocketClient(socket, cb) {
@@ -794,7 +811,8 @@ Server.prototype = {
 		  "disconnected from", socket.sessionId);
  	    delete this._socketMap[socket.sessionId];
 	    var getter = (item.type == "display")
-		? 'getDisplay' : 'getController';
+		? 'getDisplay'
+		: 'getController';
 	    this._manager[getter](item.jName, item.clientId, function(err, client) {
 		if (! err && client && client.socket == socket)
 		    client.socket = null;
@@ -805,7 +823,7 @@ Server.prototype = {
     // ----------------------------------------------------------------------
     // Clients
     
-    createDisplay: function createDisplay(socket, args, jumbotron) {
+    createDisplay: function createDisplay(args, jumbotron) {
 	var clientId = args.jjid;
 	var jName = args.jjname;
 	var aspectRatio = args.width / args.height;
@@ -827,32 +845,9 @@ Server.prototype = {
 	    this.commitJumbotron(jumbotron);
 	}
 
-	// Connect client with display
-	this.setSocketClient(socket, display);
-
-	// Send id and load image onto display
-	display.sendId();
-	display.sendLoad();
-
 	return display;
     },
 
-/*
-    createController: function createController(req, res, jumbotron) {
-	var clientId = req.cookies.jjid;
-
-	// If no controller, create one
-	var cont = jumbotron.getController(clientId);
-	if (! cont) {
-	    cont = new Controller({ clientId: req.cookies.jjid });
-	    jumbotron.addController(cont);
-	    this.commitJumbotron(jumbotron);
-	}
-
-	// Connect client to controller
-	this.connectController(req, res, cont);
-    },
-*/
 
     // ----------------------------------------------------------------------
     // Handle socket messages from clients
@@ -887,7 +882,6 @@ Server.prototype = {
 
 	connect: function connect(socket, display, args) {
 	    var jName = args.jjname;
-	    var type = args.type;
 
 	    this._manager.getJumbotron(jName, function(err, jumbotron) {
 		if (! err && ! jumbotron)
@@ -896,7 +890,15 @@ Server.prototype = {
 		    return error('In display connect:', err, jName);
 
 		// Create client
-		this.createDisplay(socket, args, jumbotron);
+		var display = this.createDisplay(args, jumbotron);
+
+		// Connect client with display
+		this.setSocketClient(socket, display);
+
+		// Send id and load image onto display
+		display.sendId();
+		display.sendLoad();
+
 	    }.bind(this));
 	},
 
@@ -925,8 +927,30 @@ Server.prototype = {
 
     // Handlers for messages from controllers
     controllerSocketMsgHandlers: {
-	connect: function connect(socket, controller, args) {
+	connect: function connect(socket, display, args) {
+	    var clientId = args.jjid;
+	    var jName = args.jjname;
+
+	    this._manager.getJumbotron(jName, function(err, jumbotron) {
+		if (! err && ! jumbotron)
+		    err = 'no jumbotron';
+		if (err)
+		    return error('In controller connect:', err, jName);
+		
+		// Find controller
+		var controller = jumbotron.getController(clientId);
+		if (! controller)
+		    return error('Bad controller:', clientId, jName);
+
+		// Connect client with controller
+		this.setSocketClient(socket, controller);
+
+		// Send current jumbotron 
+		controller.sendJumbotron();
+
+	    }.bind(this));
 	}
+
     },
 
     // ----------------------------------------------------------------------

@@ -47,37 +47,33 @@ def _find_best_change_basis_xform(markers):
     avg_center = reduce(operator.add, centers) / len(markers)
     avg_up     = reduce(operator.add, ups    ) / len(markers)
     avg_normal = reduce(operator.add, normals) / len(markers)
-    # Rotate about center for easier debugging latter
-    avg_center.x = avg_center.y = 0
     return _get_change_basis_xform(avg_center, avg_up, avg_normal)
 
 def _align_markers(markers):
-    """Unused test"""
+    """Project the markers along the camera view onto the same plane"""
+
+    # Calculate 'average' plane defined by the markers
     centers = (marker.world_center for marker in markers)
     normals = (marker.world_normal for marker in markers)
     avg_center = reduce(operator.add, centers) / len(markers)
     avg_normal = (reduce(operator.add, normals) / len(markers)).normalize()
-
     planen = avg_normal
-    planed = -avg_normal.dot(avg_center) 
+    planed = -avg_normal.dot(avg_center)  # Could use a constant as well
 
+    # Determine where the ray from the origin (camera center) to each
+    # marker vertex intersects the 'average' plane
     for marker in markers:
-        # Determine where the ray from the origin (camera center) to
-        # the marker intersects the plane
-        rayd = marker.world_center.normalize()
-        t = -planed / planen.dot(rayd)
-        marker.world_center = rayd * t
-        marker.world_vertices = [vertex * t for vertex in marker.world_vertices]
-            
+        ray =  marker.world_center
+        norm = -planed / planen.dot(ray)
+        marker.world_center = ray * norm
+        marker.world_vertices = [vertex * norm for vertex in marker.world_vertices]
+
+    centers = (marker.world_center for marker in markers)
+    avg_center = reduce(operator.add, centers) / len(markers)
+
 def _find_display_coords(marker, marker_vertices, display):
     """Calculate the display corners from the marker corners. For now,
     assume everything is orthogonal."""
-
-    # I think a better way to do this might be to calculate the marker
-    # coordinates in display space, find the transform from these to
-    # marker coordinates in screen space, and apply that transform to
-    # (0,0x1,1). This technique would work with non-orthogonal
-    # displays, if we should ever want them.
 
     # Get bounding box
     minv = Vec3.min(*marker_vertices)
@@ -94,7 +90,7 @@ def _find_display_coords(marker, marker_vertices, display):
     dar = display.aspectRatio
     if direction == 1 or direction == 3 :
         dar = 1.0 / dar
-    
+
     if dar > 1:
         # The display is bigger horizontally than vertically.
         width = size.y * dar
@@ -187,6 +183,10 @@ def _calibrate(jumbotron, displays, image, debug=False, debug_image=False):
     if debug_image:
         draw = ImageDraw.Draw(image, "RGBA")
 
+    # Initialize display viewports
+    for display in displays.values():
+        display.viewport = None
+
     # Find markers
     found_markers = artoolkit.detect(image, confidence_threshold=0.5,
                                      debug=False, debug_image=debug_image)
@@ -209,6 +209,9 @@ def _calibrate(jumbotron, displays, image, debug=False, debug_image=False):
 
     # Get camera xform
     cam_xform = _get_camera_xform(image)
+
+    # Align markers as best we can 
+    _align_markers(markers)
 
     # Find best fitting plane
     plane_xform = _find_best_change_basis_xform(markers)
@@ -252,11 +255,6 @@ def _calibrate(jumbotron, displays, image, debug=False, debug_image=False):
         _draw_rectangle(draw, allminv, allmaxv, "white", width=1)
     jumbotron.aspectRatio = allsize.x / allsize.y
 
-    # Initialize display viewports
-    #print(displays, file=sys.stderr)
-    for display in displays.values():
-        display.viewport = dict(x=0, y=0, width=0, height=0, rotation=0)
-
     # Normalize viewports and set in displays
     for marker, coord in zip(markers, coords):
         idx = marker.id
@@ -274,6 +272,9 @@ def _calibrate(jumbotron, displays, image, debug=False, debug_image=False):
         logging.debug("Final displays:")
         for marker, coord in zip(markers, coords):
             logging.debug("display {0} {1}".format(marker.id, coord))
+
+    if debug_image:
+        image.save("calibrate_out.jpg")
 
     return len(markers)
 

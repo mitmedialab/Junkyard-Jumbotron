@@ -35,6 +35,8 @@ module.exports = {
 	cp.exec(cmd, {env: {PATH: params.pythonPath}}, function(err, stdout, stderr) {
 	    if (err)
 		return cb && cb(err);
+	    if (stderr) // Useful for debugging
+		utils.info("Calibrate.py:", stderr);
 	    // Stdout occasionaly starts with bogus characters '??? 3'. 
 	    // Chop these. TODO: Why? On the python or node end? Unicode?
 	    stdout = stdout.substring(stdout.indexOf('{'));
@@ -48,12 +50,17 @@ module.exports = {
 	    jumbotron.aspectRatio = res.aspectRatio;
 	    var numFound = 0;
 	    for (var d in res.displays) {
+		//utils.info(d, res.displays[d].viewport);
 		var resDisplay = res.displays[d];
-		if (resDisplay.viewport.width > 0 &&
+		var display = jumbotron.getDisplay(resDisplay.clientId);
+		if (resDisplay.viewport &&
+		    resDisplay.viewport.width  > 0 &&
 		    resDisplay.viewport.height > 0) {
-		    var display = jumbotron.getDisplay(resDisplay.clientId);
 		    display.viewport = new Viewport(resDisplay.viewport);
 		    numFound++;
+		}
+		else {
+		    display.viewport = new Viewport();
 		}
 	    }
 	    cb && cb(null, numFound);
