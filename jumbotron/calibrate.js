@@ -50,7 +50,7 @@ module.exports = {
 	    jumbotron.aspectRatio = res.aspectRatio;
 	    var numFound = 0;
 	    for (var d in res.displays) {
-		utils.info(d, res.displays[d].viewport);
+		//utils.info(d, res.displays[d].viewport);
 		var resDisplay = res.displays[d];
 		var display = jumbotron.getDisplay(resDisplay.clientId);
 		if (resDisplay.viewport &&
