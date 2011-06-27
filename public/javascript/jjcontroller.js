@@ -102,12 +102,16 @@ $.extend(Controller.prototype, {
     },
 
     postMsg: function postMsg(cmd, args, success, dataType) {
+	this.trace("post>", cmd, JSON.stringify(args));
 	$.post(cmd, args, success || this.checkStatus, dataType || 'json');
     },
 
     setJumbotronMode: function setJumbotronMode(mode) {
-	this.debug("Setting mode to", mode);
-	this.postMsg('setMode', { mode: mode });
+	if (this.jumbotron) {
+	    this.jumbotron.mode = mode;
+	    this.trace("Setting mode to", mode);
+	    this.postMsg('setMode', { mode: mode });
+	}
     },
 
     changePage: function changePage(which) {
@@ -136,15 +140,21 @@ $.extend(Controller.prototype, {
 	    mode = 'calibrate';
 	    break;
 	  case 'success':
-	    if (this.jumbotron && this.jumbotron.mode == 'calibrate')
-		mode = 'image';
+	    if (this.jumbotron) {
+		mode = this.jumbotron.mode;
+		if (mode == 'calibrate')
+		    mode = 'image';
+	    }
 	    break;
 	  case 'failure':
 	    mode = 'calibrate';
 	    break;
 	  case 'control':
-	    if (this.jumbotron && this.jumbotron.mode == 'calibrate')
-		mode = 'image';
+	    if (this.jumbotron) {
+		mode = this.jumbotron.mode;
+		if (mode == 'calibrate')
+		    mode = 'image';
+	    }
 	    break;
 	}
 
