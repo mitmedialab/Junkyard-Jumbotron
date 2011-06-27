@@ -283,8 +283,13 @@ $.extend(Display.prototype, {
     },
 
     handleError: function handleError(msg, url, line) {
-	url = url.replace(/^.*(\\|\/|\:)/, ''); // path -> filename
-	this.error(msg + ' (' +  url + ":" + line + ')');
+	try {
+	    url = url.replace(/^.*(\\|\/|\:)/, ''); // path -> filename
+	    this.error(msg + ' (' +  url + ":" + line + ')');
+	}
+	catch (err) {
+	    console.log("[And that threw another error] " + err);
+	}
 	return true;
     },
 
