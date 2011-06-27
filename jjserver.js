@@ -781,6 +781,10 @@ Server.prototype = {
 						  type: client.type };
 	    client.socket = socket;
 	}
+	else {
+	    trace(client.jumbotron.name, client.type, client.idx,
+		  "already connected to socket", socket.sessionId);
+	}
     },
 
     getSocketClient: function getSocketClient(socket, cb) {

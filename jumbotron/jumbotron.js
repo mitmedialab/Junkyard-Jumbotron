@@ -14,6 +14,8 @@ var Controller	= require('./controller');
 var Display	= require('./display');
 var Image	= require('./image');
 
+var trace = utils.trace;
+
 // Constructor
 function Jumbotron(options) {
     Base.call(this, options);
@@ -130,11 +132,12 @@ Jumbotron.prototype = utils.inherits(Base, {
 	if (cont.idx < 0) {
 	    var idx = -1;
 	    for (var d in this.controllers)
-		idx = Math.max(idx, this.conts[d].idx);
+		idx = Math.max(idx, this.controllers[d].idx);
 	    cont.idx = idx + 1;
 	}
 	this.controllers[cont.clientId] = cont;
 	cont.jumbotron = this;
+	trace(this.name, cont.type, cont.idx, "added");
     },
     
     removeController: function removeController(cont) {
@@ -168,6 +171,7 @@ Jumbotron.prototype = utils.inherits(Base, {
 	}
 	this.displays[display.clientId] = display;
 	display.jumbotron = this;
+	trace(this.name, display.type, display.idx, "added");
     },
 
     removeDisplay: function removeDisplay(display) {
@@ -269,6 +273,8 @@ Jumbotron.prototype = utils.inherits(Base, {
 	if (this.images.length == 1)
 	    this.setFrame(0);
 
+	trace(this.name, "image", this.images.length-1, "added");
+
 	return this.images.length - 1;
     },
 
@@ -310,6 +316,8 @@ Jumbotron.prototype = utils.inherits(Base, {
 		this.setFrame(idx + 1);
 
 	    this._deleteImage(image);
+
+	    trace(this.name, "image", idx, "removed");
 	}
     },
 

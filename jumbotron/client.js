@@ -17,7 +17,7 @@ function Client(options) {
     this.jumbotron = options.jumbotron;
 
     // Unique index within the jumbotron, for identification
-    this.idx = options.idx || -1;
+    this.idx = options.idx === undefined ? -1 : options.idx;
 
     // Unique id, from the client's jjID
     this.clientId = options.clientId || 0;
