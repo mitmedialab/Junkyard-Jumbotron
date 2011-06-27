@@ -129,7 +129,7 @@ Jumbotron.prototype = utils.inherits(Base, {
     addController: function addController(cont) {
 	if (cont.idx < 0) {
 	    var idx = -1;
-	    for (var d in this.conts)
+	    for (var d in this.controllers)
 		idx = Math.max(idx, this.conts[d].idx);
 	    cont.idx = idx + 1;
 	}
