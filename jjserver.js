@@ -438,7 +438,7 @@ Server.prototype = {
 	    var jumbotron = controller.jumbotron;
 
 	    var mode = req.body.mode;
-	    if (! (mode in { image:1, calibrate:1 }))
+	    if (! (mode in { image:1, calibrate:1, slideshow:1 }))
 		return 'bad mode';
 
 	    if (jumbotron.mode != mode) {

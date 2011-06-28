@@ -134,21 +134,11 @@ $.extend(Controller.prototype, {
 	  case 'connect':
 	    break;
 	  case 'setup':
-	    mode = 'calibrate';
-	    break;
 	  case 'calibrate':
-	    mode = 'calibrate';
-	    break;
-	  case 'success':
-	    if (this.jumbotron) {
-		mode = this.jumbotron.mode;
-		if (mode == 'calibrate')
-		    mode = 'image';
-	    }
-	    break;
 	  case 'failure':
 	    mode = 'calibrate';
 	    break;
+	  case 'success':
 	  case 'control':
 	    if (this.jumbotron) {
 		mode = this.jumbotron.mode;
@@ -452,7 +442,7 @@ $.extend(Controller.prototype, {
 	      case 'setup':
 	      case 'calibrate':
 	      case 'failure':
-		if (mode == 'image')
+		if (mode != 'calibrate')
 		    this.changePage('control');
 		break;
 
